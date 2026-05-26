@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  role          Role      @default(CLIENT)
+  avatar        String?
+  bio           String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  services      Service[]
+  bookingsAsClient   Booking[] @relation("ClientBookings")
+  bookingsAsProvider Booking[] @relation("ProviderBookings")
+  reviewsGiven  Review[]  @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+}
+
+enum Role {
+  CLIENT
+  PROVIDER
+  ADMIN
+}
+
+model Service {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  category    String
+  location    String
+  available   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  provider    User      @relation(fields: [providerId], references: [id])
+  providerId  String
+  bookings    Booking[]
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  status      BookingStatus @default(PENDING)
+  date        DateTime
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  client      User          @relation("ClientBookings", fields: [clientId], references: [id])
+  clientId    String
+  provider    User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  providerId  String
+  service     Service       @relation(fields: [serviceId], references: [id])
+  serviceId   String
+  transaction Transaction?
+  review      Review?
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  amount        Float
+  currency      String            @default("MGA")
+  status        TransactionStatus @default(PENDING)
+  paymentMethod PaymentMethod
+  referenceId   String?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  booking       Booking           @relation(fields: [bookingId], references: [id])
+  bookingId     String            @unique
+}
+
+enum TransactionStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+enum PaymentMethod {
+  ORANGE_MONEY
+  MVOLA
+  AIRTEL_MONEY
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  author      User     @relation("ReviewsGiven", fields: [authorId], references: [id])
+  authorId    String
+  target      User     @relation("ReviewsReceived", fields: [targetId], references: [id])
+  targetId    String
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  bookingId   String   @unique
+}
