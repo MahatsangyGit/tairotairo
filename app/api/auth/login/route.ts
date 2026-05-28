@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
+import { signToken } from "@/lib/jwt";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,12 +42,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const token = signToken({
+      userId: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
     const { password: _, ...userWithoutPassword } = user;
 
-    return NextResponse.json(
+    const response = NextResponse.json(
       { message: "Connexion réussie", user: userWithoutPassword },
       { status: 200 }
     );
+
+    response.cookies.set("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 7,
+    });
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: "Erreur serveur" },
