@@ -27,7 +27,7 @@ export default function HomePage() {
             Trouvez un prestataire de confiance
           </h1>
           <p className="text-emerald-100 text-lg mb-8">
-            La marketplace de services à Madagascar — rapide, simple et sécurisé
+            La marketplace d'entraide à Madagascar — rapide, simple et sécurisé
           </p>
           <Link
             href="/services"
