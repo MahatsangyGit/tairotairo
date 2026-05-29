@@ -10,6 +10,13 @@ interface FormData {
   password: string;
 }
 
+interface UserResponse {
+  id:    string;
+  name:  string;
+  email: string;
+  role:  "CLIENT" | "PROVIDER" | "ADMIN";
+}
+
 export default function LoginPage() {
   const router = useRouter();
 
@@ -17,7 +24,7 @@ export default function LoginPage() {
     email: "",
     password: "",
   });
-  const [error, setError] = useState("");
+  const [error,   setError]   = useState("");
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -25,10 +32,10 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const res = await fetch("/api/auth/login", {
-        method: "POST",
+      const res  = await fetch("/api/auth/login", {
+        method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body:    JSON.stringify(formData),
       });
 
       const data = await res.json();
@@ -38,7 +45,17 @@ export default function LoginPage() {
         return;
       }
 
-      router.push("/");
+      // Redirection selon le rôle
+      const user: UserResponse = data.user;
+
+      if (user.role === "PROVIDER") {
+        router.push("/dashboard/provider");
+      } else if (user.role === "ADMIN") {
+        router.push("/dashboard/admin");
+      } else {
+        router.push("/dashboard/client");
+      }
+
       router.refresh();
     } catch {
       setError("Une erreur est survenue");
