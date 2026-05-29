@@ -290,10 +290,16 @@ export default function ServiceDetailPage() {
                       Le prestataire va confirmer votre demande.
                     </p>
                     <Link
-                      href="/services"
-                      className="text-emerald-600 text-sm font-medium hover:underline"
+                      href="/dashboard/client"
+                      className="block text-emerald-600 text-sm font-medium hover:underline mb-2"
                     >
-                      Voir d'autres services
+                      Voir mes réservations →
+                    </Link>
+                    <Link
+                      href="/services"
+                      className="text-gray-500 text-sm hover:underline"
+                    >
+                      Voir d&apos;autres services
                     </Link>
                   </div>
                 ) : (

@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
           },
         },
         client: {
-          select: { id: true, name: true, phone: true },
+          select: { id: true, name: true, phone: true, email: true },
         },
         provider: {
           select: { id: true, name: true, phone: true },
@@ -40,7 +40,7 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ bookings });
+    return NextResponse.json({ bookings, role: user.role });
   } catch (error) {
     return NextResponse.json(
       { error: "Erreur serveur" },

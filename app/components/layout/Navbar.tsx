@@ -32,6 +32,12 @@ export default function Navbar() {
               Connexion
             </Link>
             <Link
+              href="/dashboard/provider"
+              className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+            >
+              Espace pro
+            </Link>
+            <Link
               href="/auth/register"
               className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
             >
@@ -64,6 +70,12 @@ export default function Navbar() {
               className="text-gray-600 hover:text-emerald-600 font-medium"
             >
               Connexion
+            </Link>
+            <Link
+              href="/dashboard/provider"
+              className="text-gray-600 hover:text-emerald-600 font-medium"
+            >
+              Espace pro
             </Link>
             <Link
               href="/auth/register"
