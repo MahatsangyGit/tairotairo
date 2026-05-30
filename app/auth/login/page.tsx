@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+
+function safeCallbackUrl(url: string | null): string | null {
+  if (!url || !url.startsWith("/") || url.startsWith("//")) return null;
+  return url;
+}
 
 interface FormData {
   email: string;
@@ -17,8 +22,10 @@ interface UserResponse {
   role:  "CLIENT" | "PROVIDER" | "ADMIN";
 }
 
-export default function LoginPage() {
+function LoginPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -45,10 +52,11 @@ export default function LoginPage() {
         return;
       }
 
-      // Redirection selon le rôle
       const user: UserResponse = data.user;
 
-      if (user.role === "PROVIDER") {
+      if (callbackUrl) {
+        router.push(callbackUrl);
+      } else if (user.role === "PROVIDER") {
         router.push("/dashboard/provider");
       } else if (user.role === "ADMIN") {
         router.push("/dashboard/admin");
@@ -119,5 +127,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <p className="text-gray-500">Chargement...</p>
+        </div>
+      }
+    >
+      <LoginPageContent />
+    </Suspense>
   );
 }
