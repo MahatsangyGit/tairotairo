@@ -51,17 +51,33 @@ export default function Navbar() {
       >
         Services
       </Link>
+      <Link
+        href="/requests"
+        onClick={() => mobile && setIsMenuOpen(false)}
+        className="text-gray-600 hover:text-amber-600 font-medium transition-colors"
+      >
+        Demandes
+      </Link>
 
       {!authLoading && user && (
         <>
           {user.role === "CLIENT" && (
-            <Link
-              href="/dashboard/client"
-              onClick={() => mobile && setIsMenuOpen(false)}
-              className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
-            >
-              Mes réservations
-            </Link>
+            <>
+              <Link
+                href="/dashboard/client"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+              >
+                Réservations
+              </Link>
+              <Link
+                href="/dashboard/client/requests"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-amber-600 font-medium transition-colors"
+              >
+                Mes demandes
+              </Link>
+            </>
           )}
           {user.role === "PROVIDER" && (
             <>
@@ -71,6 +87,13 @@ export default function Navbar() {
                 className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
               >
                 Réservations
+              </Link>
+              <Link
+                href="/dashboard/provider/proposals"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+              >
+                Mes propositions
               </Link>
               <Link
                 href="/dashboard/provider/services"

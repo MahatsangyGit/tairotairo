@@ -4,13 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const LINKS = [
-  { href: "/dashboard/provider", label: "Réservations" },
-  { href: "/dashboard/provider/services", label: "Mes annonces" },
-  { href: "/dashboard/provider/proposals", label: "Mes propositions" },
-  { href: "/requests", label: "Demandes clients" },
+  { href: "/dashboard/client", label: "Mes réservations" },
+  { href: "/dashboard/client/requests", label: "Mes demandes" },
 ];
 
-export default function ProviderNav() {
+export default function ClientNav() {
   const pathname = usePathname();
 
   return (

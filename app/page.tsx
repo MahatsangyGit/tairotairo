@@ -29,12 +29,20 @@ export default function HomePage() {
           <p className="text-emerald-100 text-lg mb-8">
             La marketplace d'entraide à Madagascar — rapide, simple et sécurisé
           </p>
-          <Link
-            href="/services"
-            className="bg-white text-emerald-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-emerald-50 transition-colors inline-block"
-          >
-            Voir les services
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/services"
+              className="bg-white text-emerald-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-emerald-50 transition-colors inline-block"
+            >
+              Voir les services
+            </Link>
+            <Link
+              href="/requests"
+              className="bg-amber-500 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-amber-400 transition-colors inline-block"
+            >
+              Voir les demandes
+            </Link>
+          </div>
         </div>
       </section>
 
@@ -57,7 +65,25 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* CTA client */}
+      <section className="bg-amber-50 py-16 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">
+            Vous cherchez un prestataire ?
+          </h2>
+          <p className="text-gray-600 mb-6">
+            Publiez une annonce de demande et recevez des propositions
+          </p>
+          <Link
+            href="/dashboard/client/requests"
+            className="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors inline-block"
+          >
+            Publier une demande
+          </Link>
+        </div>
+      </section>
+
+      {/* CTA prestataire */}
       <section className="bg-emerald-50 py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
@@ -66,12 +92,20 @@ export default function HomePage() {
           <p className="text-gray-600 mb-6">
             Rejoignez TairoTairo et trouvez des clients près de chez vous
           </p>
-          <Link
-            href="/auth/register"
-            className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors inline-block"
-          >
-            Devenir prestataire
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href="/auth/register"
+              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors inline-block"
+            >
+              Devenir prestataire
+            </Link>
+            <Link
+              href="/requests"
+              className="bg-white text-emerald-600 border border-emerald-200 px-8 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition-colors inline-block"
+            >
+              Voir les demandes clients
+            </Link>
+          </div>
         </div>
       </section>
     </div>

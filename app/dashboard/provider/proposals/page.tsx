@@ -1,0 +1,247 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Navbar from "@/components/layout/Navbar";
+import ProviderNav from "@/components/layout/ProviderNav";
+import {
+  RESPONSE_STATUS_CLASS,
+  RESPONSE_STATUS_LABEL,
+  RequestResponseStatus,
+} from "@/lib/request-response-status";
+
+interface RequestSummary {
+  id: string;
+  title: string;
+  category: string;
+  location: string;
+  budget: number;
+  open: boolean;
+}
+
+interface ProviderResponse {
+  id: string;
+  message: string;
+  proposedPrice: number | null;
+  status: RequestResponseStatus;
+  createdAt: string;
+  request: RequestSummary;
+}
+
+export default function ProviderProposalsPage() {
+  const router = useRouter();
+
+  const [responses, setResponses] = useState<ProviderResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+
+  const fetchResponses = useCallback(async () => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/responses");
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/auth/login?callbackUrl=/dashboard/provider/proposals");
+          return;
+        }
+        if (res.status === 403) {
+          router.push("/dashboard/client");
+          return;
+        }
+        setError(data.error ?? "Erreur lors du chargement");
+        return;
+      }
+
+      setResponses(data.responses);
+    } catch {
+      setError("Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    fetchResponses();
+  }, [fetchResponses]);
+
+  const handleWithdraw = async (requestId: string, responseId: string) => {
+    if (!confirm("Retirer cette proposition ?")) return;
+
+    setWithdrawingId(responseId);
+    setActionError("");
+
+    try {
+      const res = await fetch(
+        `/api/requests/${requestId}/responses/${responseId}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ status: "WITHDRAWN" }),
+        }
+      );
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setActionError(data.error ?? "Impossible de retirer");
+        return;
+      }
+
+      setResponses((prev) =>
+        prev.map((r) =>
+          r.id === responseId ? { ...r, status: "WITHDRAWN" as const } : r
+        )
+      );
+    } catch {
+      setActionError("Une erreur est survenue");
+    } finally {
+      setWithdrawingId(null);
+    }
+  };
+
+  const counts = responses.reduce<Record<string, number>>(
+    (acc, r) => ({ ...acc, [r.status]: (acc[r.status] ?? 0) + 1 }),
+    {}
+  );
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+
+      <div className="max-w-4xl mx-auto px-4 py-10">
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace prestataire</h1>
+          <p className="text-gray-500 text-sm">Suivez vos propositions envoyées aux clients</p>
+        </div>
+
+        <ProviderNav />
+
+        {actionError && (
+          <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+            {actionError}
+          </p>
+        )}
+
+        {!loading && !error && responses.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+            {(["PENDING", "ACCEPTED", "REJECTED", "WITHDRAWN"] as RequestResponseStatus[]).map(
+              (s) => (
+                <div
+                  key={s}
+                  className="bg-white rounded-xl border border-gray-100 p-4 text-center"
+                >
+                  <p className="text-2xl font-bold text-gray-800">{counts[s] ?? 0}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{RESPONSE_STATUS_LABEL[s]}</p>
+                </div>
+              )
+            )}
+          </div>
+        )}
+
+        {loading && (
+          <div className="flex flex-col gap-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div
+                key={i}
+                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse h-32"
+              />
+            ))}
+          </div>
+        )}
+
+        {!loading && error && (
+          <div className="text-center py-16">
+            <p className="text-red-500 mb-4">{error}</p>
+            <button
+              onClick={fetchResponses}
+              className="text-emerald-600 font-medium hover:underline"
+            >
+              Réessayer
+            </button>
+          </div>
+        )}
+
+        {!loading && !error && responses.length === 0 && (
+          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
+            <p className="text-gray-500 mb-2">Aucune proposition envoyée</p>
+            <p className="text-gray-400 text-sm mb-4">
+              Parcourez les demandes clients et proposez vos services
+            </p>
+            <Link
+              href="/requests"
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 inline-block"
+            >
+              Voir les demandes
+            </Link>
+          </div>
+        )}
+
+        {!loading && !error && responses.length > 0 && (
+          <div className="flex flex-col gap-4">
+            {responses.map((response) => (
+              <div
+                key={response.id}
+                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+              >
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <div>
+                    <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
+                      {response.request.category}
+                    </span>
+                    <h3 className="font-semibold text-gray-800">
+                      {response.request.title}
+                    </h3>
+                    <p className="text-gray-500 text-sm mt-0.5">
+                      📍 {response.request.location} · Budget client{" "}
+                      {response.request.budget.toLocaleString("fr-MG")} Ar
+                    </p>
+                  </div>
+                  <span
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${RESPONSE_STATUS_CLASS[response.status]}`}
+                  >
+                    {RESPONSE_STATUS_LABEL[response.status]}
+                  </span>
+                </div>
+
+                <p className="text-gray-600 text-sm mb-3 whitespace-pre-line">
+                  {response.message}
+                </p>
+
+                {response.proposedPrice !== null && (
+                  <p className="text-emerald-600 font-semibold text-sm mb-4">
+                    Votre prix : {response.proposedPrice.toLocaleString("fr-MG")} Ar
+                  </p>
+                )}
+
+                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                  <Link
+                    href={`/requests/${response.request.id}`}
+                    className="text-sm text-emerald-600 font-medium hover:underline"
+                  >
+                    Voir la demande →
+                  </Link>
+                  {response.status === "PENDING" && (
+                    <button
+                      onClick={() => handleWithdraw(response.request.id, response.id)}
+                      disabled={withdrawingId === response.id}
+                      className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 ml-auto"
+                    >
+                      {withdrawingId === response.id ? "..." : "Retirer"}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

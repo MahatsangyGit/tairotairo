@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import ClientNav from "@/components/layout/ClientNav";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -244,14 +245,14 @@ export default function ClientDashboardPage() {
       <div className="max-w-4xl mx-auto px-4 py-10">
 
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">
-            Mes réservations
-          </h1>
+        <div className="mb-2">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace client</h1>
           <p className="text-gray-500 text-sm">
-            Suivez l'état de vos demandes de service
+            Suivez l&apos;état de vos réservations de services
           </p>
         </div>
+
+        <ClientNav />
 
         {actionError && (
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">

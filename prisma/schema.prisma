@@ -21,6 +21,8 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   services      Service[]
+  serviceRequests ServiceRequest[]
+  requestResponses RequestResponse[] @relation("ProviderResponses")
   bookingsAsClient   Booking[] @relation("ClientBookings")
   bookingsAsProvider Booking[] @relation("ProviderBookings")
   reviewsGiven  Review[]  @relation("ReviewsGiven")
@@ -47,6 +49,46 @@ model Service {
   provider    User      @relation(fields: [providerId], references: [id])
   providerId  String
   bookings    Booking[]
+}
+
+model ServiceRequest {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  budget      Float
+  category    String
+  location    String
+  desiredDate DateTime?
+  open        Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client      User      @relation(fields: [clientId], references: [id])
+  clientId    String
+  responses   RequestResponse[]
+}
+
+enum RequestResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+}
+
+model RequestResponse {
+  id            String                @id @default(cuid())
+  message       String
+  proposedPrice Float?
+  status        RequestResponseStatus @default(PENDING)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  request       ServiceRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId     String
+  provider      User                  @relation("ProviderResponses", fields: [providerId], references: [id])
+  providerId    String
+
+  @@unique([requestId, providerId])
 }
 
 model Booking {
