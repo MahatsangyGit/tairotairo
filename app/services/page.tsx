@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { Suspense, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import { SERVICE_CATEGORIES } from "@/lib/categories";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -31,25 +32,9 @@ interface Pagination {
   totalPages: number;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const CATEGORIES = [
-  "Plomberie",
-  "Mécanique",
-  "Électricité",
-  "Jardinage",
-  "Ménage",
-  "Cours",
-  "Informatique",
-  "Cuisine",
-  "Transport",
-  "Iraka",
-  "Evénementiel",
-];
-
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export default function ServicesPage() {
+function ServicesPageContent() {
   const searchParams = useSearchParams();
 
   // Initialisés depuis les query params (liens catégories depuis la home)
@@ -154,7 +139,7 @@ export default function ServicesPage() {
           >
             Tous
           </button>
-          {CATEGORIES.map((cat) => (
+          {SERVICE_CATEGORIES.map((cat) => (
             <button
               key={cat}
               onClick={() => handleCategoryClick(cat)}
@@ -286,5 +271,19 @@ export default function ServicesPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function ServicesPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <p className="text-gray-500">Chargement...</p>
+        </div>
+      }
+    >
+      <ServicesPageContent />
+    </Suspense>
   );
 }

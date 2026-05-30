@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
@@ -60,7 +60,15 @@ function StatusBadge({ status }: { status: BookingStatus }) {
 
 // ─── Sous-composant : carte réservation ───────────────────────────────────────
 
-function BookingCard({ booking }: { booking: Booking }) {
+function BookingCard({
+  booking,
+  onCancel,
+  cancellingId,
+}: {
+  booking: Booking;
+  onCancel: (id: string) => void;
+  cancellingId: string | null;
+}) {
   const date = new Date(booking.date).toLocaleDateString("fr-MG", {
     day:   "numeric",
     month: "long",
@@ -103,10 +111,19 @@ function BookingCard({ booking }: { booking: Booking }) {
         )}
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center gap-3">
+        {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
+          <button
+            onClick={() => onCancel(booking.id)}
+            disabled={cancellingId === booking.id}
+            className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50"
+          >
+            {cancellingId === booking.id ? "..." : "Annuler la réservation"}
+          </button>
+        )}
         <Link
           href={`/services/${booking.service.id}`}
-          className="text-sm text-emerald-600 font-medium hover:underline"
+          className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
         >
           Voir le service →
         </Link>
@@ -133,35 +150,77 @@ export default function ClientDashboardPage() {
   const [bookings,      setBookings]      = useState<Booking[]>([]);
   const [loading,       setLoading]       = useState(true);
   const [error,         setError]         = useState("");
+  const [actionError,   setActionError]   = useState("");
   const [activeFilter,  setActiveFilter]  = useState<BookingStatus | "ALL">("ALL");
+  const [cancellingId,  setCancellingId]  = useState<string | null>(null);
 
-  // ── Fetch réservations ────────────────────────────────────────────────────
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    setError("");
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const res  = await fetch("/api/bookings");
-        const data = await res.json();
+    try {
+      const res  = await fetch("/api/bookings");
+      const data = await res.json();
 
-        if (!res.ok) {
-          if (res.status === 401) {
-            router.push("/auth/login");
-            return;
-          }
-          setError(data.error ?? "Erreur lors du chargement");
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/auth/login");
           return;
         }
-
-        setBookings(data.bookings);
-      } catch {
-        setError("Une erreur est survenue");
-      } finally {
-        setLoading(false);
+        setError(data.error ?? "Erreur lors du chargement");
+        return;
       }
-    };
 
-    fetchBookings();
+      if (data.role === "PROVIDER") {
+        router.push("/dashboard/provider");
+        return;
+      }
+
+      setBookings(data.bookings);
+    } catch {
+      setError("Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
   }, [router]);
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
+  const handleCancel = async (id: string) => {
+    if (!confirm("Annuler cette réservation ?")) return;
+
+    setCancellingId(id);
+    setActionError("");
+
+    try {
+      const res = await fetch(`/api/bookings/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: "CANCELLED" }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/auth/login");
+          return;
+        }
+        setActionError(data.error ?? "Impossible d'annuler");
+        return;
+      }
+
+      setBookings((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, status: "CANCELLED" } : b))
+      );
+    } catch {
+      setActionError("Une erreur est survenue");
+    } finally {
+      setCancellingId(null);
+    }
+  };
 
   // ── Filtrage local ────────────────────────────────────────────────────────
 
@@ -193,6 +252,12 @@ export default function ClientDashboardPage() {
             Suivez l'état de vos demandes de service
           </p>
         </div>
+
+        {actionError && (
+          <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
+            {actionError}
+          </p>
+        )}
 
         {/* Stat cards */}
         {!loading && !error && bookings.length > 0 && (
@@ -247,7 +312,7 @@ export default function ClientDashboardPage() {
           <div className="text-center py-20">
             <p className="text-red-500 mb-4">{error}</p>
             <button
-              onClick={() => window.location.reload()}
+              onClick={fetchBookings}
               className="text-emerald-600 font-medium hover:underline"
             >
               Réessayer
@@ -282,7 +347,12 @@ export default function ClientDashboardPage() {
         {!loading && !error && filtered.length > 0 && (
           <div className="flex flex-col gap-4">
             {filtered.map((booking) => (
-              <BookingCard key={booking.id} booking={booking} />
+              <BookingCard
+                key={booking.id}
+                booking={booking}
+                onCancel={handleCancel}
+                cancellingId={cancellingId}
+              />
             ))}
           </div>
         )}

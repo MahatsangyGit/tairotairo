@@ -1,54 +1,146 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter, usePathname } from "next/navigation";
+
+interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: "CLIENT" | "PROVIDER" | "ADMIN";
+}
 
 export default function Navbar() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [authLoading, setAuthLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const res = await fetch("/api/auth/me");
+        const data = await res.json();
+        setUser(data.user ?? null);
+      } catch {
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    fetchUser();
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    setIsMenuOpen(false);
+    router.push("/");
+    router.refresh();
+  };
+
+  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
+    <>
+      <Link
+        href="/services"
+        onClick={() => mobile && setIsMenuOpen(false)}
+        className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+      >
+        Services
+      </Link>
+
+      {!authLoading && user && (
+        <>
+          {user.role === "CLIENT" && (
+            <Link
+              href="/dashboard/client"
+              onClick={() => mobile && setIsMenuOpen(false)}
+              className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+            >
+              Mes réservations
+            </Link>
+          )}
+          {user.role === "PROVIDER" && (
+            <>
+              <Link
+                href="/dashboard/provider"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+              >
+                Réservations
+              </Link>
+              <Link
+                href="/dashboard/provider/services"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+              >
+                Mes annonces
+              </Link>
+            </>
+          )}
+          <span className={`text-gray-500 text-sm ${mobile ? "" : "hidden lg:inline"}`}>
+            {user.name}
+          </span>
+          <button
+            onClick={handleLogout}
+            className={`text-gray-600 hover:text-emerald-600 font-medium transition-colors ${
+              mobile ? "text-left" : ""
+            }`}
+          >
+            Déconnexion
+          </button>
+        </>
+      )}
+
+      {!authLoading && !user && (
+        <>
+          <Link
+            href="/auth/login"
+            onClick={() => mobile && setIsMenuOpen(false)}
+            className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+          >
+            Connexion
+          </Link>
+          <Link
+            href="/dashboard/provider"
+            onClick={() => mobile && setIsMenuOpen(false)}
+            className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+          >
+            Espace pro
+          </Link>
+          <Link
+            href="/auth/register"
+            onClick={() => mobile && setIsMenuOpen(false)}
+            className={`bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors ${
+              mobile ? "text-center" : ""
+            }`}
+          >
+            S&apos;inscrire
+          </Link>
+        </>
+      )}
+    </>
+  );
 
   return (
     <nav className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-emerald-600">
-              TairoTairo
-            </span>
+            <span className="text-2xl font-bold text-emerald-600">TairoTairo</span>
           </Link>
 
-          {/* Navigation desktop */}
           <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/services"
-              className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
-            >
-              Services
-            </Link>
-            <Link
-              href="/auth/login"
-              className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/dashboard/provider"
-              className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
-            >
-              Espace pro
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
-            >
-              S'inscrire
-            </Link>
+            <NavLinks />
           </div>
 
-          {/* Bouton menu mobile */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+            aria-label="Menu"
           >
             <div className="w-5 h-0.5 bg-current mb-1" />
             <div className="w-5 h-0.5 bg-current mb-1" />
@@ -56,33 +148,9 @@ export default function Navbar() {
           </button>
         </div>
 
-        {/* Menu mobile */}
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 flex flex-col gap-3">
-            <Link
-              href="/services"
-              className="text-gray-600 hover:text-emerald-600 font-medium"
-            >
-              Services
-            </Link>
-            <Link
-              href="/auth/login"
-              className="text-gray-600 hover:text-emerald-600 font-medium"
-            >
-              Connexion
-            </Link>
-            <Link
-              href="/dashboard/provider"
-              className="text-gray-600 hover:text-emerald-600 font-medium"
-            >
-              Espace pro
-            </Link>
-            <Link
-              href="/auth/register"
-              className="bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium text-center hover:bg-emerald-700"
-            >
-              S'inscrire
-            </Link>
+            <NavLinks mobile />
           </div>
         )}
       </div>

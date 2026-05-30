@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import ProviderNav from "@/components/layout/ProviderNav";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -278,7 +279,7 @@ export default function ProviderDashboardPage() {
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="mb-8">
+        <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">
             Espace prestataire
           </h1>
@@ -292,6 +293,8 @@ export default function ProviderDashboardPage() {
             </p>
           )}
         </div>
+
+        <ProviderNav />
 
         {actionError && (
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">

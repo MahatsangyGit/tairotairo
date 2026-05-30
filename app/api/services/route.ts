@@ -2,10 +2,34 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 
-// GET - Lister et rechercher les services
+// GET - Lister et rechercher les services (?mine=true pour le prestataire connecté)
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
+    const mine = searchParams.get("mine") === "true";
+
+    if (mine) {
+      const user = requireAuth(req);
+
+      if (!user) {
+        return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+      }
+
+      if (user.role !== "PROVIDER" && user.role !== "ADMIN") {
+        return NextResponse.json(
+          { error: "Réservé aux prestataires" },
+          { status: 403 }
+        );
+      }
+
+      const services = await prisma.service.findMany({
+        where: { providerId: user.userId },
+        orderBy: { createdAt: "desc" },
+      });
+
+      return NextResponse.json({ services });
+    }
+
     const category = searchParams.get("category");
     const location = searchParams.get("location");
     const search = searchParams.get("search");
