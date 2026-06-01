@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ClientNav from "@/components/layout/ClientNav";
 import BookingCard, { type BookingCardData } from "@/components/booking/BookingCard";
+import ReviewForm from "@/components/reviews/ReviewForm";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -19,6 +20,7 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 interface Booking extends BookingCardData {
   createdAt: string;
   provider: { id: string; name: string; phone: string | null };
+  review: { id: string; rating: number } | null;
 }
 
 // ─── Filtres ──────────────────────────────────────────────────────────────────
@@ -236,13 +238,26 @@ export default function ClientDashboardPage() {
         {!loading && !error && filtered.length > 0 && (
           <div className="flex flex-col gap-4">
             {filtered.map((booking) => (
-              <BookingCard
-                key={booking.id}
-                booking={booking}
-                counterpartyLabel="Prestataire"
-                onCancel={handleCancel}
-                cancellingId={cancellingId}
-              />
+              <div key={booking.id}>
+                <BookingCard
+                  booking={booking}
+                  counterpartyLabel="Prestataire"
+                  onCancel={handleCancel}
+                  cancellingId={cancellingId}
+                />
+                {booking.status === "COMPLETED" && !booking.review && (
+                  <ReviewForm
+                    bookingId={booking.id}
+                    providerName={booking.provider.name}
+                    onSuccess={fetchBookings}
+                  />
+                )}
+                {booking.review && (
+                  <p className="text-sm text-gray-500 mt-2 ml-1">
+                    ✓ Avis publié ({booking.review.rating}/5)
+                  </p>
+                )}
+              </div>
             ))}
           </div>
         )}

@@ -6,6 +6,7 @@ import {
   canTransitionResponseStatus,
 } from "@/lib/request-response-status";
 import { resolveBookingDate } from "@/lib/booking-display";
+import { notifyBookingConfirmed } from "@/lib/notify-booking";
 
 const VALID_STATUSES: RequestResponseStatus[] = [
   "ACCEPTED",
@@ -157,6 +158,8 @@ export async function PATCH(
 
         return { accepted, booking };
       });
+
+      notifyBookingConfirmed(result.booking.id).catch(console.error);
 
       return NextResponse.json({
         message:

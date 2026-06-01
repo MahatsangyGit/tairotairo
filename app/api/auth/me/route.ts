@@ -19,6 +19,8 @@ export async function GET(req: NextRequest) {
         role: true,
         phone: true,
         avatar: true,
+        bio: true,
+        emailVerified: true,
       },
     });
 

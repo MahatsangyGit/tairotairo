@@ -227,7 +227,18 @@ export default function ServiceDetailPage() {
                     {service.provider.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">{service.provider.name}</p>
+                    <Link
+                      href={`/providers/${service.provider.id}`}
+                      className="font-semibold text-gray-800 hover:text-emerald-600"
+                    >
+                      {service.provider.name}
+                    </Link>
+                    <Link
+                      href={`/providers/${service.provider.id}`}
+                      className="block text-sm text-emerald-600 font-medium hover:underline mt-1"
+                    >
+                      Voir le profil →
+                    </Link>
                     {service.provider.bio && (
                       <p className="text-gray-500 text-sm mt-1">{service.provider.bio}</p>
                     )}

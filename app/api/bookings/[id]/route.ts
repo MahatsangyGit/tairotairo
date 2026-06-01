@@ -5,6 +5,7 @@ import {
   BookingStatus,
   canTransitionStatus,
 } from "@/lib/booking-status";
+import { notifyBookingConfirmed } from "@/lib/notify-booking";
 
 const VALID_STATUSES: BookingStatus[] = [
   "CONFIRMED",
@@ -110,6 +111,10 @@ export async function PATCH(
       data: { status: nextStatus },
       include: bookingInclude,
     });
+
+    if (nextStatus === "CONFIRMED") {
+      notifyBookingConfirmed(id).catch(console.error);
+    }
 
     const messages: Record<BookingStatus, string> = {
       CONFIRMED: "Réservation confirmée",

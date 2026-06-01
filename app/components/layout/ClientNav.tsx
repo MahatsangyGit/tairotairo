@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/dashboard/client", label: "Mes réservations" },
   { href: "/dashboard/client/requests", label: "Mes demandes" },
+  { href: "/dashboard/client/profile", label: "Mon profil" },
 ];
 
 export default function ClientNav() {

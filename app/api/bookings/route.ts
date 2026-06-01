@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { notifyBookingCreated } from "@/lib/notify-booking";
 
 // GET - Lister les réservations de l'utilisateur connecté
 export async function GET(req: NextRequest) {
@@ -50,6 +51,9 @@ export async function GET(req: NextRequest) {
         },
         provider: {
           select: { id: true, name: true, phone: true },
+        },
+        review: {
+          select: { id: true, rating: true },
         },
       },
     });
@@ -115,6 +119,8 @@ export async function POST(req: NextRequest) {
         },
       },
     });
+
+    notifyBookingCreated(booking.id).catch(console.error);
 
     return NextResponse.json(
       { message: "Réservation créée avec succès", booking },

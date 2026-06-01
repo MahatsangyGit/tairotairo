@@ -17,9 +17,12 @@ model User {
   role          Role      @default(CLIENT)
   avatar        String?
   bio           String?
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  emailOtps     EmailOtp[]
   services      Service[]
   serviceRequests ServiceRequest[]
   requestResponses RequestResponse[] @relation("ProviderResponses")
@@ -33,6 +36,18 @@ enum Role {
   CLIENT
   PROVIDER
   ADMIN
+}
+
+model EmailOtp {
+  id        String   @id @default(cuid())
+  codeHash  String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
 }
 
 model Service {

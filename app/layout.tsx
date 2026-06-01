@@ -13,8 +13,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "TairoTairo",
-  description: "Marketplace de services à Madagascar",
+  title: {
+    default: "TairoTairo — Marketplace de services à Madagascar",
+    template: "%s | TairoTairo",
+  },
+  description:
+    "Trouvez un prestataire de confiance ou publiez votre demande de service à Madagascar.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+  ),
+  openGraph: {
+    locale: "fr_MG",
+    siteName: "TairoTairo",
+  },
 };
 
 export default function RootLayout({
@@ -24,7 +35,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="fr"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
