@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser, requireAuth } from "@/lib/auth";
+import { notifyNewRequestResponse } from "@/lib/notify-requests";
 
 const providerSelect = {
   id: true,
@@ -157,6 +158,15 @@ export async function POST(
       },
       include: responseInclude,
     });
+
+    const provider = await prisma.user.findUnique({
+      where: { id: user.userId },
+      select: { name: true },
+    });
+
+    notifyNewRequestResponse(id, provider?.name ?? "Un prestataire").catch(
+      console.error
+    );
 
     return NextResponse.json(
       { message: "Proposition envoyée avec succès", response },

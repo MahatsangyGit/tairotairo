@@ -1,10 +1,7 @@
 import prisma from "@/lib/prisma";
-import { APP_URL } from "@/lib/email";
-import {
-  sendBookingConfirmedEmail,
-  sendBookingCreatedEmail,
-} from "@/lib/email";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { dispatchNotification } from "@/lib/notifications";
+import { NOTIFICATION_TYPES } from "@/lib/notification-types";
 
 function formatDate(date: Date): string {
   return date.toLocaleDateString("fr-MG", {
@@ -14,8 +11,8 @@ function formatDate(date: Date): string {
   });
 }
 
-export async function notifyBookingCreated(bookingId: string) {
-  const booking = await prisma.booking.findUnique({
+async function loadBookingContext(bookingId: string) {
+  return prisma.booking.findUnique({
     where: { id: bookingId },
     include: {
       service: {
@@ -41,78 +38,105 @@ export async function notifyBookingCreated(bookingId: string) {
           },
         },
       },
-      provider: { select: { name: true, email: true } },
-      client: { select: { name: true, email: true } },
+      provider: { select: { id: true, name: true, email: true } },
+      client: { select: { id: true, name: true, email: true } },
     },
-  });
-
-  if (!booking || booking.status !== "PENDING") return;
-
-  const display = getBookingDisplayInfo(booking);
-  if (!display) return;
-
-  await sendBookingCreatedEmail({
-    to: booking.provider.email,
-    recipientName: booking.provider.name,
-    serviceTitle: display.title,
-    dateLabel: formatDate(booking.date),
-    dashboardUrl: `${APP_URL}/dashboard/provider`,
   });
 }
 
-export async function notifyBookingConfirmed(bookingId: string) {
-  const booking = await prisma.booking.findUnique({
-    where: { id: bookingId },
-    include: {
-      service: {
-        select: {
-          id: true,
-          title: true,
-          price: true,
-          category: true,
-          location: true,
-        },
-      },
-      requestResponse: {
-        select: {
-          proposedPrice: true,
-          request: {
-            select: {
-              id: true,
-              title: true,
-              budget: true,
-              category: true,
-              location: true,
-            },
-          },
-        },
-      },
-      provider: { select: { name: true, email: true } },
-      client: { select: { name: true, email: true } },
-    },
-  });
-
-  if (!booking) return;
+export async function notifyBookingCreated(bookingId: string) {
+  const booking = await loadBookingContext(bookingId);
+  if (!booking || booking.status !== "PENDING") return;
 
   const display = getBookingDisplayInfo(booking);
   if (!display) return;
 
   const dateLabel = formatDate(booking.date);
 
-  await Promise.all([
-    sendBookingConfirmedEmail({
-      to: booking.client.email,
-      recipientName: booking.client.name,
-      serviceTitle: display.title,
-      dateLabel,
-      dashboardUrl: `${APP_URL}/dashboard/client`,
-    }),
-    sendBookingConfirmedEmail({
-      to: booking.provider.email,
-      recipientName: booking.provider.name,
-      serviceTitle: display.title,
-      dateLabel,
-      dashboardUrl: `${APP_URL}/dashboard/provider`,
-    }),
-  ]);
+  await dispatchNotification({
+    userId: booking.providerId,
+    type: NOTIFICATION_TYPES.BOOKING_CREATED,
+    title: "Nouvelle réservation",
+    body: `${booking.client.name} a réservé « ${display.title} » pour le ${dateLabel}.`,
+    link: "/dashboard/provider",
+  });
+}
+
+export async function notifyBookingConfirmed(bookingId: string) {
+  const booking = await loadBookingContext(bookingId);
+  if (!booking) return;
+
+  const display = getBookingDisplayInfo(booking);
+  if (!display) return;
+
+  const dateLabel = formatDate(booking.date);
+  const body = `Votre réservation « ${display.title} » est confirmée pour le ${dateLabel}.`;
+
+  await dispatchNotification({
+    userId: booking.clientId,
+    type: NOTIFICATION_TYPES.BOOKING_CONFIRMED,
+    title: "Réservation confirmée",
+    body,
+    link: "/dashboard/client",
+  });
+
+  await dispatchNotification({
+    userId: booking.providerId,
+    type: NOTIFICATION_TYPES.BOOKING_CONFIRMED,
+    title: "Réservation confirmée",
+    body,
+    link: "/dashboard/provider",
+  });
+}
+
+export async function notifyBookingCompleted(bookingId: string) {
+  const booking = await loadBookingContext(bookingId);
+  if (!booking) return;
+
+  const display = getBookingDisplayInfo(booking);
+  if (!display) return;
+
+  const body = `La prestation « ${display.title} » est marquée comme terminée. Vous pouvez laisser un avis.`;
+
+  await dispatchNotification({
+    userId: booking.clientId,
+    type: NOTIFICATION_TYPES.BOOKING_COMPLETED,
+    title: "Prestation terminée",
+    body,
+    link: "/dashboard/client",
+  });
+
+  await dispatchNotification({
+    userId: booking.providerId,
+    type: NOTIFICATION_TYPES.BOOKING_COMPLETED,
+    title: "Prestation terminée",
+    body,
+    link: "/dashboard/provider",
+  });
+}
+
+export async function notifyBookingCancelled(bookingId: string) {
+  const booking = await loadBookingContext(bookingId);
+  if (!booking) return;
+
+  const display = getBookingDisplayInfo(booking);
+  if (!display) return;
+
+  const body = `La réservation « ${display.title} » a été annulée.`;
+
+  await dispatchNotification({
+    userId: booking.clientId,
+    type: NOTIFICATION_TYPES.BOOKING_CANCELLED,
+    title: "Réservation annulée",
+    body,
+    link: "/dashboard/client",
+  });
+
+  await dispatchNotification({
+    userId: booking.providerId,
+    type: NOTIFICATION_TYPES.BOOKING_CANCELLED,
+    title: "Réservation annulée",
+    body,
+    link: "/dashboard/provider",
+  });
 }

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
+import NotificationBell from "@/components/notifications/NotificationBell";
 
 interface AuthUser {
   id: string;
@@ -61,6 +62,7 @@ export default function Navbar() {
 
       {!authLoading && user && (
         <>
+          <NotificationBell />
           {user.role === "CLIENT" && (
             <>
               <Link

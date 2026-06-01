@@ -5,7 +5,11 @@ import {
   BookingStatus,
   canTransitionStatus,
 } from "@/lib/booking-status";
-import { notifyBookingConfirmed } from "@/lib/notify-booking";
+import {
+  notifyBookingCancelled,
+  notifyBookingCompleted,
+  notifyBookingConfirmed,
+} from "@/lib/notify-booking";
 
 const VALID_STATUSES: BookingStatus[] = [
   "CONFIRMED",
@@ -114,6 +118,10 @@ export async function PATCH(
 
     if (nextStatus === "CONFIRMED") {
       notifyBookingConfirmed(id).catch(console.error);
+    } else if (nextStatus === "COMPLETED") {
+      notifyBookingCompleted(id).catch(console.error);
+    } else if (nextStatus === "CANCELLED") {
+      notifyBookingCancelled(id).catch(console.error);
     }
 
     const messages: Record<BookingStatus, string> = {

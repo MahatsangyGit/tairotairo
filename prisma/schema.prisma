@@ -19,10 +19,14 @@ model User {
   bio           String?
   emailVerified   Boolean   @default(false)
   emailVerifiedAt DateTime?
+  notifyEmail     Boolean   @default(true)
+  notifyPush      Boolean   @default(true)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   emailOtps     EmailOtp[]
+  notifications Notification[]
+  pushSubscriptions PushSubscription[]
   services      Service[]
   serviceRequests ServiceRequest[]
   requestResponses RequestResponse[] @relation("ProviderResponses")
@@ -36,6 +40,34 @@ enum Role {
   CLIENT
   PROVIDER
   ADMIN
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  type      String
+  title     String
+  body      String
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId, read, createdAt])
+}
+
+model PushSubscription {
+  id        String   @id @default(cuid())
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
 }
 
 model EmailOtp {

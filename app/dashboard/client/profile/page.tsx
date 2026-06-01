@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ClientNav from "@/components/layout/ClientNav";
 import ProfileForm, { type ProfileUser } from "@/components/profile/ProfileForm";
+import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 
 export default function ClientProfilePage() {
   const router = useRouter();
@@ -54,7 +55,12 @@ export default function ClientProfilePage() {
         <ClientNav />
         {loading && <p className="text-gray-500">Chargement...</p>}
         {error && <p className="text-red-500">{error}</p>}
-        {user && <ProfileForm initialUser={user} />}
+        {user && (
+          <>
+            <ProfileForm initialUser={user} />
+            <NotificationPreferences />
+          </>
+        )}
       </div>
     </div>
   );

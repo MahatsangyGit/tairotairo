@@ -12,6 +12,8 @@ const userSelect = {
   bio: true,
   emailVerified: true,
   emailVerifiedAt: true,
+  notifyEmail: true,
+  notifyPush: true,
   createdAt: true,
 };
 
@@ -34,8 +36,16 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({ user });
-  } catch {
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  } catch (error) {
+    console.error("[GET /api/users/me]", error);
+    const detail =
+      process.env.NODE_ENV === "development" && error instanceof Error
+        ? error.message
+        : undefined;
+    return NextResponse.json(
+      { error: "Erreur serveur", ...(detail && { detail }) },
+      { status: 500 }
+    );
   }
 }
 
