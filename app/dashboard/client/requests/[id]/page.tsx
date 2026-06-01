@@ -47,6 +47,7 @@ export default function ClientRequestProposalsPage() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState("");
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -107,6 +108,7 @@ export default function ClientRequestProposalsPage() {
 
     setUpdatingId(responseId);
     setActionError("");
+    setSuccessMessage("");
 
     try {
       const res = await fetch(`/api/requests/${id}/responses/${responseId}`, {
@@ -120,6 +122,12 @@ export default function ClientRequestProposalsPage() {
       if (!res.ok) {
         setActionError(data.error ?? "Impossible de mettre à jour");
         return;
+      }
+
+      if (status === "ACCEPTED" && data.booking) {
+        setSuccessMessage(
+          "Proposition acceptée — une réservation a été créée automatiquement."
+        );
       }
 
       await fetchData();
@@ -155,6 +163,18 @@ export default function ClientRequestProposalsPage() {
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
             {actionError}
           </p>
+        )}
+
+        {successMessage && (
+          <div className="text-emerald-700 text-sm mb-4 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
+            <span>{successMessage}</span>
+            <Link
+              href="/dashboard/client"
+              className="font-medium underline shrink-0"
+            >
+              Voir mes réservations →
+            </Link>
+          </div>
         )}
 
         {loading && (

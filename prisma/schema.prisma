@@ -87,6 +87,7 @@ model RequestResponse {
   requestId     String
   provider      User                  @relation("ProviderResponses", fields: [providerId], references: [id])
   providerId    String
+  booking       Booking?
 
   @@unique([requestId, providerId])
 }
@@ -102,8 +103,10 @@ model Booking {
   clientId    String
   provider    User          @relation("ProviderBookings", fields: [providerId], references: [id])
   providerId  String
-  service     Service       @relation(fields: [serviceId], references: [id])
-  serviceId   String
+  service     Service?      @relation(fields: [serviceId], references: [id])
+  serviceId   String?
+  requestResponse RequestResponse? @relation(fields: [requestResponseId], references: [id])
+  requestResponseId String?  @unique
   transaction Transaction?
   review      Review?
 }

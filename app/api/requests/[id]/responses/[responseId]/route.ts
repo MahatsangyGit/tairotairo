@@ -5,6 +5,7 @@ import {
   RequestResponseStatus,
   canTransitionResponseStatus,
 } from "@/lib/request-response-status";
+import { resolveBookingDate } from "@/lib/booking-display";
 
 const VALID_STATUSES: RequestResponseStatus[] = [
   "ACCEPTED",
@@ -51,7 +52,15 @@ export async function PATCH(
     const response = await prisma.requestResponse.findUnique({
       where: { id: responseId },
       include: {
-        request: { select: { id: true, clientId: true, open: true } },
+        booking: { select: { id: true } },
+        request: {
+          select: {
+            id: true,
+            clientId: true,
+            open: true,
+            desiredDate: true,
+          },
+        },
       },
     });
 
@@ -83,7 +92,14 @@ export async function PATCH(
     }
 
     if (nextStatus === "ACCEPTED") {
-      const updated = await prisma.$transaction(async (tx) => {
+      if (response.booking) {
+        return NextResponse.json(
+          { error: "Une réservation existe déjà pour cette proposition" },
+          { status: 400 }
+        );
+      }
+
+      const result = await prisma.$transaction(async (tx) => {
         await tx.requestResponse.updateMany({
           where: {
             requestId: id,
@@ -104,12 +120,49 @@ export async function PATCH(
           data: { open: false },
         });
 
-        return accepted;
+        const booking = await tx.booking.create({
+          data: {
+            clientId: response.request.clientId,
+            providerId: response.providerId,
+            requestResponseId: responseId,
+            date: resolveBookingDate(response.request.desiredDate),
+            status: "CONFIRMED",
+          },
+          include: {
+            service: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                category: true,
+                location: true,
+              },
+            },
+            requestResponse: {
+              select: {
+                proposedPrice: true,
+                request: {
+                  select: {
+                    id: true,
+                    title: true,
+                    budget: true,
+                    category: true,
+                    location: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        return { accepted, booking };
       });
 
       return NextResponse.json({
-        message: "Proposition acceptée — la demande est maintenant fermée",
-        response: updated,
+        message:
+          "Proposition acceptée — une réservation a été créée et la demande est fermée",
+        response: result.accepted,
+        booking: result.booking,
       });
     }
 

@@ -5,18 +5,11 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
+import { getBookingDisplayInfo } from "@/lib/booking-display";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
-
-interface BookingService {
-  id: string;
-  title: string;
-  price: number;
-  category: string;
-  location: string;
-}
 
 interface BookingClient {
   id: string;
@@ -30,7 +23,23 @@ interface Booking {
   status: BookingStatus;
   date: string;
   createdAt: string;
-  service: BookingService;
+  service: {
+    id: string;
+    title: string;
+    price: number;
+    category: string;
+    location: string;
+  } | null;
+  requestResponse: {
+    proposedPrice: number | null;
+    request: {
+      id: string;
+      title: string;
+      budget: number;
+      category: string;
+      location: string;
+    };
+  } | null;
   client: BookingClient;
 }
 
@@ -79,6 +88,7 @@ function BookingCard({
   onStatusChange: (id: string, status: BookingStatus) => void;
   updatingId: string | null;
 }) {
+  const display = getBookingDisplayInfo(booking);
   const date = new Date(booking.date).toLocaleDateString("fr-MG", {
     day: "numeric",
     month: "long",
@@ -86,15 +96,29 @@ function BookingCard({
   });
   const isUpdating = updatingId === booking.id;
 
+  if (!display) return null;
+
+  const categoryClass =
+    display.source === "request"
+      ? "bg-amber-50 text-amber-800"
+      : "bg-emerald-50 text-emerald-700";
+
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
-          <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
-            {booking.service.category}
-          </span>
-          <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
-          <p className="text-gray-500 text-sm mt-0.5">📍 {booking.service.location}</p>
+          <div className="flex flex-wrap items-center gap-2 mb-2">
+            <span
+              className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${categoryClass}`}
+            >
+              {display.category}
+            </span>
+            {display.source === "request" && (
+              <span className="text-xs text-amber-700 font-medium">Via demande</span>
+            )}
+          </div>
+          <h3 className="font-semibold text-gray-800">{display.title}</h3>
+          <p className="text-gray-500 text-sm mt-0.5">📍 {display.location}</p>
         </div>
         <StatusBadge status={booking.status} />
       </div>
@@ -107,7 +131,7 @@ function BookingCard({
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Prix</p>
           <p className="text-sm font-medium text-emerald-600">
-            {booking.service.price.toLocaleString("fr-MG")} Ar
+            {display.price.toLocaleString("fr-MG")} Ar
           </p>
         </div>
         <div>
@@ -174,10 +198,10 @@ function BookingCard({
           </>
         )}
         <Link
-          href={`/services/${booking.service.id}`}
+          href={display.href}
           className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
         >
-          Voir l&apos;annonce →
+          {display.source === "request" ? "Voir la demande →" : "Voir l'annonce →"}
         </Link>
       </div>
     </div>

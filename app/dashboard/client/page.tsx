@@ -5,132 +5,20 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ClientNav from "@/components/layout/ClientNav";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import BookingCard, { type BookingCardData } from "@/components/booking/BookingCard";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
-interface BookingService {
-  id:       string;
-  title:    string;
-  price:    number;
-  category: string;
-  location: string;
-}
-
-interface BookingProvider {
-  id:    string;
-  name:  string;
-  phone: string | null;
-}
-
-interface Booking {
-  id:        string;
-  status:    BookingStatus;
-  date:      string;
-  createdAt: string;
-  service:   BookingService;
-  provider:  BookingProvider;
-}
-
-// ─── Constants ────────────────────────────────────────────────────────────────
-
 const STATUS_LABEL: Record<BookingStatus, string> = {
-  PENDING:   "En attente",
+  PENDING: "En attente",
   CONFIRMED: "Confirmé",
   COMPLETED: "Terminé",
   CANCELLED: "Annulé",
 };
 
-const STATUS_CLASS: Record<BookingStatus, string> = {
-  PENDING:   "bg-yellow-50 text-yellow-700 border-yellow-200",
-  CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
-  COMPLETED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  CANCELLED: "bg-red-50 text-red-700 border-red-200",
-};
-
-// ─── Sous-composant : badge statut ────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: BookingStatus }) {
-  return (
-    <span className={`text-xs font-medium px-2.5 py-1 rounded-full border ${STATUS_CLASS[status]}`}>
-      {STATUS_LABEL[status]}
-    </span>
-  );
-}
-
-// ─── Sous-composant : carte réservation ───────────────────────────────────────
-
-function BookingCard({
-  booking,
-  onCancel,
-  cancellingId,
-}: {
-  booking: Booking;
-  onCancel: (id: string) => void;
-  cancellingId: string | null;
-}) {
-  const date = new Date(booking.date).toLocaleDateString("fr-MG", {
-    day:   "numeric",
-    month: "long",
-    year:  "numeric",
-  });
-
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div>
-          <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
-            {booking.service.category}
-          </span>
-          <h3 className="font-semibold text-gray-800">{booking.service.title}</h3>
-          <p className="text-gray-500 text-sm mt-0.5">📍 {booking.service.location}</p>
-        </div>
-        <StatusBadge status={booking.status} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-gray-100 mb-4">
-        <div>
-          <p className="text-xs text-gray-400 mb-0.5">Date prévue</p>
-          <p className="text-sm font-medium text-gray-700">{date}</p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 mb-0.5">Prix</p>
-          <p className="text-sm font-medium text-emerald-600">
-            {booking.service.price.toLocaleString("fr-MG")} Ar
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-gray-400 mb-0.5">Prestataire</p>
-          <p className="text-sm font-medium text-gray-700">{booking.provider.name}</p>
-        </div>
-        {booking.provider.phone && (
-          <div>
-            <p className="text-xs text-gray-400 mb-0.5">Contact</p>
-            <p className="text-sm font-medium text-gray-700">{booking.provider.phone}</p>
-          </div>
-        )}
-      </div>
-
-      <div className="flex flex-wrap items-center gap-3">
-        {(booking.status === "PENDING" || booking.status === "CONFIRMED") && (
-          <button
-            onClick={() => onCancel(booking.id)}
-            disabled={cancellingId === booking.id}
-            className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50"
-          >
-            {cancellingId === booking.id ? "..." : "Annuler la réservation"}
-          </button>
-        )}
-        <Link
-          href={`/services/${booking.service.id}`}
-          className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
-        >
-          Voir le service →
-        </Link>
-      </div>
-    </div>
-  );
+interface Booking extends BookingCardData {
+  createdAt: string;
+  provider: { id: string; name: string; phone: string | null };
 }
 
 // ─── Filtres ──────────────────────────────────────────────────────────────────
@@ -351,6 +239,7 @@ export default function ClientDashboardPage() {
               <BookingCard
                 key={booking.id}
                 booking={booking}
+                counterpartyLabel="Prestataire"
                 onCancel={handleCancel}
                 cancellingId={cancellingId}
               />

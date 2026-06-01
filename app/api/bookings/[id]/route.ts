@@ -22,6 +22,20 @@ const bookingInclude = {
       location: true,
     },
   },
+  requestResponse: {
+    select: {
+      proposedPrice: true,
+      request: {
+        select: {
+          id: true,
+          title: true,
+          budget: true,
+          category: true,
+          location: true,
+        },
+      },
+    },
+  },
   client: {
     select: { id: true, name: true, phone: true, email: true },
   },
