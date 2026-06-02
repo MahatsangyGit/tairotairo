@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
+import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
 
 // GET - Détail d'une demande
 export async function GET(
@@ -129,6 +130,7 @@ export async function DELETE(
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
+    await snapshotBookingsForRequest(id);
     await prisma.serviceRequest.delete({ where: { id } });
 
     return NextResponse.json({ message: "Demande supprimée" });

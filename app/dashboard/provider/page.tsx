@@ -38,8 +38,14 @@ interface Booking {
       budget: number;
       category: string;
       location: string;
-    };
+    } | null;
   } | null;
+  displayTitle?: string | null;
+  displayPrice?: number | null;
+  displayCategory?: string | null;
+  displayLocation?: string | null;
+  displaySource?: string | null;
+  displayTargetId?: string | null;
   client: BookingClient;
 }
 
@@ -88,15 +94,13 @@ function BookingCard({
   onStatusChange: (id: string, status: BookingStatus) => void;
   updatingId: string | null;
 }) {
-  const display = getBookingDisplayInfo(booking);
+  const display = getBookingDisplayInfo(booking, { viewer: "provider" });
   const date = new Date(booking.date).toLocaleDateString("fr-MG", {
     day: "numeric",
     month: "long",
     year: "numeric",
   });
   const isUpdating = updatingId === booking.id;
-
-  if (!display) return null;
 
   const categoryClass =
     display.source === "request"
@@ -114,7 +118,9 @@ function BookingCard({
               {display.category}
             </span>
             {display.source === "request" && (
-              <span className="text-xs text-amber-700 font-medium">Via demande</span>
+              <span className="text-xs text-amber-700 font-medium">
+                {display.archived ? "Demande supprimée" : "Via demande"}
+              </span>
             )}
           </div>
           <h3 className="font-semibold text-gray-800">{display.title}</h3>
@@ -201,7 +207,11 @@ function BookingCard({
           href={display.href}
           className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
         >
-          {display.source === "request" ? "Voir la demande →" : "Voir l'annonce →"}
+          {display.source === "request"
+            ? display.archived
+              ? "Historique des propositions →"
+              : "Voir la demande →"
+            : "Voir l'annonce →"}
         </Link>
       </div>
     </div>
@@ -220,12 +230,14 @@ export default function ProviderDashboardPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
 
-  const fetchBookings = useCallback(async () => {
-    setLoading(true);
+  const fetchBookings = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setLoading(true);
+    }
     setError("");
 
     try {
-      const res = await fetch("/api/bookings");
+      const res = await fetch("/api/bookings", { cache: "no-store" });
       const data = await res.json();
 
       if (!res.ok) {
@@ -246,12 +258,22 @@ export default function ProviderDashboardPage() {
     } catch {
       setError("Une erreur est survenue");
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   }, [router]);
 
   useEffect(() => {
     fetchBookings();
+  }, [fetchBookings]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchBookings({ silent: true });
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [fetchBookings]);
 
   const handleStatusChange = async (id: string, status: BookingStatus) => {
@@ -276,9 +298,15 @@ export default function ProviderDashboardPage() {
         return;
       }
 
-      setBookings((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, status: data.booking.status } : b))
-      );
+      if (data.booking) {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === id ? { ...b, ...data.booking } : b))
+        );
+      } else {
+        setBookings((prev) =>
+          prev.map((b) => (b.id === id ? { ...b, status } : b))
+        );
+      }
     } catch {
       setActionError("Une erreur est survenue");
     } finally {
@@ -383,7 +411,7 @@ export default function ProviderDashboardPage() {
           <div className="text-center py-20">
             <p className="text-red-500 mb-4">{error}</p>
             <button
-              onClick={fetchBookings}
+              onClick={() => fetchBookings()}
               className="text-emerald-600 font-medium hover:underline"
             >
               Réessayer

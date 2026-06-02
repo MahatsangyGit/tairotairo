@@ -5,7 +5,7 @@ import {
   RequestResponseStatus,
   canTransitionResponseStatus,
 } from "@/lib/request-response-status";
-import { resolveBookingDate } from "@/lib/booking-display";
+import { resolveBookingDate, snapshotFromRequest } from "@/lib/booking-display";
 import { notifyBookingConfirmed } from "@/lib/notify-booking";
 import { notifyRequestResponseAccepted } from "@/lib/notify-requests";
 
@@ -27,6 +27,7 @@ const responseInclude = {
       open: true,
     },
   },
+  booking: { select: { id: true, status: true } },
 };
 
 // PATCH - Accepter / refuser / retirer une proposition
@@ -122,6 +123,17 @@ export async function PATCH(
           data: { open: false },
         });
 
+        const requestForSnapshot = await tx.serviceRequest.findUniqueOrThrow({
+          where: { id },
+          select: {
+            id: true,
+            title: true,
+            budget: true,
+            category: true,
+            location: true,
+          },
+        });
+
         const booking = await tx.booking.create({
           data: {
             clientId: response.request.clientId,
@@ -129,6 +141,10 @@ export async function PATCH(
             requestResponseId: responseId,
             date: resolveBookingDate(response.request.desiredDate),
             status: "CONFIRMED",
+            ...snapshotFromRequest(
+              requestForSnapshot,
+              response.proposedPrice
+            ),
           },
           include: {
             service: {
@@ -186,6 +202,7 @@ export async function PATCH(
       WITHDRAWN: "Proposition retirée",
       ACCEPTED: "",
       PENDING: "",
+      COMPLETED: "",
     };
 
     return NextResponse.json({

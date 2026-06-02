@@ -6,7 +6,17 @@ export interface BookingDisplayInfo {
   category: string;
   location: string;
   href: string;
+  archived?: boolean;
 }
+
+export type BookingDisplaySnapshot = {
+  displayTitle: string;
+  displayPrice: number;
+  displayCategory: string;
+  displayLocation: string;
+  displaySource: "service" | "request";
+  displayTargetId: string;
+};
 
 interface BookingForDisplay {
   service: {
@@ -24,13 +34,105 @@ interface BookingForDisplay {
       budget: number;
       category: string;
       location: string;
-    };
+    } | null;
   } | null;
+  displayTitle?: string | null;
+  displayPrice?: number | null;
+  displayCategory?: string | null;
+  displayLocation?: string | null;
+  displaySource?: string | null;
+  displayTargetId?: string | null;
+}
+
+export type BookingDisplayViewer = "client" | "provider";
+
+function archivedRequestHref(viewer: BookingDisplayViewer): string {
+  return viewer === "client"
+    ? "/dashboard/client/requests"
+    : "/dashboard/provider/proposals";
+}
+
+export function snapshotFromService(service: {
+  id: string;
+  title: string;
+  price: number;
+  category: string;
+  location: string;
+}): BookingDisplaySnapshot {
+  return {
+    displayTitle: service.title,
+    displayPrice: service.price,
+    displayCategory: service.category,
+    displayLocation: service.location,
+    displaySource: "service",
+    displayTargetId: service.id,
+  };
+}
+
+export function snapshotFromRequest(
+  request: {
+    id: string;
+    title: string;
+    budget: number;
+    category: string;
+    location: string;
+  },
+  proposedPrice: number | null
+): BookingDisplaySnapshot {
+  return {
+    displayTitle: request.title,
+    displayPrice: proposedPrice ?? request.budget,
+    displayCategory: request.category,
+    displayLocation: request.location,
+    displaySource: "request",
+    displayTargetId: request.id,
+  };
+}
+
+function displayFromSnapshot(
+  booking: BookingForDisplay,
+  viewer: BookingDisplayViewer
+): BookingDisplayInfo | null {
+  if (!booking.displayTitle) return null;
+
+  const source =
+    booking.displaySource === "request" ? "request" : ("service" as const);
+  const targetId = booking.displayTargetId ?? "unknown";
+
+  if (source === "service") {
+    return {
+      source: "service",
+      id: targetId,
+      title: booking.displayTitle,
+      price: booking.displayPrice ?? 0,
+      category: booking.displayCategory ?? "Service",
+      location: booking.displayLocation ?? "—",
+      href: `/services/${targetId}`,
+      archived: false,
+    };
+  }
+
+  const liveRequest = booking.requestResponse?.request;
+  return {
+    source: "request",
+    id: targetId,
+    title: booking.displayTitle,
+    price: booking.displayPrice ?? 0,
+    category: booking.displayCategory ?? "Demande",
+    location: booking.displayLocation ?? "—",
+    href: liveRequest
+      ? `/requests/${liveRequest.id}`
+      : archivedRequestHref(viewer),
+    archived: !liveRequest,
+  };
 }
 
 export function getBookingDisplayInfo(
-  booking: BookingForDisplay
-): BookingDisplayInfo | null {
+  booking: BookingForDisplay,
+  options?: { viewer?: BookingDisplayViewer }
+): BookingDisplayInfo {
+  const viewer = options?.viewer ?? "client";
+
   if (booking.service) {
     return {
       source: "service",
@@ -45,18 +147,45 @@ export function getBookingDisplayInfo(
 
   if (booking.requestResponse) {
     const { request } = booking.requestResponse;
+    if (request) {
+      return {
+        source: "request",
+        id: request.id,
+        title: request.title,
+        price: booking.requestResponse.proposedPrice ?? request.budget,
+        category: request.category,
+        location: request.location,
+        href: `/requests/${request.id}`,
+      };
+    }
+
+    const fromSnapshot = displayFromSnapshot(booking, viewer);
+    if (fromSnapshot) return fromSnapshot;
+
     return {
       source: "request",
-      id: request.id,
-      title: request.title,
-      price: booking.requestResponse.proposedPrice ?? request.budget,
-      category: request.category,
-      location: request.location,
-      href: `/requests/${request.id}`,
+      id: "request",
+      title: "Prestation via demande client",
+      price: booking.requestResponse.proposedPrice ?? 0,
+      category: "Demande",
+      location: "—",
+      href: archivedRequestHref(viewer),
+      archived: true,
     };
   }
 
-  return null;
+  const fromSnapshot = displayFromSnapshot(booking, viewer);
+  if (fromSnapshot) return fromSnapshot;
+
+  return {
+    source: "service",
+    id: "unknown",
+    title: "Réservation",
+    price: 0,
+    category: "Service",
+    location: "—",
+    href: "/dashboard/client",
+  };
 }
 
 export function resolveBookingDate(desiredDate: Date | null): Date {

@@ -9,6 +9,7 @@ import ClientNav from "@/components/layout/ClientNav";
 import {
   RESPONSE_STATUS_CLASS,
   RESPONSE_STATUS_LABEL,
+  effectiveResponseStatus,
   RequestResponseStatus,
 } from "@/lib/request-response-status";
 
@@ -26,6 +27,7 @@ interface RequestResponse {
   proposedPrice: number | null;
   status: RequestResponseStatus;
   createdAt: string;
+  booking: { id: string; status: string } | null;
   provider: Provider;
 }
 
@@ -57,7 +59,7 @@ export default function ClientRequestProposalsPage() {
     try {
       const [reqRes, propRes] = await Promise.all([
         fetch(`/api/requests/${id}`),
-        fetch(`/api/requests/${id}/responses`),
+        fetch(`/api/requests/${id}/responses`, { cache: "no-store" }),
       ]);
 
       const reqData = await reqRes.json();
@@ -230,7 +232,9 @@ export default function ClientRequestProposalsPage() {
             )}
 
             <div className="flex flex-col gap-4">
-              {responses.map((response) => (
+              {responses.map((response) => {
+                const displayStatus = effectiveResponseStatus(response);
+                return (
                 <div
                   key={response.id}
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
@@ -258,9 +262,9 @@ export default function ClientRequestProposalsPage() {
                       </div>
                     </div>
                     <span
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${RESPONSE_STATUS_CLASS[response.status]}`}
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${RESPONSE_STATUS_CLASS[displayStatus]}`}
                     >
-                      {RESPONSE_STATUS_LABEL[response.status]}
+                      {RESPONSE_STATUS_LABEL[displayStatus]}
                     </span>
                   </div>
 
@@ -278,7 +282,7 @@ export default function ClientRequestProposalsPage() {
                     <OpenUserChatButton providerId={response.provider.id} />
                   </div>
 
-                  {response.status === "PENDING" && request.open && (
+                  {displayStatus === "PENDING" && request.open && (
                     <div className="flex gap-2 pt-4 border-t border-gray-100">
                       <button
                         onClick={() => handleStatusChange(response.id, "ACCEPTED")}
@@ -296,8 +300,20 @@ export default function ClientRequestProposalsPage() {
                       </button>
                     </div>
                   )}
+                  {displayStatus === "COMPLETED" && response.booking && (
+                    <p className="text-sm text-blue-700 pt-4 border-t border-gray-100">
+                      Prestation terminée —{" "}
+                      <Link
+                        href="/dashboard/client"
+                        className="font-medium hover:underline"
+                      >
+                        Voir ma réservation
+                      </Link>
+                    </p>
+                  )}
                 </div>
-              ))}
+              );
+              })}
             </div>
           </>
         )}

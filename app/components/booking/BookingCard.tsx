@@ -39,8 +39,14 @@ export interface BookingCardData {
       budget: number;
       category: string;
       location: string;
-    };
+    } | null;
   } | null;
+  displayTitle?: string | null;
+  displayPrice?: number | null;
+  displayCategory?: string | null;
+  displayLocation?: string | null;
+  displaySource?: string | null;
+  displayTargetId?: string | null;
   provider?: { name: string; phone: string | null };
   client?: { name: string; phone: string | null; email?: string };
 }
@@ -58,9 +64,9 @@ export default function BookingCard({
   onCancel,
   cancellingId,
 }: BookingCardProps) {
-  const display = getBookingDisplayInfo(booking);
-
-  if (!display) return null;
+  const viewer =
+    counterpartyLabel === "Prestataire" ? ("client" as const) : ("provider" as const);
+  const display = getBookingDisplayInfo(booking, { viewer });
 
   const date = new Date(booking.date).toLocaleDateString("fr-MG", {
     day: "numeric",
@@ -87,7 +93,9 @@ export default function BookingCard({
               {display.category}
             </span>
             {display.source === "request" && (
-              <span className="text-xs text-amber-700 font-medium">Via demande</span>
+              <span className="text-xs text-amber-700 font-medium">
+                {display.archived ? "Demande supprimée" : "Via demande"}
+              </span>
             )}
           </div>
           <h3 className="font-semibold text-gray-800">{display.title}</h3>
@@ -150,7 +158,11 @@ export default function BookingCard({
           href={display.href}
           className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
         >
-          {display.source === "request" ? "Voir la demande →" : "Voir le service →"}
+          {display.source === "request"
+            ? display.archived
+              ? "Historique des demandes →"
+              : "Voir la demande →"
+            : "Voir le service →"}
         </Link>
       </div>
     </div>

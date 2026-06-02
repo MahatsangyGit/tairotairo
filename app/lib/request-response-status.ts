@@ -2,7 +2,8 @@ export type RequestResponseStatus =
   | "PENDING"
   | "ACCEPTED"
   | "REJECTED"
-  | "WITHDRAWN";
+  | "WITHDRAWN"
+  | "COMPLETED";
 
 const CLIENT_TRANSITIONS: Record<RequestResponseStatus, RequestResponseStatus[]> =
   {
@@ -10,6 +11,7 @@ const CLIENT_TRANSITIONS: Record<RequestResponseStatus, RequestResponseStatus[]>
     ACCEPTED: [],
     REJECTED: [],
     WITHDRAWN: [],
+    COMPLETED: [],
   };
 
 const PROVIDER_TRANSITIONS: Record<
@@ -20,6 +22,7 @@ const PROVIDER_TRANSITIONS: Record<
   ACCEPTED: [],
   REJECTED: [],
   WITHDRAWN: [],
+  COMPLETED: [],
 };
 
 export function canTransitionResponseStatus(
@@ -30,7 +33,7 @@ export function canTransitionResponseStatus(
   isProvider: boolean
 ): boolean {
   if (current === next) return false;
-  if (current !== "PENDING") return false;
+  if (current !== "PENDING" || next === "COMPLETED") return false;
 
   if (role === "ADMIN") return true;
 
@@ -50,6 +53,7 @@ export const RESPONSE_STATUS_LABEL: Record<RequestResponseStatus, string> = {
   ACCEPTED: "Acceptée",
   REJECTED: "Refusée",
   WITHDRAWN: "Retirée",
+  COMPLETED: "Terminée",
 };
 
 export const RESPONSE_STATUS_CLASS: Record<RequestResponseStatus, string> = {
@@ -57,4 +61,14 @@ export const RESPONSE_STATUS_CLASS: Record<RequestResponseStatus, string> = {
   ACCEPTED: "bg-emerald-50 text-emerald-700 border-emerald-200",
   REJECTED: "bg-red-50 text-red-700 border-red-200",
   WITHDRAWN: "bg-gray-50 text-gray-500 border-gray-200",
+  COMPLETED: "bg-blue-50 text-blue-700 border-blue-200",
 };
+
+/** Statut affiché : la réservation liée terminée prime sur ACCEPTED. */
+export function effectiveResponseStatus(response: {
+  status: RequestResponseStatus;
+  booking?: { status: string } | null;
+}): RequestResponseStatus {
+  if (response.booking?.status === "COMPLETED") return "COMPLETED";
+  return response.status;
+}

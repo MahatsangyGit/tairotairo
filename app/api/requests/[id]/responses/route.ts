@@ -13,6 +13,7 @@ const providerSelect = {
 
 const responseInclude = {
   provider: { select: providerSelect },
+  booking: { select: { id: true, status: true } },
 };
 
 // GET - Lister les propositions d'une demande

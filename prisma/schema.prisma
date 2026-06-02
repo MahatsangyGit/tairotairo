@@ -123,6 +123,7 @@ enum RequestResponseStatus {
   ACCEPTED
   REJECTED
   WITHDRAWN
+  COMPLETED
 }
 
 model RequestResponse {
@@ -148,6 +149,14 @@ model Booking {
   date        DateTime
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
+
+  /// Copie figée pour l’affichage si le service ou la demande est supprimé
+  displayTitle      String?
+  displayPrice      Float?
+  displayCategory   String?
+  displayLocation   String?
+  displaySource     String?
+  displayTargetId   String?
 
   client      User          @relation("ClientBookings", fields: [clientId], references: [id])
   clientId    String

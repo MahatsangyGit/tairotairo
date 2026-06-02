@@ -22,6 +22,7 @@ export async function GET(req: NextRequest) {
       where: { providerId: user.userId },
       orderBy: { createdAt: "desc" },
       include: {
+        booking: { select: { id: true, status: true } },
         request: {
           select: {
             id: true,

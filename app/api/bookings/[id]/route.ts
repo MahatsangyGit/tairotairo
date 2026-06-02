@@ -4,12 +4,15 @@ import { requireAuth } from "@/lib/auth";
 import {
   BookingStatus,
   canTransitionStatus,
+  prepareBookingForApi,
 } from "@/lib/booking-status";
 import {
   notifyBookingCancelled,
   notifyBookingCompleted,
   notifyBookingConfirmed,
 } from "@/lib/notify-booking";
+
+export const dynamic = "force-dynamic";
 
 const VALID_STATUSES: BookingStatus[] = [
   "CONFIRMED",
@@ -30,6 +33,7 @@ const bookingInclude = {
   requestResponse: {
     select: {
       proposedPrice: true,
+      status: true,
       request: {
         select: {
           id: true,
@@ -110,10 +114,21 @@ export async function PATCH(
       );
     }
 
-    const updated = await prisma.booking.update({
-      where: { id },
-      data: { status: nextStatus },
-      include: bookingInclude,
+    const updated = await prisma.$transaction(async (tx) => {
+      const bookingRow = await tx.booking.update({
+        where: { id },
+        data: { status: nextStatus },
+        include: bookingInclude,
+      });
+
+      if (nextStatus === "COMPLETED" && booking.requestResponseId) {
+        await tx.requestResponse.update({
+          where: { id: booking.requestResponseId },
+          data: { status: "COMPLETED" },
+        });
+      }
+
+      return bookingRow;
     });
 
     if (nextStatus === "CONFIRMED") {
@@ -133,7 +148,7 @@ export async function PATCH(
 
     return NextResponse.json({
       message: messages[nextStatus],
-      booking: updated,
+      booking: prepareBookingForApi(updated),
     });
   } catch (error) {
     console.error("[PATCH /api/bookings/[id]]", error);

@@ -2,6 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { notifyBookingCreated } from "@/lib/notify-booking";
+import { prepareBookingForApi } from "@/lib/booking-status";
+import { snapshotFromService } from "@/lib/booking-display";
+
+export const dynamic = "force-dynamic";
 
 // GET - Lister les réservations de l'utilisateur connecté
 export async function GET(req: NextRequest) {
@@ -21,7 +25,7 @@ export async function GET(req: NextRequest) {
           ? { clientId: user.userId }
           : { providerId: user.userId }),
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
       include: {
         service: {
           select: {
@@ -35,6 +39,7 @@ export async function GET(req: NextRequest) {
         requestResponse: {
           select: {
             proposedPrice: true,
+            status: true,
             request: {
               select: {
                 id: true,
@@ -58,7 +63,10 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    return NextResponse.json({ bookings, role: user.role });
+    return NextResponse.json({
+      bookings: bookings.map(prepareBookingForApi),
+      role: user.role,
+    });
   } catch (error) {
     return NextResponse.json(
       { error: "Erreur serveur" },
@@ -112,6 +120,13 @@ export async function POST(req: NextRequest) {
         providerId: service.providerId,
         serviceId,
         date: new Date(date),
+        ...snapshotFromService({
+          id: service.id,
+          title: service.title,
+          price: service.price,
+          category: service.category,
+          location: service.location,
+        }),
       },
       include: {
         service: {

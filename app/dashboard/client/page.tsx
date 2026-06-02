@@ -45,12 +45,14 @@ export default function ClientDashboardPage() {
   const [activeFilter,  setActiveFilter]  = useState<BookingStatus | "ALL">("ALL");
   const [cancellingId,  setCancellingId]  = useState<string | null>(null);
 
-  const fetchBookings = useCallback(async () => {
-    setLoading(true);
+  const fetchBookings = useCallback(async (options?: { silent?: boolean }) => {
+    if (!options?.silent) {
+      setLoading(true);
+    }
     setError("");
 
     try {
-      const res  = await fetch("/api/bookings");
+      const res = await fetch("/api/bookings", { cache: "no-store" });
       const data = await res.json();
 
       if (!res.ok) {
@@ -71,12 +73,22 @@ export default function ClientDashboardPage() {
     } catch {
       setError("Une erreur est survenue");
     } finally {
-      setLoading(false);
+      if (!options?.silent) {
+        setLoading(false);
+      }
     }
   }, [router]);
 
   useEffect(() => {
     fetchBookings();
+  }, [fetchBookings]);
+
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchBookings({ silent: true });
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
   }, [fetchBookings]);
 
   const handleCancel = async (id: string) => {
@@ -103,8 +115,11 @@ export default function ClientDashboardPage() {
         return;
       }
 
+      const updated = data.booking ?? { status: "CANCELLED" };
       setBookings((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, status: "CANCELLED" } : b))
+        prev.map((b) =>
+          b.id === id ? { ...b, status: updated.status ?? "CANCELLED" } : b
+        )
       );
     } catch {
       setActionError("Une erreur est survenue");
@@ -203,7 +218,7 @@ export default function ClientDashboardPage() {
           <div className="text-center py-20">
             <p className="text-red-500 mb-4">{error}</p>
             <button
-              onClick={fetchBookings}
+              onClick={() => fetchBookings()}
               className="text-emerald-600 font-medium hover:underline"
             >
               Réessayer

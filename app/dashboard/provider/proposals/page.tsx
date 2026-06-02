@@ -9,6 +9,7 @@ import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import {
   RESPONSE_STATUS_CLASS,
   RESPONSE_STATUS_LABEL,
+  effectiveResponseStatus,
   RequestResponseStatus,
 } from "@/lib/request-response-status";
 
@@ -28,6 +29,7 @@ interface ProviderResponse {
   proposedPrice: number | null;
   status: RequestResponseStatus;
   createdAt: string;
+  booking: { id: string; status: string } | null;
   request: RequestSummary;
 }
 
@@ -108,10 +110,11 @@ export default function ProviderProposalsPage() {
     }
   };
 
-  const counts = responses.reduce<Record<string, number>>(
-    (acc, r) => ({ ...acc, [r.status]: (acc[r.status] ?? 0) + 1 }),
-    {}
-  );
+  const counts = responses.reduce<Record<string, number>>((acc, r) => {
+    const key =
+      r.booking?.status === "COMPLETED" ? "COMPLETED" : r.status;
+    return { ...acc, [key]: (acc[key] ?? 0) + 1 };
+  }, {});
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -133,7 +136,9 @@ export default function ProviderProposalsPage() {
 
         {!loading && !error && responses.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-            {(["PENDING", "ACCEPTED", "REJECTED", "WITHDRAWN"] as RequestResponseStatus[]).map(
+            {(
+              ["PENDING", "ACCEPTED", "COMPLETED", "REJECTED", "WITHDRAWN"] as RequestResponseStatus[]
+            ).map(
               (s) => (
                 <div
                   key={s}
@@ -187,7 +192,9 @@ export default function ProviderProposalsPage() {
 
         {!loading && !error && responses.length > 0 && (
           <div className="flex flex-col gap-4">
-            {responses.map((response) => (
+            {responses.map((response) => {
+              const displayStatus = effectiveResponseStatus(response);
+              return (
               <div
                 key={response.id}
                 className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
@@ -206,9 +213,9 @@ export default function ProviderProposalsPage() {
                     </p>
                   </div>
                   <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${RESPONSE_STATUS_CLASS[response.status]}`}
+                    className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${RESPONSE_STATUS_CLASS[displayStatus]}`}
                   >
-                    {RESPONSE_STATUS_LABEL[response.status]}
+                    {RESPONSE_STATUS_LABEL[displayStatus]}
                   </span>
                 </div>
 
@@ -244,7 +251,8 @@ export default function ProviderProposalsPage() {
                   )}
                 </div>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </div>
