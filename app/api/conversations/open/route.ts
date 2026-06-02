@@ -22,6 +22,8 @@ export async function POST(req: NextRequest) {
       bookingId: body.bookingId,
       providerId: body.providerId,
       clientId: body.clientId,
+      requestResponseId: body.requestResponseId,
+      serviceId: body.serviceId,
     });
 
     if ("error" in pair) {
@@ -34,9 +36,16 @@ export async function POST(req: NextRequest) {
       pair.providerId
     );
 
+    let href = conversationPath(role, conversation.id);
+    if (body.requestResponseId) {
+      href += `?response=${body.requestResponseId}`;
+    } else if (body.serviceId) {
+      href += `?service=${body.serviceId}`;
+    }
+
     return NextResponse.json({
       conversationId: conversation.id,
-      href: conversationPath(role, conversation.id),
+      href,
     });
   } catch (error) {
     console.error("[POST /api/conversations/open]", error);

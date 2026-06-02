@@ -279,7 +279,11 @@ export default function ClientRequestProposalsPage() {
                   )}
 
                   <div className="mb-4">
-                    <OpenUserChatButton providerId={response.provider.id} />
+                    <OpenUserChatButton
+                      providerId={response.provider.id}
+                      requestResponseId={response.id}
+                      label="Négocier par message"
+                    />
                   </div>
 
                   {displayStatus === "PENDING" && request.open && (

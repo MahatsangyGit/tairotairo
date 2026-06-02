@@ -1,6 +1,7 @@
 "use client";
 
 import { use } from "react";
+import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ClientNav from "@/components/layout/ClientNav";
 import MessageThreadView from "@/components/messages/MessageThreadView";
@@ -11,6 +12,9 @@ export default function ClientMessageThreadPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const searchParams = useSearchParams();
+  const requestResponseId = searchParams.get("response");
+  const serviceId = searchParams.get("service");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -24,6 +28,8 @@ export default function ClientMessageThreadPage({
         <MessageThreadView
           conversationId={id}
           backHref="/dashboard/client/messages"
+          requestResponseId={requestResponseId}
+          serviceId={serviceId}
         />
       </div>
     </div>

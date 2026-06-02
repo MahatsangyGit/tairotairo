@@ -7,6 +7,8 @@ interface OpenUserChatButtonProps {
   bookingId?: string;
   providerId?: string;
   clientId?: string;
+  requestResponseId?: string;
+  serviceId?: string;
   label?: string;
   className?: string;
 }
@@ -15,6 +17,8 @@ export default function OpenUserChatButton({
   bookingId,
   providerId,
   clientId,
+  requestResponseId,
+  serviceId,
   label = "Message",
   className = "",
 }: OpenUserChatButtonProps) {
@@ -24,11 +28,23 @@ export default function OpenUserChatButton({
   const handleOpen = async () => {
     setLoading(true);
 
+    const payload = bookingId
+      ? { bookingId }
+      : requestResponseId
+        ? { requestResponseId }
+        : serviceId
+          ? { serviceId }
+          : providerId
+            ? { providerId }
+            : clientId
+              ? { clientId }
+              : {};
+
     try {
       const res = await fetch("/api/conversations/open", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ bookingId, providerId, clientId }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();

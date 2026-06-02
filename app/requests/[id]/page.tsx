@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import {
   RESPONSE_STATUS_CLASS,
   RESPONSE_STATUS_LABEL,
@@ -353,6 +354,14 @@ export default function RequestDetailPage() {
                         {ownResponse.proposedPrice.toLocaleString("fr-MG")} Ar
                       </p>
                     )}
+                    <div className="mb-3">
+                      <OpenUserChatButton
+                        clientId={request.client.id}
+                        requestResponseId={ownResponse.id}
+                        label="Négocier le prix par message"
+                        className="text-sm text-emerald-600 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 disabled:opacity-50"
+                      />
+                    </div>
                     {ownResponse.status === "PENDING" && (
                       <button
                         onClick={() => handleWithdraw(ownResponse.id)}

@@ -6,6 +6,8 @@ import {
   getConversationForParticipant,
   getCounterpartyFromConversation,
 } from "@/lib/conversations";
+import { findNegotiationForPair } from "@/lib/price-negotiation";
+import { serializeMessage } from "@/lib/message-serialize";
 
 // GET — Détail d'une conversation et ses messages
 export async function GET(
@@ -19,6 +21,9 @@ export async function GET(
     }
 
     const { id } = await params;
+    const requestResponseId =
+      req.nextUrl.searchParams.get("response") ?? undefined;
+    const serviceId = req.nextUrl.searchParams.get("service") ?? undefined;
 
     const conversation = await getConversationForParticipant(id, auth.userId);
 
@@ -55,30 +60,33 @@ export async function GET(
       conversation.providerId
     );
 
+    const negotiation = await findNegotiationForPair(
+      conversation.clientId,
+      conversation.providerId,
+      { requestResponseId, serviceId }
+    );
+
+    const subject = negotiation
+      ? negotiation.source === "service"
+        ? negotiation.serviceTitle
+        : negotiation.requestTitle
+      : context.subject;
+
     return NextResponse.json({
       conversation: {
         id: conversation.id,
-        bookingId: context.bookingId,
-        subject: context.subject,
-        isDirect: context.isDirect,
-        bookingStatus: context.bookingStatus,
+        bookingId: negotiation?.bookingId ?? context.bookingId,
+        subject,
+        isDirect: negotiation ? false : context.isDirect,
+        bookingStatus: negotiation?.bookingStatus ?? context.bookingStatus,
+        negotiation,
         counterparty: {
           id: counterparty.id,
           name: counterparty.name,
           avatar: counterparty.avatar,
         },
       },
-      messages: messages.map((m) => ({
-        id: m.id,
-        body: m.body,
-        createdAt: m.createdAt,
-        isMine: m.senderId === auth.userId,
-        sender: {
-          id: m.sender.id,
-          name: m.sender.name,
-          avatar: m.sender.avatar,
-        },
-      })),
+      messages: messages.map((m) => serializeMessage(m, auth.userId)),
     });
   } catch (error) {
     console.error("[GET /api/conversations/[id]]", error);

@@ -53,6 +53,26 @@ export function conversationPath(
   return `${messagesBasePath(role)}/${conversationId}`;
 }
 
+export function conversationPathWithNegotiation(
+  role: DashboardRole,
+  conversationId: string,
+  negotiation?: {
+    source: "service" | "request";
+    serviceId?: string;
+    requestResponseId?: string;
+  } | null
+): string {
+  const base = conversationPath(role, conversationId);
+  if (!negotiation) return base;
+  if (negotiation.source === "service" && negotiation.serviceId) {
+    return `${base}?service=${encodeURIComponent(negotiation.serviceId)}`;
+  }
+  if (negotiation.source === "request" && negotiation.requestResponseId) {
+    return `${base}?response=${encodeURIComponent(negotiation.requestResponseId)}`;
+  }
+  return base;
+}
+
 export function getCounterpartyFromConversation(
   conversation: {
     clientId: string;
@@ -172,14 +192,82 @@ export async function resolveConversationPair(params: {
   bookingId?: string;
   providerId?: string;
   clientId?: string;
+  requestResponseId?: string;
+  serviceId?: string;
 }): Promise<PairResult> {
-  const { userId, role, bookingId, providerId, clientId } = params;
-  const provided = [bookingId, providerId, clientId].filter(Boolean).length;
+  const {
+    userId,
+    role,
+    bookingId,
+    providerId,
+    clientId,
+    requestResponseId,
+    serviceId,
+  } = params;
+  const provided = [
+    bookingId,
+    providerId,
+    clientId,
+    requestResponseId,
+    serviceId,
+  ].filter(Boolean).length;
 
   if (provided !== 1) {
     return {
-      error: "Indiquez exactement bookingId, providerId ou clientId",
+      error:
+        "Indiquez exactement un identifiant (bookingId, providerId, clientId, requestResponseId ou serviceId)",
       status: 400,
+    };
+  }
+
+  if (serviceId) {
+    const service = await prisma.service.findUnique({
+      where: { id: serviceId },
+      select: { id: true, providerId: true, available: true },
+    });
+
+    if (!service) {
+      return { error: "Service introuvable", status: 404 };
+    }
+
+    if (!service.available) {
+      return { error: "Ce service n'est plus disponible", status: 400 };
+    }
+
+    if (role !== "CLIENT" && role !== "ADMIN") {
+      return {
+        error: "Seuls les clients peuvent marchander sur une annonce",
+        status: 403,
+      };
+    }
+
+    if (service.providerId === userId) {
+      return { error: "Impossible de marchander sur votre propre annonce", status: 400 };
+    }
+
+    return { clientId: userId, providerId: service.providerId };
+  }
+
+  if (requestResponseId) {
+    const response = await prisma.requestResponse.findUnique({
+      where: { id: requestResponseId },
+      include: { request: { select: { clientId: true } } },
+    });
+
+    if (!response) {
+      return { error: "Proposition introuvable", status: 404 };
+    }
+
+    const isClient = response.request.clientId === userId;
+    const isProvider = response.providerId === userId;
+
+    if (!isClient && !isProvider && role !== "ADMIN") {
+      return { error: "Accès refusé", status: 403 };
+    }
+
+    return {
+      clientId: response.request.clientId,
+      providerId: response.providerId,
     };
   }
 

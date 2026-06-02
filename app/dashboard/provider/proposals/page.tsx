@@ -232,6 +232,7 @@ export default function ProviderProposalsPage() {
                 <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
                   <OpenUserChatButton
                     clientId={response.request.client.id}
+                    requestResponseId={response.id}
                     label={`Message à ${response.request.client.name}`}
                   />
                   <Link

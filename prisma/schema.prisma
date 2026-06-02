@@ -99,6 +99,7 @@ model Service {
   provider    User      @relation(fields: [providerId], references: [id])
   providerId  String
   bookings    Booking[]
+  priceOffers Message[]
 }
 
 model ServiceRequest {
@@ -139,6 +140,7 @@ model RequestResponse {
   provider      User                  @relation("ProviderResponses", fields: [providerId], references: [id])
   providerId    String
   booking       Booking?
+  priceOffers   Message[]
 
   @@unique([requestId, providerId])
 }
@@ -187,9 +189,23 @@ model Conversation {
   @@index([providerId])
 }
 
+enum MessageKind {
+  TEXT
+  PRICE_OFFER
+}
+
+enum PriceOfferStatus {
+  PENDING
+  ACCEPTED
+  SUPERSEDED
+}
+
 model Message {
   id             String    @id @default(cuid())
   body           String
+  kind           MessageKind @default(TEXT)
+  offerPrice     Float?
+  offerStatus    PriceOfferStatus?
   readAt         DateTime?
   createdAt      DateTime  @default(now())
 
@@ -197,8 +213,14 @@ model Message {
   conversationId String
   sender         User         @relation(fields: [senderId], references: [id])
   senderId       String
+  requestResponse RequestResponse? @relation(fields: [requestResponseId], references: [id], onDelete: SetNull)
+  requestResponseId String?
+  service       Service?      @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  serviceId     String?
 
   @@index([conversationId, createdAt])
+  @@index([requestResponseId, offerStatus])
+  @@index([serviceId, offerStatus])
 }
 
 enum BookingStatus {

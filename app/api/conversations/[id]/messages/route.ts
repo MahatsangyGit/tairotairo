@@ -7,6 +7,7 @@ import {
   getCounterpartyFromConversation,
 } from "@/lib/conversations";
 import { notifyMessageReceived } from "@/lib/notify-messages";
+import { serializeMessage } from "@/lib/message-serialize";
 
 const MAX_BODY_LENGTH = 2000;
 
@@ -89,17 +90,7 @@ export async function POST(
     }).catch(console.error);
 
     return NextResponse.json({
-      message: {
-        id: message.id,
-        body: message.body,
-        createdAt: message.createdAt,
-        isMine: true,
-        sender: {
-          id: message.sender.id,
-          name: message.sender.name,
-          avatar: message.sender.avatar,
-        },
-      },
+      message: serializeMessage(message, auth.userId),
     });
   } catch (error) {
     console.error("[POST /api/conversations/[id]/messages]", error);

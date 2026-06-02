@@ -52,16 +52,19 @@ function archivedRequestHref(viewer: BookingDisplayViewer): string {
     : "/dashboard/provider/proposals";
 }
 
-export function snapshotFromService(service: {
-  id: string;
-  title: string;
-  price: number;
-  category: string;
-  location: string;
-}): BookingDisplaySnapshot {
+export function snapshotFromService(
+  service: {
+    id: string;
+    title: string;
+    price: number;
+    category: string;
+    location: string;
+  },
+  negotiatedPrice?: number
+): BookingDisplaySnapshot {
   return {
     displayTitle: service.title,
-    displayPrice: service.price,
+    displayPrice: negotiatedPrice ?? service.price,
     displayCategory: service.category,
     displayLocation: service.location,
     displaySource: "service",

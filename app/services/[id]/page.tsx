@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
+import NegotiateServiceButton from "@/components/messages/NegotiateServiceButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -337,13 +338,16 @@ export default function ServiceDetailPage() {
                       <p className="text-red-500 text-sm mb-4">{bookingError}</p>
                     )}
 
-                    <button
-                      onClick={handleBooking}
-                      disabled={booking || !service.available}
-                      className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
-                    >
-                      {booking ? "Envoi..." : "Réserver ce service"}
-                    </button>
+                    <div className="flex flex-col gap-2 mb-2">
+                      <NegotiateServiceButton serviceId={service.id} />
+                      <button
+                        onClick={handleBooking}
+                        disabled={booking || !service.available}
+                        className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                      >
+                        {booking ? "Envoi..." : "Réserver ce service"}
+                      </button>
+                    </div>
 
                     {!service.available && (
                       <p className="text-gray-400 text-xs text-center mt-3">
