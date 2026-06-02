@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 
 const LINKS = [
   { href: "/dashboard/provider", label: "Réservations" },
+  { href: "/dashboard/provider/messages", label: "Messages" },
   { href: "/dashboard/provider/services", label: "Mes annonces" },
   { href: "/dashboard/provider/proposals", label: "Mes propositions" },
   { href: "/dashboard/provider/profile", label: "Mon profil" },
@@ -17,7 +18,10 @@ export default function ProviderNav() {
   return (
     <nav className="flex gap-2 mb-8 border-b border-gray-200">
       {LINKS.map((link) => {
-        const active = pathname === link.href;
+        const isRoot = link.href === "/dashboard/provider";
+        const active = isRoot
+          ? pathname === link.href
+          : pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (
           <Link
             key={link.href}

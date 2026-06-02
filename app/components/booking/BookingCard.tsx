@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
+import OpenBookingChatButton from "@/components/messages/OpenBookingChatButton";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -132,6 +133,9 @@ export default function BookingCard({
       </div>
 
       <div className="flex flex-wrap items-center gap-3">
+        {booking.status !== "CANCELLED" && (
+          <OpenBookingChatButton bookingId={booking.id} />
+        )}
         {onCancel &&
           (booking.status === "PENDING" || booking.status === "CONFIRMED") && (
             <button

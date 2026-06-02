@@ -79,6 +79,13 @@ export default function Navbar() {
               >
                 Mes demandes
               </Link>
+              <Link
+                href="/dashboard/client/messages"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+              >
+                Messages
+              </Link>
             </>
           )}
           {user.role === "PROVIDER" && (
@@ -89,6 +96,13 @@ export default function Navbar() {
                 className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
               >
                 Réservations
+              </Link>
+              <Link
+                href="/dashboard/provider/messages"
+                onClick={() => mobile && setIsMenuOpen(false)}
+                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+              >
+                Messages
               </Link>
               <Link
                 href="/dashboard/provider/proposals"

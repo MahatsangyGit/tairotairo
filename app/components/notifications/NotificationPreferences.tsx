@@ -49,8 +49,9 @@ export default function NotificationPreferences() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="font-semibold text-gray-800 mb-2">Canaux de notification</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Choisissez comment recevoir les alertes (réservations, propositions, etc.).
-          Les notifications in-app restent toujours visibles dans la cloche.
+          Les alertes (réservations, propositions, etc.) apparaissent dans la cloche
+          et peuvent être envoyées en push. Les emails ne sont envoyés que lorsque vous
+          recevez un message in-app.
         </p>
 
         <label className="flex items-center gap-3 mb-3 cursor-pointer">
@@ -60,7 +61,9 @@ export default function NotificationPreferences() {
             onChange={(e) => setNotifyEmail(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 text-emerald-600"
           />
-          <span className="text-sm text-gray-700">Notifications par email</span>
+          <span className="text-sm text-gray-700">
+            Email lors de la réception d&apos;un message in-app
+          </span>
         </label>
 
         <label className="flex items-center gap-3 mb-4 cursor-pointer">

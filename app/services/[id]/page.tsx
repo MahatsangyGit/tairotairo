@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import ContactProviderButton from "@/components/messages/ContactProviderButton";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -245,6 +246,9 @@ export default function ServiceDetailPage() {
                     {service.provider.phone && (
                       <p className="text-gray-500 text-sm mt-1">📞 {service.provider.phone}</p>
                     )}
+                    <div className="mt-3">
+                      <ContactProviderButton providerId={service.provider.id} />
+                    </div>
                   </div>
                 </div>
               </div>

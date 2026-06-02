@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import ClientNav from "@/components/layout/ClientNav";
 import {
   RESPONSE_STATUS_CLASS,
@@ -272,6 +273,10 @@ export default function ClientRequestProposalsPage() {
                       Prix proposé : {response.proposedPrice.toLocaleString("fr-MG")} Ar
                     </p>
                   )}
+
+                  <div className="mb-4">
+                    <OpenUserChatButton providerId={response.provider.id} />
+                  </div>
 
                   {response.status === "PENDING" && request.open && (
                     <div className="flex gap-2 pt-4 border-t border-gray-100">

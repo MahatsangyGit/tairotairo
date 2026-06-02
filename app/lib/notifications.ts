@@ -1,7 +1,10 @@
 import prisma from "@/lib/prisma";
 import { APP_URL, sendEmail, emailLayout } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
-import type { NotificationType } from "@/lib/notification-types";
+import {
+  sendsNotificationEmail,
+  type NotificationType,
+} from "@/lib/notification-types";
 
 export interface DispatchNotificationInput {
   userId: string;
@@ -67,7 +70,7 @@ export async function dispatchNotification(
 
   const tasks: Promise<unknown>[] = [];
 
-  if (user.notifyEmail) {
+  if (user.notifyEmail && sendsNotificationEmail(input.type)) {
     tasks.push(
       sendNotificationEmail(
         user.email,

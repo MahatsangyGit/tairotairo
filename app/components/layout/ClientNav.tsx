@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 const LINKS = [
   { href: "/dashboard/client", label: "Mes réservations" },
   { href: "/dashboard/client/requests", label: "Mes demandes" },
+  { href: "/dashboard/client/messages", label: "Messages" },
   { href: "/dashboard/client/profile", label: "Mon profil" },
 ];
 
@@ -15,7 +16,10 @@ export default function ClientNav() {
   return (
     <nav className="flex gap-2 mb-8 border-b border-gray-200">
       {LINKS.map((link) => {
-        const active = pathname === link.href;
+        const isRoot = link.href === "/dashboard/client";
+        const active = isRoot
+          ? pathname === link.href
+          : pathname === link.href || pathname.startsWith(`${link.href}/`);
         return (
           <Link
             key={link.href}

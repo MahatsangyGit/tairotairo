@@ -1,0 +1,128 @@
+"use client";
+
+import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
+
+interface ConversationItem {
+  id: string;
+  bookingId: string;
+  subject: string;
+  bookingStatus: string;
+  counterparty: { id: string; name: string; avatar: string | null };
+  lastMessage: {
+    body: string;
+    createdAt: string;
+    isMine: boolean;
+    senderName: string;
+  } | null;
+  unreadCount: number;
+  href: string;
+}
+
+interface ConversationInboxProps {
+  emptyHint?: string;
+}
+
+function formatWhen(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const sameDay =
+    d.getDate() === now.getDate() &&
+    d.getMonth() === now.getMonth() &&
+    d.getFullYear() === now.getFullYear();
+
+  if (sameDay) {
+    return d.toLocaleTimeString("fr-MG", { hour: "2-digit", minute: "2-digit" });
+  }
+
+  return d.toLocaleDateString("fr-MG", { day: "numeric", month: "short" });
+}
+
+export default function ConversationInbox({ emptyHint }: ConversationInboxProps) {
+  const [conversations, setConversations] = useState<ConversationItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch("/api/conversations");
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error ?? "Erreur de chargement");
+        return;
+      }
+
+      setConversations(data.conversations);
+    } catch {
+      setError("Une erreur est survenue");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  if (loading) {
+    return <p className="text-gray-500">Chargement des conversations...</p>;
+  }
+
+  if (error) {
+    return <p className="text-red-500">{error}</p>;
+  }
+
+  if (conversations.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
+        <p className="text-gray-600 font-medium mb-2">Aucune conversation</p>
+        <p className="text-gray-500 text-sm">
+          {emptyHint ??
+            "Ouvrez une conversation depuis une réservation pour échanger avec votre interlocuteur."}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <ul className="flex flex-col gap-2">
+      {conversations.map((c) => (
+        <li key={c.id}>
+          <Link
+            href={c.href}
+            className="flex items-start gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:border-emerald-200 transition-colors"
+          >
+            <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold shrink-0">
+              {c.counterparty.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-start justify-between gap-2">
+                <p className="font-semibold text-gray-800 truncate">{c.counterparty.name}</p>
+                {c.lastMessage && (
+                  <span className="text-xs text-gray-400 shrink-0">
+                    {formatWhen(c.lastMessage.createdAt)}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm text-gray-500 truncate">{c.subject}</p>
+              {c.lastMessage ? (
+                <p className="text-sm text-gray-600 mt-1 truncate">
+                  {c.lastMessage.isMine ? "Vous : " : ""}
+                  {c.lastMessage.body}
+                </p>
+              ) : (
+                <p className="text-sm text-gray-400 mt-1 italic">Aucun message</p>
+              )}
+            </div>
+            {c.unreadCount > 0 && (
+              <span className="bg-emerald-600 text-white text-xs font-bold min-w-[1.25rem] h-5 px-1.5 rounded-full flex items-center justify-center shrink-0">
+                {c.unreadCount > 9 ? "9+" : c.unreadCount}
+              </span>
+            )}
+          </Link>
+        </li>
+      ))}
+    </ul>
+  );
+}

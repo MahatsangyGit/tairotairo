@@ -30,6 +30,9 @@ export async function GET(req: NextRequest) {
             location: true,
             budget: true,
             open: true,
+            client: {
+              select: { id: true, name: true },
+            },
           },
         },
       },

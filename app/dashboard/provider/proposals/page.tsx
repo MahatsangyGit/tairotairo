@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
+import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import {
   RESPONSE_STATUS_CLASS,
   RESPONSE_STATUS_LABEL,
@@ -18,6 +19,7 @@ interface RequestSummary {
   location: string;
   budget: number;
   open: boolean;
+  client: { id: string; name: string };
 }
 
 interface ProviderResponse {
@@ -220,7 +222,11 @@ export default function ProviderProposalsPage() {
                   </p>
                 )}
 
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">
+                  <OpenUserChatButton
+                    clientId={response.request.client.id}
+                    label={`Message à ${response.request.client.name}`}
+                  />
                   <Link
                     href={`/requests/${response.request.id}`}
                     className="text-sm text-emerald-600 font-medium hover:underline"

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
 
 interface PageProps {
@@ -119,6 +120,9 @@ export default async function ProviderProfilePage({ params }: PageProps) {
               {provider.bio && (
                 <p className="text-gray-600 mt-3 leading-relaxed">{provider.bio}</p>
               )}
+              <div className="mt-4">
+                <ContactProviderButton providerId={provider.id} />
+              </div>
             </div>
           </div>
         </div>
