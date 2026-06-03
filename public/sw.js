@@ -1,5 +1,5 @@
 self.addEventListener("push", (event) => {
-  let data = { title: "TairoTairo", body: "", url: "/" };
+  let data = { title: "Tairo ampio", body: "", url: "/" };
 
   try {
     if (event.data) {

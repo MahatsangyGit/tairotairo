@@ -341,7 +341,7 @@ export default function ClientRequestsPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={fetchRequests}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
             </button>
@@ -385,7 +385,7 @@ export default function ClientRequestsPage() {
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${
                       request.open
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        ? "bg-brand-50 text-brand-700 border-brand-200"
                         : "bg-gray-50 text-gray-500 border-gray-200"
                     }`}
                   >

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import { SITE_NAME } from "@/lib/site";
 
 interface AuthUser {
   id: string;
@@ -55,7 +56,7 @@ export default function Navbar() {
       <Link
         href="/services"
         onClick={() => mobile && setIsMenuOpen(false)}
-        className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+        className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
       >
         Services
       </Link>
@@ -75,7 +76,7 @@ export default function Navbar() {
               <Link
                 href="/dashboard/client"
                 onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Réservations
               </Link>
@@ -89,7 +90,7 @@ export default function Navbar() {
               <Link
                 href="/dashboard/client/messages"
                 onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Messages
               </Link>
@@ -100,28 +101,28 @@ export default function Navbar() {
               <Link
                 href="/dashboard/provider"
                 onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Réservations
               </Link>
               <Link
                 href="/dashboard/provider/messages"
                 onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Messages
               </Link>
               <Link
                 href="/dashboard/provider/proposals"
                 onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Mes propositions
               </Link>
               <Link
                 href="/dashboard/provider/services"
                 onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Mes annonces
               </Link>
@@ -132,10 +133,10 @@ export default function Navbar() {
               href={profileHref}
               onClick={() => mobile && setIsMenuOpen(false)}
               title="Mon profil"
-              className={`text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors ${
+              className={`text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors ${
                 pathname === profileHref ||
                 pathname.startsWith(`${profileHref}/`)
-                  ? "text-emerald-600"
+                  ? "text-brand-600"
                   : ""
               }`}
             >
@@ -150,7 +151,7 @@ export default function Navbar() {
           )}
           <button
             onClick={handleLogout}
-            className={`text-gray-600 hover:text-emerald-600 font-medium transition-colors ${
+            className={`text-gray-600 hover:text-brand-600 font-medium transition-colors ${
               mobile ? "text-left" : ""
             }`}
           >
@@ -164,21 +165,21 @@ export default function Navbar() {
           <Link
             href="/auth/login"
             onClick={() => mobile && setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+            className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
           >
             Connexion
           </Link>
           <Link
             href="/dashboard/provider"
             onClick={() => mobile && setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-emerald-600 font-medium transition-colors"
+            className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
           >
             Espace pro
           </Link>
           <Link
             href="/auth/register"
             onClick={() => mobile && setIsMenuOpen(false)}
-            className={`bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-emerald-700 transition-colors ${
+            className={`bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition-colors ${
               mobile ? "text-center" : ""
             }`}
           >
@@ -194,7 +195,7 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-emerald-600">TairoTairo</span>
+            <span className="text-2xl font-bold text-brand-600">{SITE_NAME}</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-6">

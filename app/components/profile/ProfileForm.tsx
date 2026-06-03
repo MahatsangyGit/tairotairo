@@ -78,7 +78,7 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
           placeholder="Nom complet"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
         />
         <input
           type="email"
@@ -91,14 +91,14 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
           placeholder="Téléphone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
         />
         <input
           type="url"
           placeholder="URL de l'avatar (optionnel)"
           value={avatar}
           onChange={(e) => setAvatar(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
         />
         {showBio && (
           <textarea
@@ -106,17 +106,17 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
             rows={4}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-emerald-500"
+            className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-brand-500"
           />
         )}
 
         {error && <p className="text-red-500 text-sm">{error}</p>}
-        {success && <p className="text-emerald-600 text-sm">{success}</p>}
+        {success && <p className="text-brand-600 text-sm">{success}</p>}
 
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 w-fit"
+          className="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50 w-fit"
         >
           {saving ? "Enregistrement..." : "Enregistrer"}
         </button>

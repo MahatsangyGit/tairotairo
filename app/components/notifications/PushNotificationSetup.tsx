@@ -148,7 +148,7 @@ export default function PushNotificationSetup() {
         <button
           onClick={subscribe}
           disabled={loading || !configured}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
           {loading ? "Activation..." : "Activer les notifications push"}
         </button>

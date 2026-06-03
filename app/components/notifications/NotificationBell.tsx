@@ -125,7 +125,7 @@ export default function NotificationBell() {
                     type="button"
                     onClick={markAllRead}
                     disabled={loading}
-                    className="text-xs text-emerald-600 hover:underline disabled:opacity-50"
+                    className="text-xs text-brand-600 hover:underline disabled:opacity-50"
                   >
                     Tout marquer lu
                   </button>
@@ -153,7 +153,7 @@ export default function NotificationBell() {
                   key={n.id}
                   onClick={() => markAsRead(n.id, n.link)}
                   className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                    !n.read ? "bg-emerald-50/50" : ""
+                    !n.read ? "bg-brand-50/50" : ""
                   }`}
                 >
                   <p className="font-medium text-gray-800 text-sm">{n.title}</p>

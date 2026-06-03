@@ -186,8 +186,8 @@ export default function ClientDashboardPage() {
                 onClick={() => setActiveFilter(f.value)}
                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                   activeFilter === f.value
-                    ? "bg-emerald-600 text-white border-emerald-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400"
+                    ? "bg-brand-600 text-white border-brand-600"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
                 }`}
               >
                 {f.label}
@@ -219,7 +219,7 @@ export default function ClientDashboardPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={() => fetchBookings()}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
             </button>
@@ -235,7 +235,7 @@ export default function ClientDashboardPage() {
             </p>
             <Link
               href="/services"
-              className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors inline-block"
+              className="bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors inline-block"
             >
               Voir les services
             </Link>

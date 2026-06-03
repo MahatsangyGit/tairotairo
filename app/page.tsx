@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import { PARENT_COMPANY, SITE_NAME } from "@/lib/site";
 
 const CATEGORIES = [
   { name: "Plomberie", icon: "🔧" },
@@ -21,18 +22,18 @@ export default function HomePage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="bg-emerald-600 text-white py-20 px-4">
+      <section className="bg-brand-600 text-white py-20 px-4">
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-bold mb-4">
             Trouvez un prestataire de confiance
           </h1>
-          <p className="text-emerald-100 text-lg mb-8">
+          <p className="text-brand-100 text-lg mb-8">
             La marketplace d'entraide à Madagascar — rapide, simple et sécurisé
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/services"
-              className="bg-white text-emerald-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-emerald-50 transition-colors inline-block"
+              className="bg-white text-brand-600 px-8 py-3 rounded-lg font-semibold text-lg hover:bg-brand-50 transition-colors inline-block"
             >
               Voir les services
             </Link>
@@ -56,7 +57,7 @@ export default function HomePage() {
             <Link
               key={cat.name}
               href={`/services?category=${cat.name}`}
-              className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md hover:border-emerald-500 border border-gray-100 transition-all"
+              className="bg-white rounded-xl p-6 text-center shadow-sm hover:shadow-md hover:border-brand-500 border border-gray-100 transition-all"
             >
               <span className="text-3xl mb-2 block">{cat.icon}</span>
               <span className="text-gray-700 font-medium">{cat.name}</span>
@@ -84,30 +85,40 @@ export default function HomePage() {
       </section>
 
       {/* CTA prestataire */}
-      <section className="bg-emerald-50 py-16 px-4">
+      <section className="bg-brand-50 py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Vous êtes prestataire ?
           </h2>
           <p className="text-gray-600 mb-6">
-            Rejoignez TairoTairo et trouvez des clients près de chez vous
+            Rejoignez {SITE_NAME} et trouvez des clients près de chez vous
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
               href="/auth/register"
-              className="bg-emerald-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors inline-block"
+              className="bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors inline-block"
             >
               Devenir prestataire
             </Link>
             <Link
               href="/requests"
-              className="bg-white text-emerald-600 border border-emerald-200 px-8 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition-colors inline-block"
+              className="bg-white text-brand-600 border border-brand-200 px-8 py-3 rounded-lg font-semibold hover:bg-brand-50 transition-colors inline-block"
             >
               Voir les demandes clients
             </Link>
           </div>
         </div>
       </section>
+
+      <footer className="border-t border-gray-200 bg-white py-10 px-4">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-lg font-semibold text-brand-600">{SITE_NAME}</p>
+          <p className="text-sm text-gray-500 mt-2">
+            Plateforme éditée par{" "}
+            <span className="font-medium text-gray-700">{PARENT_COMPANY}</span>
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }

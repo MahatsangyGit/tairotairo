@@ -102,7 +102,7 @@ function ServicesPageContent() {
       <Navbar />
 
       {/* ── Header + recherche ── */}
-      <section className="bg-emerald-600 text-white py-10 px-4">
+      <section className="bg-brand-600 text-white py-10 px-4">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-3xl font-bold mb-4 text-center">
             Trouvez le bon prestataire
@@ -117,7 +117,7 @@ function ServicesPageContent() {
             />
             <button
               type="submit"
-              className="bg-white text-emerald-600 px-6 py-3 rounded-lg font-semibold hover:bg-emerald-50 transition-colors"
+              className="bg-white text-brand-600 px-6 py-3 rounded-lg font-semibold hover:bg-brand-50 transition-colors"
             >
               Rechercher
             </button>
@@ -133,8 +133,8 @@ function ServicesPageContent() {
             onClick={() => handleCategoryClick("")}
             className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
               category === ""
-                ? "bg-emerald-600 text-white border-emerald-600"
-                : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400"
+                ? "bg-brand-600 text-white border-brand-600"
+                : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
             }`}
           >
             Tous
@@ -145,8 +145,8 @@ function ServicesPageContent() {
               onClick={() => handleCategoryClick(cat)}
               className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                 category === cat
-                  ? "bg-emerald-600 text-white border-emerald-600"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400"
+                  ? "bg-brand-600 text-white border-brand-600"
+                  : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
               }`}
             >
               {cat}
@@ -161,7 +161,7 @@ function ServicesPageContent() {
             placeholder="Filtrer par ville (ex: Antananarivo)"
             value={location}
             onChange={(e) => { setLocation(e.target.value); setPage(1); }}
-            className="sm:w-64 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500"
+            className="sm:w-64 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500"
           />
           {pagination && !loading && (
             <p className="text-sm text-gray-500">
@@ -188,7 +188,7 @@ function ServicesPageContent() {
         {!loading && error && (
           <div className="text-center py-16">
             <p className="text-red-500 mb-4">{error}</p>
-            <button onClick={fetchServices} className="text-emerald-600 font-medium hover:underline">
+            <button onClick={fetchServices} className="text-brand-600 font-medium hover:underline">
               Réessayer
             </button>
           </div>
@@ -210,9 +210,9 @@ function ServicesPageContent() {
                 <Link
                   key={service.id}
                   href={`/services/${service.id}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-emerald-200 transition-all"
+                  className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-brand-200 transition-all"
                 >
-                  <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
+                  <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
                     {service.category}
                   </span>
 
@@ -225,7 +225,7 @@ function ServicesPageContent() {
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-emerald-600 font-bold">
+                    <span className="text-brand-600 font-bold">
                       {service.price.toLocaleString("fr-MG")} Ar
                     </span>
                     <span className="text-gray-400 text-xs">
@@ -234,7 +234,7 @@ function ServicesPageContent() {
                   </div>
 
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                    <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-semibold text-xs shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold text-xs shrink-0">
                       {service.provider.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="text-gray-600 text-sm truncate">
@@ -251,7 +251,7 @@ function ServicesPageContent() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Précédent
                 </button>
@@ -261,7 +261,7 @@ function ServicesPageContent() {
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={page === pagination.totalPages}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-emerald-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Suivant →
                 </button>

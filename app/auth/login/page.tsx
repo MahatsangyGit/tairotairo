@@ -4,6 +4,7 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import { SITE_NAME } from "@/lib/site";
 
 function safeCallbackUrl(url: string | null): string | null {
   if (!url || !url.startsWith("/") || url.startsWith("//")) return null;
@@ -81,7 +82,7 @@ function LoginPageContent() {
             Connexion
           </h1>
           <p className="text-gray-500 mb-6">
-            Bienvenue sur TairoTairo
+            Bienvenue sur {SITE_NAME}
           </p>
 
           <div className="flex flex-col gap-4">
@@ -92,7 +93,7 @@ function LoginPageContent() {
               onChange={(e) =>
                 setFormData({ ...formData, email: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
             <input
               type="password"
@@ -101,7 +102,7 @@ function LoginPageContent() {
               onChange={(e) =>
                 setFormData({ ...formData, password: e.target.value })
               }
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -109,7 +110,7 @@ function LoginPageContent() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50"
             >
               {loading ? "Connexion..." : "Se connecter"}
             </button>
@@ -119,7 +120,7 @@ function LoginPageContent() {
             Pas encore de compte ?{" "}
             <Link
               href="/auth/register"
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Créer un compte
             </Link>

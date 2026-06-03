@@ -16,7 +16,7 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 const STATUS_CLASS: Record<BookingStatus, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
-  COMPLETED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  COMPLETED: "bg-brand-50 text-brand-700 border-brand-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200",
 };
 
@@ -80,7 +80,7 @@ export default function BookingCard({
   const categoryClass =
     display.source === "request"
       ? "bg-amber-50 text-amber-800"
-      : "bg-emerald-50 text-emerald-700";
+      : "bg-brand-50 text-brand-700";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -115,7 +115,7 @@ export default function BookingCard({
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Prix</p>
-          <p className="text-sm font-medium text-emerald-600">
+          <p className="text-sm font-medium text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
         </div>
@@ -130,7 +130,7 @@ export default function BookingCard({
                 <p className="text-xs text-gray-400 mb-0.5">Contact</p>
                 <a
                   href={`tel:${counterparty.phone}`}
-                  className="text-sm font-medium text-emerald-600 hover:underline"
+                  className="text-sm font-medium text-brand-600 hover:underline"
                 >
                   {counterparty.phone}
                 </a>
@@ -156,7 +156,7 @@ export default function BookingCard({
           )}
         <Link
           href={display.href}
-          className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
+          className="text-sm text-brand-600 font-medium hover:underline ml-auto"
         >
           {display.source === "request"
             ? display.archived

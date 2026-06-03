@@ -91,9 +91,9 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
         <li key={c.id}>
           <Link
             href={c.href}
-            className="flex items-start gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:border-emerald-200 transition-colors"
+            className="flex items-start gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:border-brand-200 transition-colors"
           >
-            <div className="w-11 h-11 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-semibold shrink-0">
+            <div className="w-11 h-11 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-semibold shrink-0">
               {c.counterparty.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
@@ -116,7 +116,7 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
               )}
             </div>
             {c.unreadCount > 0 && (
-              <span className="bg-emerald-600 text-white text-xs font-bold min-w-[1.25rem] h-5 px-1.5 rounded-full flex items-center justify-center shrink-0">
+              <span className="bg-brand-600 text-white text-xs font-bold min-w-[1.25rem] h-5 px-1.5 rounded-full flex items-center justify-center shrink-0">
                 {c.unreadCount > 9 ? "9+" : c.unreadCount}
               </span>
             )}

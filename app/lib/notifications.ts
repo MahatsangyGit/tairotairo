@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { BRAND_PRIMARY, SITE_NAME } from "@/lib/site";
 import { APP_URL, sendEmail, emailLayout } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
 import {
@@ -25,7 +26,7 @@ async function sendNotificationEmail(
 
   return sendEmail({
     to,
-    subject: `${title} — TairoTairo`,
+    subject: `${title} — ${SITE_NAME}`,
     html: emailLayout(
       title,
       `
@@ -33,7 +34,7 @@ async function sendNotificationEmail(
         <p>${body}</p>
         ${
           link
-            ? `<p><a href="${fullLink}" style="color:#059669">Voir les détails →</a></p>`
+            ? `<p><a href="${fullLink}" style="color:${BRAND_PRIMARY}">Voir les détails →</a></p>`
             : ""
         }
       `

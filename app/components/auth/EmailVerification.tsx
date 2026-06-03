@@ -72,7 +72,7 @@ export default function EmailVerification({
 
   if (emailVerified) {
     return (
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl px-4 py-3 text-sm text-emerald-800">
+      <div className="bg-brand-50 border border-brand-200 rounded-xl px-4 py-3 text-sm text-brand-800">
         ✓ Email vérifié ({email})
       </div>
     );
@@ -86,7 +86,7 @@ export default function EmailVerification({
       </p>
 
       {error && <p className="text-red-500 text-sm mb-3">{error}</p>}
-      {success && <p className="text-emerald-600 text-sm mb-3">{success}</p>}
+      {success && <p className="text-brand-600 text-sm mb-3">{success}</p>}
 
       {!sent ? (
         <button
@@ -110,7 +110,7 @@ export default function EmailVerification({
           <button
             onClick={handleVerify}
             disabled={loading || code.length !== 6}
-            className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+            className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
           >
             {loading ? "..." : "Vérifier"}
           </button>

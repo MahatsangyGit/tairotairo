@@ -57,7 +57,7 @@ export default function ProviderProfilePage() {
         {user && (
           <Link
             href={`/providers/${user.id}`}
-            className="inline-block text-sm text-emerald-600 font-medium hover:underline mb-4"
+            className="inline-block text-sm text-brand-600 font-medium hover:underline mb-4"
           >
             Voir mon profil public →
           </Link>

@@ -228,7 +228,7 @@ export default function ProviderServicesPage() {
               setEditingId(null);
               setForm(EMPTY_FORM);
             }}
-            className="mb-6 bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-emerald-700 transition-colors"
+            className="mb-6 bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 transition-colors"
           >
             + Nouvelle annonce
           </button>
@@ -243,14 +243,14 @@ export default function ProviderServicesPage() {
                 placeholder="Titre (ex: Réparation fuite d'eau)"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
               />
               <textarea
                 placeholder="Description détaillée"
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 resize-none"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500 resize-none"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
@@ -259,12 +259,12 @@ export default function ProviderServicesPage() {
                   placeholder="Prix (Ar)"
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
                 />
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500 bg-white"
+                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500 bg-white"
                 >
                   {SERVICE_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -278,13 +278,13 @@ export default function ProviderServicesPage() {
                 placeholder="Ville (ex: Antananarivo)"
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
               />
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={handleSubmit}
                   disabled={saving}
-                  className="bg-emerald-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50"
+                  className="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50"
                 >
                   {saving ? "Enregistrement..." : editingId ? "Enregistrer" : "Publier"}
                 </button>
@@ -315,7 +315,7 @@ export default function ProviderServicesPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={fetchServices}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
             </button>
@@ -331,7 +331,7 @@ export default function ProviderServicesPage() {
             {!showForm && (
               <button
                 onClick={() => setShowForm(true)}
-                className="text-emerald-600 font-medium hover:underline"
+                className="text-brand-600 font-medium hover:underline"
               >
                 Créer une annonce
               </button>
@@ -348,7 +348,7 @@ export default function ProviderServicesPage() {
               >
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
-                    <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
+                    <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
                       {service.category}
                     </span>
                     <h3 className="font-semibold text-gray-800">{service.title}</h3>
@@ -359,7 +359,7 @@ export default function ProviderServicesPage() {
                   <span
                     className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${
                       service.available
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
+                        ? "bg-brand-50 text-brand-700 border-brand-200"
                         : "bg-gray-50 text-gray-500 border-gray-200"
                     }`}
                   >
@@ -368,13 +368,13 @@ export default function ProviderServicesPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
-                  <span className="text-emerald-600 font-bold">
+                  <span className="text-brand-600 font-bold">
                     {service.price.toLocaleString("fr-MG")} Ar
                   </span>
                   <span>📍 {service.location}</span>
                   <Link
                     href={`/services/${service.id}`}
-                    className="text-emerald-600 hover:underline"
+                    className="text-brand-600 hover:underline"
                   >
                     Voir la fiche publique →
                   </Link>
@@ -383,13 +383,13 @@ export default function ProviderServicesPage() {
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => startEdit(service)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-emerald-400"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-brand-400"
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => toggleAvailable(service)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-emerald-400"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-brand-400"
                   >
                     {service.available ? "Désactiver" : "Réactiver"}
                   </button>

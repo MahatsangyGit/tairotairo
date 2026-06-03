@@ -168,7 +168,7 @@ export default function ProviderProposalsPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={fetchResponses}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
             </button>
@@ -183,7 +183,7 @@ export default function ProviderProposalsPage() {
             </p>
             <Link
               href="/requests"
-              className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 inline-block"
+              className="bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700 inline-block"
             >
               Voir les demandes
             </Link>
@@ -224,7 +224,7 @@ export default function ProviderProposalsPage() {
                 </p>
 
                 {response.proposedPrice !== null && (
-                  <p className="text-emerald-600 font-semibold text-sm mb-4">
+                  <p className="text-brand-600 font-semibold text-sm mb-4">
                     Votre prix : {response.proposedPrice.toLocaleString("fr-MG")} Ar
                   </p>
                 )}
@@ -237,7 +237,7 @@ export default function ProviderProposalsPage() {
                   />
                   <Link
                     href={`/requests/${response.request.id}`}
-                    className="text-sm text-emerald-600 font-medium hover:underline"
+                    className="text-sm text-brand-600 font-medium hover:underline"
                   >
                     Voir la demande →
                   </Link>

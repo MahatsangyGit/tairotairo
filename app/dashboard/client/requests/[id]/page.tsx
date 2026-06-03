@@ -169,7 +169,7 @@ export default function ClientRequestProposalsPage() {
         )}
 
         {successMessage && (
-          <div className="text-emerald-700 text-sm mb-4 bg-emerald-50 border border-emerald-100 rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
+          <div className="text-brand-700 text-sm mb-4 bg-brand-50 border border-brand-100 rounded-lg px-4 py-3 flex flex-col sm:flex-row sm:items-center gap-2">
             <span>{successMessage}</span>
             <Link
               href="/dashboard/client"
@@ -189,7 +189,7 @@ export default function ClientRequestProposalsPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={fetchData}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
             </button>
@@ -241,7 +241,7 @@ export default function ClientRequestProposalsPage() {
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold shrink-0">
+                      <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold shrink-0">
                         {response.provider.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
@@ -251,7 +251,7 @@ export default function ClientRequestProposalsPage() {
                         {response.provider.phone && (
                           <a
                             href={`tel:${response.provider.phone}`}
-                            className="text-emerald-600 text-sm hover:underline"
+                            className="text-brand-600 text-sm hover:underline"
                           >
                             📞 {response.provider.phone}
                           </a>
@@ -273,7 +273,7 @@ export default function ClientRequestProposalsPage() {
                   </p>
 
                   {response.proposedPrice !== null && (
-                    <p className="text-emerald-600 font-semibold text-sm mb-4">
+                    <p className="text-brand-600 font-semibold text-sm mb-4">
                       Prix proposé : {response.proposedPrice.toLocaleString("fr-MG")} Ar
                     </p>
                   )}
@@ -291,7 +291,7 @@ export default function ClientRequestProposalsPage() {
                       <button
                         onClick={() => handleStatusChange(response.id, "ACCEPTED")}
                         disabled={updatingId === response.id}
-                        className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+                        className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
                       >
                         {updatingId === response.id ? "..." : "Accepter"}
                       </button>

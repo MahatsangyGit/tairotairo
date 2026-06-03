@@ -59,7 +59,7 @@ export default function NotificationPreferences() {
             type="checkbox"
             checked={notifyEmail}
             onChange={(e) => setNotifyEmail(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-emerald-600"
+            className="w-4 h-4 rounded border-gray-300 text-brand-600"
           />
           <span className="text-sm text-gray-700">
             Email lors de la réception d&apos;un message in-app
@@ -71,14 +71,14 @@ export default function NotificationPreferences() {
             type="checkbox"
             checked={notifyPush}
             onChange={(e) => setNotifyPush(e.target.checked)}
-            className="w-4 h-4 rounded border-gray-300 text-emerald-600"
+            className="w-4 h-4 rounded border-gray-300 text-brand-600"
           />
           <span className="text-sm text-gray-700">Notifications push (navigateur)</span>
         </label>
 
         {message && (
           <p
-            className={`text-sm mb-3 ${message.includes("Erreur") ? "text-red-500" : "text-emerald-600"}`}
+            className={`text-sm mb-3 ${message.includes("Erreur") ? "text-red-500" : "text-brand-600"}`}
           >
             {message}
           </p>
@@ -87,7 +87,7 @@ export default function NotificationPreferences() {
         <button
           onClick={handleSave}
           disabled={saving}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50"
+          className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
         >
           {saving ? "Enregistrement..." : "Enregistrer les préférences"}
         </button>

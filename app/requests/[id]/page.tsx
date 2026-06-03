@@ -220,7 +220,7 @@ export default function RequestDetailPage() {
                   <span>📍 {request.location}</span>
                   {desiredDateLabel && <span>📅 Souhaité le {desiredDateLabel}</span>}
                   <span
-                    className={`font-medium ${request.open ? "text-emerald-600" : "text-gray-400"}`}
+                    className={`font-medium ${request.open ? "text-brand-600" : "text-gray-400"}`}
                   >
                     {request.open ? "● Ouverte" : "● Fermée"}
                   </span>
@@ -318,7 +318,7 @@ export default function RequestDetailPage() {
                       rows={4}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 resize-none mb-3"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 resize-none mb-3"
                     />
                     <input
                       type="number"
@@ -326,12 +326,12 @@ export default function RequestDetailPage() {
                       placeholder="Votre prix (Ar) — optionnel"
                       value={proposedPrice}
                       onChange={(e) => setProposedPrice(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 mb-3"
+                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
                     />
                     <button
                       onClick={handleSubmitProposal}
                       disabled={submitting}
-                      className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 disabled:opacity-50"
+                      className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 disabled:opacity-50"
                     >
                       {submitting ? "Envoi..." : "Envoyer ma proposition"}
                     </button>
@@ -350,7 +350,7 @@ export default function RequestDetailPage() {
                     </div>
                     <p className="text-gray-500 text-sm mb-3">{ownResponse.message}</p>
                     {ownResponse.proposedPrice !== null && (
-                      <p className="text-emerald-600 text-sm font-medium mb-3">
+                      <p className="text-brand-600 text-sm font-medium mb-3">
                         {ownResponse.proposedPrice.toLocaleString("fr-MG")} Ar
                       </p>
                     )}
@@ -359,7 +359,7 @@ export default function RequestDetailPage() {
                         clientId={request.client.id}
                         requestResponseId={ownResponse.id}
                         label="Négocier le prix par message"
-                        className="text-sm text-emerald-600 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 disabled:opacity-50"
+                        className="text-sm text-brand-600 font-medium border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-50 disabled:opacity-50"
                       />
                     </div>
                     {ownResponse.status === "PENDING" && (
@@ -372,7 +372,7 @@ export default function RequestDetailPage() {
                     )}
                     <Link
                       href="/dashboard/provider/proposals"
-                      className="block text-sm text-emerald-600 font-medium hover:underline mt-2"
+                      className="block text-sm text-brand-600 font-medium hover:underline mt-2"
                     >
                       Voir toutes mes propositions →
                     </Link>

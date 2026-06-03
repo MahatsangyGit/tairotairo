@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import { SITE_NAME } from "@/lib/site";
 
 type Role = "CLIENT" | "PROVIDER";
 
@@ -62,7 +63,7 @@ export default function RegisterPage() {
             Créer un compte
           </h1>
           <p className="text-gray-500 mb-6">
-            Rejoignez TairoTairo gratuitement
+            Rejoignez {SITE_NAME} gratuitement
           </p>
 
           {/* Choix du rôle */}
@@ -73,8 +74,8 @@ export default function RegisterPage() {
                 onClick={() => setFormData({ ...formData, role })}
                 className={`flex-1 py-3 rounded-lg font-medium border transition-all ${
                   formData.role === role
-                    ? "bg-emerald-600 text-white border-emerald-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400"
+                    ? "bg-brand-600 text-white border-brand-600"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
                 }`}
               >
                 {role === "CLIENT" ? "Je cherche" : "Je propose"}
@@ -88,28 +89,28 @@ export default function RegisterPage() {
               placeholder="Nom complet"
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
             <input
               type="email"
               placeholder="Email"
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
             <input
               type="password"
               placeholder="Mot de passe"
               value={formData.password}
               onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
             <input
               type="tel"
               placeholder="Téléphone (ex: 034 00 000 00)"
               value={formData.phone}
               onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-emerald-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
 
             {error && (
@@ -119,7 +120,7 @@ export default function RegisterPage() {
             <button
               onClick={handleSubmit}
               disabled={loading}
-              className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+              className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50"
             >
               {loading ? "Création..." : "Créer mon compte"}
             </button>
@@ -127,7 +128,7 @@ export default function RegisterPage() {
 
           <p className="text-center text-black mt-6">
             Déjà un compte ?{" "}
-            <Link href="/auth/login" className="text-emerald-600 font-medium hover:underline">
+            <Link href="/auth/login" className="text-brand-600 font-medium hover:underline">
               Se connecter
             </Link>
           </p>

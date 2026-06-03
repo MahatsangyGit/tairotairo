@@ -61,7 +61,7 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 const STATUS_CLASS: Record<BookingStatus, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
-  COMPLETED: "bg-emerald-50 text-emerald-700 border-emerald-200",
+  COMPLETED: "bg-brand-50 text-brand-700 border-brand-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200",
 };
 
@@ -105,7 +105,7 @@ function BookingCard({
   const categoryClass =
     display.source === "request"
       ? "bg-amber-50 text-amber-800"
-      : "bg-emerald-50 text-emerald-700";
+      : "bg-brand-50 text-brand-700";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
@@ -136,7 +136,7 @@ function BookingCard({
         </div>
         <div>
           <p className="text-xs text-gray-400 mb-0.5">Prix</p>
-          <p className="text-sm font-medium text-emerald-600">
+          <p className="text-sm font-medium text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
         </div>
@@ -149,7 +149,7 @@ function BookingCard({
             <p className="text-xs text-gray-400 mb-0.5">Téléphone</p>
             <a
               href={`tel:${booking.client.phone}`}
-              className="text-sm font-medium text-emerald-600 hover:underline"
+              className="text-sm font-medium text-brand-600 hover:underline"
             >
               {booking.client.phone}
             </a>
@@ -159,7 +159,7 @@ function BookingCard({
           <p className="text-xs text-gray-400 mb-0.5">Email</p>
           <a
             href={`mailto:${booking.client.email}`}
-            className="text-sm font-medium text-gray-700 hover:text-emerald-600"
+            className="text-sm font-medium text-gray-700 hover:text-brand-600"
           >
             {booking.client.email}
           </a>
@@ -172,7 +172,7 @@ function BookingCard({
             <button
               onClick={() => onStatusChange(booking.id, "CONFIRMED")}
               disabled={isUpdating}
-              className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
             >
               {isUpdating ? "..." : "Confirmer"}
             </button>
@@ -190,7 +190,7 @@ function BookingCard({
             <button
               onClick={() => onStatusChange(booking.id, "COMPLETED")}
               disabled={isUpdating}
-              className="bg-emerald-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
             >
               {isUpdating ? "..." : "Marquer terminé"}
             </button>
@@ -205,7 +205,7 @@ function BookingCard({
         )}
         <Link
           href={display.href}
-          className="text-sm text-emerald-600 font-medium hover:underline ml-auto"
+          className="text-sm text-brand-600 font-medium hover:underline ml-auto"
         >
           {display.source === "request"
             ? display.archived
@@ -378,8 +378,8 @@ export default function ProviderDashboardPage() {
                 onClick={() => setActiveFilter(f.value)}
                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                   activeFilter === f.value
-                    ? "bg-emerald-600 text-white border-emerald-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-emerald-400"
+                    ? "bg-brand-600 text-white border-brand-600"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
                 }`}
               >
                 {f.label}
@@ -412,7 +412,7 @@ export default function ProviderDashboardPage() {
             <p className="text-red-500 mb-4">{error}</p>
             <button
               onClick={() => fetchBookings()}
-              className="text-emerald-600 font-medium hover:underline"
+              className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
             </button>
@@ -427,7 +427,7 @@ export default function ProviderDashboardPage() {
             </p>
             <Link
               href="/services"
-              className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors inline-block"
+              className="bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors inline-block"
             >
               Voir le catalogue
             </Link>

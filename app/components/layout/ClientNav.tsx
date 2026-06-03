@@ -25,7 +25,7 @@ export default function ClientNav() {
             href={link.href}
             className={`px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors ${
               active
-                ? "border-emerald-600 text-emerald-600"
+                ? "border-brand-600 text-brand-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >

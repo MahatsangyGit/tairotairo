@@ -74,7 +74,7 @@ export default function OpenUserChatButton({
       disabled={loading}
       className={
         className ||
-        "text-sm text-emerald-600 font-medium border border-emerald-200 px-3 py-1.5 rounded-lg hover:bg-emerald-50 disabled:opacity-50"
+        "text-sm text-brand-600 font-medium border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-50 disabled:opacity-50"
       }
     >
       {loading ? "..." : label}

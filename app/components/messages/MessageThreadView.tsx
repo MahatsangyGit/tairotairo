@@ -187,7 +187,7 @@ export default function MessageThreadView({
       <div>
         <Link
           href={backHref}
-          className="text-sm text-emerald-600 hover:underline mb-4 inline-block"
+          className="text-sm text-brand-600 hover:underline mb-4 inline-block"
         >
           ← Retour aux messages
         </Link>
@@ -205,7 +205,7 @@ export default function MessageThreadView({
       <div className="mb-4">
         <Link
           href={backHref}
-          className="text-sm text-emerald-600 hover:underline mb-3 inline-block"
+          className="text-sm text-brand-600 hover:underline mb-3 inline-block"
         >
           ← Retour aux messages
         </Link>
@@ -261,7 +261,7 @@ export default function MessageThreadView({
                         ? "bg-amber-600 text-white rounded-br-md"
                         : "bg-amber-50 text-amber-950 border border-amber-200 rounded-bl-md"
                       : m.isMine
-                        ? "bg-emerald-600 text-white rounded-br-md"
+                        ? "bg-brand-600 text-white rounded-br-md"
                         : "bg-gray-100 text-gray-800 rounded-bl-md"
                   }`}
                 >
@@ -282,7 +282,7 @@ export default function MessageThreadView({
                   {m.offerStatus === "ACCEPTED" && (
                     <p
                       className={`text-xs mt-1 font-medium ${
-                        m.isMine ? "text-amber-100" : "text-emerald-700"
+                        m.isMine ? "text-amber-100" : "text-brand-700"
                       }`}
                     >
                       ✓ Accepté
@@ -302,7 +302,7 @@ export default function MessageThreadView({
                       type="button"
                       onClick={() => handleAcceptPrice(m.id)}
                       disabled={acceptingId === m.id}
-                      className="mt-2 bg-emerald-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-emerald-700 disabled:opacity-50"
+                      className="mt-2 bg-brand-600 text-white text-xs font-medium px-3 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50"
                     >
                       {acceptingId === m.id ? "..." : "Accepter ce prix"}
                     </button>
@@ -312,7 +312,7 @@ export default function MessageThreadView({
                       m.isMine
                         ? isPriceOffer
                           ? "text-amber-100"
-                          : "text-emerald-100"
+                          : "text-brand-100"
                         : "text-gray-400"
                     }`}
                   >
@@ -335,7 +335,7 @@ export default function MessageThreadView({
           placeholder="Écrivez votre message..."
           rows={2}
           maxLength={2000}
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:border-emerald-500"
+          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:border-brand-500"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
@@ -346,7 +346,7 @@ export default function MessageThreadView({
         <button
           type="submit"
           disabled={sending || !draft.trim()}
-          className="bg-emerald-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-emerald-700 disabled:opacity-50 self-end"
+          className="bg-brand-600 text-white px-4 py-2 rounded-xl text-sm font-medium hover:bg-brand-700 disabled:opacity-50 self-end"
         >
           {sending ? "..." : "Envoyer"}
         </button>

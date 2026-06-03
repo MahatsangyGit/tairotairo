@@ -159,7 +159,7 @@ export default function ServiceDetailPage() {
         {/* Retour */}
         <Link
           href="/services"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-emerald-600 mb-6 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 mb-6 transition-colors"
         >
           ← Retour aux services
         </Link>
@@ -179,7 +179,7 @@ export default function ServiceDetailPage() {
         {!loading && error && (
           <div className="text-center py-20">
             <p className="text-red-500 mb-4">{error}</p>
-            <Link href="/services" className="text-emerald-600 font-medium hover:underline">
+            <Link href="/services" className="text-brand-600 font-medium hover:underline">
               Retour aux services
             </Link>
           </div>
@@ -194,7 +194,7 @@ export default function ServiceDetailPage() {
 
               {/* Card service */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
-                <span className="inline-block bg-emerald-50 text-emerald-700 text-xs font-medium px-2.5 py-1 rounded-full mb-4">
+                <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-4">
                   {service.category}
                 </span>
 
@@ -211,7 +211,7 @@ export default function ServiceDetailPage() {
                       <span>({totalReviews} avis)</span>
                     </span>
                   )}
-                  <span className={`font-medium ${service.available ? "text-emerald-600" : "text-red-500"}`}>
+                  <span className={`font-medium ${service.available ? "text-brand-600" : "text-red-500"}`}>
                     {service.available ? "● Disponible" : "● Indisponible"}
                   </span>
                 </div>
@@ -225,19 +225,19 @@ export default function ServiceDetailPage() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 className="font-semibold text-gray-800 mb-4">À propos du prestataire</h2>
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-lg shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold text-lg shrink-0">
                     {service.provider.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <Link
                       href={`/providers/${service.provider.id}`}
-                      className="font-semibold text-gray-800 hover:text-emerald-600"
+                      className="font-semibold text-gray-800 hover:text-brand-600"
                     >
                       {service.provider.name}
                     </Link>
                     <Link
                       href={`/providers/${service.provider.id}`}
-                      className="block text-sm text-emerald-600 font-medium hover:underline mt-1"
+                      className="block text-sm text-brand-600 font-medium hover:underline mt-1"
                     >
                       Voir le profil →
                     </Link>
@@ -268,7 +268,7 @@ export default function ServiceDetailPage() {
                       <div key={review.id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-semibold text-xs shrink-0">
+                            <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold text-xs shrink-0">
                               {review.author.name.charAt(0).toUpperCase()}
                             </div>
                             <span className="text-sm font-medium text-gray-700">
@@ -292,14 +292,14 @@ export default function ServiceDetailPage() {
             {/* ── Colonne réservation (1/3) ── */}
             <div className="lg:col-span-1">
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-6">
-                <p className="text-3xl font-bold text-emerald-600 mb-1">
+                <p className="text-3xl font-bold text-brand-600 mb-1">
                   {service.price.toLocaleString("fr-MG")} Ar
                 </p>
                 <p className="text-gray-400 text-sm mb-6">par prestation</p>
 
                 {bookingDone ? (
                   <div className="text-center py-4">
-                    <p className="text-emerald-600 font-semibold mb-1">
+                    <p className="text-brand-600 font-semibold mb-1">
                       ✓ Réservation envoyée !
                     </p>
                     <p className="text-gray-500 text-sm mb-4">
@@ -307,7 +307,7 @@ export default function ServiceDetailPage() {
                     </p>
                     <Link
                       href="/dashboard/client"
-                      className="block text-emerald-600 text-sm font-medium hover:underline mb-2"
+                      className="block text-brand-600 text-sm font-medium hover:underline mb-2"
                     >
                       Voir mes réservations →
                     </Link>
@@ -331,7 +331,7 @@ export default function ServiceDetailPage() {
                         setDate(e.target.value);
                         setBookingError("");
                       }}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-emerald-500 mb-4"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-4"
                     />
 
                     {bookingError && (
@@ -343,7 +343,7 @@ export default function ServiceDetailPage() {
                       <button
                         onClick={handleBooking}
                         disabled={booking || !service.available}
-                        className="w-full bg-emerald-600 text-white py-3 rounded-lg font-semibold hover:bg-emerald-700 transition-colors disabled:opacity-50"
+                        className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50"
                       >
                         {booking ? "Envoi..." : "Réserver ce service"}
                       </button>

@@ -3,6 +3,7 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
+import { SITE_NAME } from "@/lib/site";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -57,10 +58,10 @@ async function loadProvider(id: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const data = await loadProvider(id);
-  if (!data) return { title: "Prestataire introuvable — TairoTairo" };
+  if (!data) return { title: `Prestataire introuvable — ${SITE_NAME}` };
 
   return {
-    title: `${data.provider.name} — Prestataire sur TairoTairo`,
+    title: `${data.provider.name} — Prestataire sur ${SITE_NAME}`,
     description:
       data.provider.bio ??
       `Services proposés par ${data.provider.name} à Madagascar`,
@@ -77,7 +78,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
           <p className="text-red-500 mb-4">Prestataire introuvable</p>
-          <Link href="/services" className="text-emerald-600 hover:underline">
+          <Link href="/services" className="text-brand-600 hover:underline">
             Voir les services
           </Link>
         </div>
@@ -101,14 +102,14 @@ export default async function ProviderProfilePage({ params }: PageProps) {
                 className="w-16 h-16 rounded-full object-cover"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xl">
+              <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold text-xl">
                 {provider.name.charAt(0).toUpperCase()}
               </div>
             )}
             <div>
               <h1 className="text-2xl font-bold text-gray-800">{provider.name}</h1>
               {provider.emailVerified && (
-                <span className="text-xs text-emerald-600 font-medium">
+                <span className="text-xs text-brand-600 font-medium">
                   ✓ Email vérifié
                 </span>
               )}
@@ -139,13 +140,13 @@ export default async function ProviderProfilePage({ params }: PageProps) {
                 <Link
                   key={service.id}
                   href={`/services/${service.id}`}
-                  className="bg-white rounded-xl border border-gray-100 p-5 hover:border-emerald-200 transition-colors"
+                  className="bg-white rounded-xl border border-gray-100 p-5 hover:border-brand-200 transition-colors"
                 >
-                  <span className="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full">
+                  <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full">
                     {service.category}
                   </span>
                   <h3 className="font-semibold text-gray-800 mt-2">{service.title}</h3>
-                  <p className="text-emerald-600 font-bold text-sm mt-2">
+                  <p className="text-brand-600 font-bold text-sm mt-2">
                     {service.price.toLocaleString("fr-MG")} Ar
                   </p>
                   <p className="text-gray-400 text-xs mt-1">📍 {service.location}</p>
