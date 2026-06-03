@@ -1,31 +1,22 @@
 @import "tailwindcss";
 
+/* Palette charte : bleu canard #069494 + blanc */
+@theme {
+  --color-brand-50: #e8f7f7;
+  --color-brand-100: #c5eded;
+  --color-brand-200: #8fd9d9;
+  --color-brand-400: #33b0b0;
+  --color-brand-500: #0aa0a0;
+  --color-brand-600: #069494;
+  --color-brand-700: #057676;
+  --color-brand-800: #045c5c;
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
-  --brand-50: #e8f7f7;
-  --brand-100: #c5eded;
-  --brand-200: #8fd9d9;
-  --brand-400: #33b0b0;
-  --brand-500: #0aa0a0;
-  --brand-600: #069494;
-  --brand-700: #057676;
-  --brand-800: #045c5c;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-brand-50: var(--brand-50);
-  --color-brand-100: var(--brand-100);
-  --color-brand-200: var(--brand-200);
-  --color-brand-400: var(--brand-400);
-  --color-brand-500: var(--brand-500);
-  --color-brand-600: var(--brand-600);
-  --color-brand-700: var(--brand-700);
-  --color-brand-800: var(--brand-800);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
 }
 
 body {

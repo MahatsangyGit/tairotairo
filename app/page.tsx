@@ -39,7 +39,7 @@ export default function HomePage() {
             </Link>
             <Link
               href="/requests"
-              className="bg-amber-500 text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-amber-400 transition-colors inline-block"
+              className="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold text-lg hover:bg-white/10 transition-colors inline-block"
             >
               Voir les demandes
             </Link>
@@ -67,7 +67,7 @@ export default function HomePage() {
       </section>
 
       {/* CTA client */}
-      <section className="bg-amber-50 py-16 px-4">
+      <section className="bg-brand-50 py-16 px-4">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">
             Vous cherchez un prestataire ?
@@ -77,7 +77,7 @@ export default function HomePage() {
           </p>
           <Link
             href="/dashboard/client/requests"
-            className="bg-amber-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-amber-700 transition-colors inline-block"
+            className="bg-brand-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors inline-block"
           >
             Publier une demande
           </Link>
