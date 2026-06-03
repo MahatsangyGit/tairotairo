@@ -8,7 +8,6 @@ const LINKS = [
   { href: "/dashboard/provider/messages", label: "Messages" },
   { href: "/dashboard/provider/services", label: "Mes annonces" },
   { href: "/dashboard/provider/proposals", label: "Mes propositions" },
-  { href: "/dashboard/provider/profile", label: "Mon profil" },
   { href: "/requests", label: "Demandes clients" },
 ];
 

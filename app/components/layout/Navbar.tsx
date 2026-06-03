@@ -43,6 +43,13 @@ export default function Navbar() {
     router.refresh();
   };
 
+  const profileHref =
+    user?.role === "CLIENT"
+      ? "/dashboard/client/profile"
+      : user?.role === "PROVIDER"
+        ? "/dashboard/provider/profile"
+        : null;
+
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
     <>
       <Link
@@ -120,9 +127,27 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          <span className={`text-gray-500 text-sm ${mobile ? "" : "hidden lg:inline"}`}>
-            {user.name}
-          </span>
+          {profileHref ? (
+            <Link
+              href={profileHref}
+              onClick={() => mobile && setIsMenuOpen(false)}
+              title="Mon profil"
+              className={`text-sm font-medium text-gray-700 hover:text-emerald-600 transition-colors ${
+                pathname === profileHref ||
+                pathname.startsWith(`${profileHref}/`)
+                  ? "text-emerald-600"
+                  : ""
+              }`}
+            >
+              {user.name}
+            </Link>
+          ) : (
+            <span
+              className={`text-gray-500 text-sm ${mobile ? "" : "hidden lg:inline"}`}
+            >
+              {user.name}
+            </span>
+          )}
           <button
             onClick={handleLogout}
             className={`text-gray-600 hover:text-emerald-600 font-medium transition-colors ${
