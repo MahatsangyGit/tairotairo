@@ -29,15 +29,20 @@ export function serializeMessage(
         ? m.createdAt.toISOString()
         : new Date().toISOString();
 
+  const isPriceOffer =
+    m.kind === "PRICE_OFFER" ||
+    (m.offerPrice !== null && m.offerPrice !== undefined);
+
   return {
     id: m.id,
     body: m.body,
-    kind: m.kind === "PRICE_OFFER" ? "PRICE_OFFER" : "TEXT",
+    kind: isPriceOffer ? "PRICE_OFFER" : "TEXT",
     offerPrice:
       m.offerPrice === null || m.offerPrice === undefined
         ? null
         : Number(m.offerPrice),
-    offerStatus: m.offerStatus as SerializedMessage["offerStatus"],
+    offerStatus: (m.offerStatus ??
+      (isPriceOffer ? "PENDING" : null)) as SerializedMessage["offerStatus"],
     createdAt,
     isMine: m.senderId === viewerId,
     sender: {

@@ -140,10 +140,10 @@ export function getBookingDisplayInfo(
     return {
       source: "service",
       id: booking.service.id,
-      title: booking.service.title,
-      price: booking.service.price,
-      category: booking.service.category,
-      location: booking.service.location,
+      title: booking.displayTitle ?? booking.service.title,
+      price: booking.displayPrice ?? booking.service.price,
+      category: booking.displayCategory ?? booking.service.category,
+      location: booking.displayLocation ?? booking.service.location,
       href: `/services/${booking.service.id}`,
     };
   }

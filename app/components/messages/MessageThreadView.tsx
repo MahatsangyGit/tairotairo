@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import PriceNegotiationPanel from "@/components/messages/PriceNegotiationPanel";
 import type { SerializedMessage } from "@/lib/message-serialize";
 import type { NegotiationContext } from "@/lib/price-negotiation-types";
@@ -40,6 +40,8 @@ export default function MessageThreadView({
   serviceId,
 }: MessageThreadViewProps) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [conversation, setConversation] = useState<ConversationMeta | null>(null);
   const [messages, setMessages] = useState<SerializedMessage[]>([]);
   const [draft, setDraft] = useState("");
@@ -90,6 +92,28 @@ export default function MessageThreadView({
     const interval = setInterval(load, 15000);
     return () => clearInterval(interval);
   }, [load]);
+
+  useEffect(() => {
+    if (!conversation?.negotiation) return;
+
+    const n = conversation.negotiation;
+    const hasService = searchParams.get("service");
+    const hasResponse = searchParams.get("response");
+
+    if (n.source === "service" && n.serviceId && !hasService) {
+      const q = new URLSearchParams(searchParams.toString());
+      q.set("service", n.serviceId);
+      router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    } else if (
+      n.source === "request" &&
+      n.requestResponseId &&
+      !hasResponse
+    ) {
+      const q = new URLSearchParams(searchParams.toString());
+      q.set("response", n.requestResponseId);
+      router.replace(`${pathname}?${q.toString()}`, { scroll: false });
+    }
+  }, [conversation, pathname, router, searchParams]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -223,7 +247,7 @@ export default function MessageThreadView({
               isPriceOffer &&
               m.offerStatus === "PENDING" &&
               !m.isMine &&
-              negotiation?.canNegotiate;
+              negotiation?.canNegotiate !== false;
 
             return (
               <div

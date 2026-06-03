@@ -6,7 +6,7 @@ import {
   getConversationForParticipant,
   getCounterpartyFromConversation,
 } from "@/lib/conversations";
-import { findNegotiationForPair } from "@/lib/price-negotiation";
+import { resolveNegotiationForConversation } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
 
 // GET — Détail d'une conversation et ses messages
@@ -60,7 +60,8 @@ export async function GET(
       conversation.providerId
     );
 
-    const negotiation = await findNegotiationForPair(
+    const negotiation = await resolveNegotiationForConversation(
+      id,
       conversation.clientId,
       conversation.providerId,
       { requestResponseId, serviceId }

@@ -14,6 +14,7 @@ export default function ProviderMessageThreadPage({
   const { id } = use(params);
   const searchParams = useSearchParams();
   const requestResponseId = searchParams.get("response");
+  const serviceId = searchParams.get("service");
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -28,6 +29,7 @@ export default function ProviderMessageThreadPage({
           conversationId={id}
           backHref="/dashboard/provider/messages"
           requestResponseId={requestResponseId}
+          serviceId={serviceId}
         />
       </div>
     </div>

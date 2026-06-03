@@ -168,6 +168,134 @@ async function findRequestNegotiation(
   };
 }
 
+/** Déduit le contexte actif à partir des offres de prix dans le fil. */
+export async function getNegotiationHintsFromMessages(
+  conversationId: string
+): Promise<{ serviceId?: string; requestResponseId?: string } | null> {
+  const pending = await prisma.message.findFirst({
+    where: {
+      conversationId,
+      kind: MessageKind.PRICE_OFFER,
+      offerStatus: PriceOfferStatus.PENDING,
+    },
+    orderBy: { createdAt: "desc" },
+    select: { serviceId: true, requestResponseId: true },
+  });
+
+  if (pending) {
+    return {
+      ...(pending.serviceId ? { serviceId: pending.serviceId } : {}),
+      ...(pending.requestResponseId
+        ? { requestResponseId: pending.requestResponseId }
+        : {}),
+    };
+  }
+
+  const accepted = await prisma.message.findFirst({
+    where: {
+      conversationId,
+      kind: MessageKind.PRICE_OFFER,
+      offerStatus: PriceOfferStatus.ACCEPTED,
+    },
+    select: { id: true },
+  });
+  if (accepted) return null;
+
+  const lastOffer = await prisma.message.findFirst({
+    where: {
+      conversationId,
+      kind: MessageKind.PRICE_OFFER,
+      OR: [{ serviceId: { not: null } }, { requestResponseId: { not: null } }],
+    },
+    orderBy: { createdAt: "desc" },
+    select: { serviceId: true, requestResponseId: true },
+  });
+
+  if (!lastOffer) return null;
+
+  return {
+    ...(lastOffer.serviceId ? { serviceId: lastOffer.serviceId } : {}),
+    ...(lastOffer.requestResponseId
+      ? { requestResponseId: lastOffer.requestResponseId }
+      : {}),
+  };
+}
+
+async function applyNegotiationOpenState(
+  ctx: NegotiationContext,
+  conversationId: string
+): Promise<NegotiationContext> {
+  const scopeFilter =
+    ctx.source === "service"
+      ? { serviceId: ctx.serviceId }
+      : { requestResponseId: ctx.requestResponseId };
+
+  const accepted = await prisma.message.findFirst({
+    where: {
+      conversationId,
+      kind: MessageKind.PRICE_OFFER,
+      offerStatus: PriceOfferStatus.ACCEPTED,
+      ...scopeFilter,
+    },
+    select: { id: true },
+  });
+
+  if (accepted) {
+    return { ...ctx, canNegotiate: false };
+  }
+
+  return ctx;
+}
+
+/** Résout le marchandage (URL, messages du fil, puis réservation / proposition). */
+export async function resolveNegotiationForConversation(
+  conversationId: string,
+  clientId: string,
+  providerId: string,
+  options?: { requestResponseId?: string | null; serviceId?: string | null }
+): Promise<NegotiationContext | null> {
+  let ctx: NegotiationContext | null = null;
+
+  if (options?.serviceId) {
+    ctx = await findServiceNegotiation(
+      clientId,
+      providerId,
+      options.serviceId
+    );
+  } else if (options?.requestResponseId) {
+    ctx = await findRequestNegotiation(
+      clientId,
+      providerId,
+      options.requestResponseId
+    );
+  } else {
+    const hints = await getNegotiationHintsFromMessages(conversationId);
+
+    if (hints?.serviceId) {
+      ctx = await findServiceNegotiation(
+        clientId,
+        providerId,
+        hints.serviceId
+      );
+    } else if (hints?.requestResponseId) {
+      ctx = await findRequestNegotiation(
+        clientId,
+        providerId,
+        hints.requestResponseId
+      );
+    }
+
+    if (!ctx) {
+      const serviceCtx = await findServiceNegotiation(clientId, providerId);
+      if (serviceCtx?.canNegotiate) ctx = serviceCtx;
+      else ctx = await findRequestNegotiation(clientId, providerId);
+    }
+  }
+
+  if (!ctx) return null;
+  return applyNegotiationOpenState(ctx, conversationId);
+}
+
 export async function findNegotiationForPair(
   clientId: string,
   providerId: string,
@@ -263,7 +391,8 @@ export async function createPriceOffer(params: {
     return { error: "Accès refusé", status: 403 as const };
   }
 
-  const negotiation = await findNegotiationForPair(
+  const negotiation = await resolveNegotiationForConversation(
+    conversationId,
     conversation.clientId,
     conversation.providerId,
     { requestResponseId, serviceId }
@@ -317,7 +446,8 @@ export async function createPriceOffer(params: {
       return created;
     });
 
-    const refreshed = await findNegotiationForPair(
+    const refreshed = await resolveNegotiationForConversation(
+      conversationId,
       conversation.clientId,
       conversation.providerId,
       {
@@ -531,26 +661,27 @@ async function acceptServicePriceOffer(
     );
 
     const snapshot = snapshotFromService(service, price);
+    const pairWhere = {
+      clientId: offer.conversation.clientId,
+      providerId: offer.conversation.providerId,
+      serviceId: service.id,
+      status: { notIn: ["CANCELLED" as const] },
+    };
 
-    let booking = await tx.booking.findFirst({
-      where: {
-        clientId: offer.conversation.clientId,
-        providerId: offer.conversation.providerId,
-        serviceId: service.id,
-        status: { notIn: ["CANCELLED"] },
-      },
+    const existing = await tx.booking.findFirst({
+      where: pairWhere,
       orderBy: { updatedAt: "desc" },
     });
 
-    const wasNew = !booking;
+    const wasNew = !existing;
 
-    if (booking) {
-      booking = await tx.booking.update({
-        where: { id: booking.id },
+    if (existing) {
+      await tx.booking.updateMany({
+        where: pairWhere,
         data: snapshot,
       });
     } else {
-      booking = await tx.booking.create({
+      await tx.booking.create({
         data: {
           clientId: offer.conversation.clientId,
           providerId: offer.conversation.providerId,
@@ -560,6 +691,15 @@ async function acceptServicePriceOffer(
           ...snapshot,
         },
       });
+    }
+
+    const booking = await tx.booking.findFirst({
+      where: pairWhere,
+      orderBy: { updatedAt: "desc" },
+    });
+
+    if (!booking) {
+      throw new Error("Réservation introuvable après acceptation");
     }
 
     const confirmation = await tx.message.create({
@@ -667,12 +807,13 @@ export async function acceptPriceOffer(params: {
       return { error: "Proposition de prix introuvable", status: 404 as const };
     }
 
-    const negotiation = await findNegotiationForPair(
+    const negotiation = await resolveNegotiationForConversation(
+      conversationId,
       conversation.clientId,
       conversation.providerId,
       offer.serviceId
         ? { serviceId: offer.serviceId }
-        : { requestResponseId: offer.requestResponseId }
+        : { requestResponseId: offer.requestResponseId ?? undefined }
     );
 
     return {

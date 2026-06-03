@@ -7,6 +7,7 @@ import {
   getCounterpartyFromConversation,
   messagesBasePath,
 } from "@/lib/conversations";
+import { getNegotiationHintsFromMessages } from "@/lib/price-negotiation";
 
 // GET — Liste des conversations de l'utilisateur connecté
 export async function GET(req: NextRequest) {
@@ -60,6 +61,14 @@ export async function GET(req: NextRequest) {
         const last = c.messages[0] ?? null;
         const counterparty = getCounterpartyFromConversation(c, auth.userId);
         const context = await getConversationContext(c.clientId, c.providerId);
+        const hints = await getNegotiationHintsFromMessages(c.id);
+
+        let href = `${basePath}/${c.id}`;
+        if (hints?.serviceId) {
+          href += `?service=${encodeURIComponent(hints.serviceId)}`;
+        } else if (hints?.requestResponseId) {
+          href += `?response=${encodeURIComponent(hints.requestResponseId)}`;
+        }
 
         return {
           id: c.id,
@@ -81,7 +90,7 @@ export async function GET(req: NextRequest) {
               }
             : null,
           unreadCount: unreadMap.get(c.id) ?? 0,
-          href: `${basePath}/${c.id}`,
+          href,
         };
       })
     );
