@@ -70,6 +70,23 @@ export default function NotificationBell() {
     setLoading(false);
   };
 
+  const clearAll = async () => {
+    if (!confirm("Effacer toutes les notifications ?")) return;
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/notifications/clear-all", {
+        method: "DELETE",
+      });
+      if (res.ok) {
+        setNotifications([]);
+        setUnreadCount(0);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="relative" ref={panelRef}>
       <button
@@ -99,16 +116,29 @@ export default function NotificationBell() {
 
       {open && (
         <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-800">Notifications</h3>
-            {unreadCount > 0 && (
-              <button
-                onClick={markAllRead}
-                disabled={loading}
-                className="text-xs text-emerald-600 hover:underline"
-              >
-                Tout marquer lu
-              </button>
+          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
+            <h3 className="font-semibold text-gray-800 shrink-0">Notifications</h3>
+            {notifications.length > 0 && (
+              <div className="flex items-center gap-2 shrink-0">
+                {unreadCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={markAllRead}
+                    disabled={loading}
+                    className="text-xs text-emerald-600 hover:underline disabled:opacity-50"
+                  >
+                    Tout marquer lu
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={clearAll}
+                  disabled={loading}
+                  className="text-xs text-red-600 hover:underline disabled:opacity-50"
+                >
+                  Effacer les notifications
+                </button>
+              </div>
             )}
           </div>
 
