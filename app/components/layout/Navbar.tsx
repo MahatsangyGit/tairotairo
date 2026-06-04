@@ -51,6 +51,70 @@ export default function Navbar() {
         ? "/dashboard/provider/profile"
         : null;
 
+  const messagesHref =
+    user?.role === "CLIENT"
+      ? "/dashboard/client/messages"
+      : user?.role === "PROVIDER"
+        ? "/dashboard/provider/messages"
+        : null;
+
+  const shortcutClass = (active: boolean, mobile: boolean) =>
+    `text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors ${
+      active
+        ? "bg-brand-600 text-white border-brand-600"
+        : "border-brand-200 text-brand-600 hover:bg-brand-50"
+    } ${mobile ? "inline-block" : ""}`;
+
+  const UserAccountBlock = ({ mobile = false }: { mobile?: boolean }) => {
+    if (!user) return null;
+
+    const close = () => mobile && setIsMenuOpen(false);
+    const profileActive =
+      profileHref != null &&
+      (pathname === profileHref || pathname.startsWith(`${profileHref}/`));
+    const messagesActive =
+      messagesHref != null &&
+      (pathname === messagesHref || pathname.startsWith(`${messagesHref}/`));
+
+    if (!profileHref && !messagesHref) {
+      return (
+        <span className="text-sm font-semibold text-gray-800">{user.name}</span>
+      );
+    }
+
+    return (
+      <div
+        className={
+          mobile
+            ? "flex flex-col items-start gap-2 w-full"
+            : "flex items-center gap-2 border-l border-gray-200 pl-4"
+        }
+      >
+        <span className="text-sm font-semibold text-gray-800">{user.name}</span>
+        <div className="flex items-center gap-1.5 flex-wrap">
+          {profileHref && (
+            <Link
+              href={profileHref}
+              onClick={close}
+              className={shortcutClass(profileActive, mobile)}
+            >
+              Mon profil
+            </Link>
+          )}
+          {messagesHref && (
+            <Link
+              href={messagesHref}
+              onClick={close}
+              className={shortcutClass(messagesActive, mobile)}
+            >
+              Messages
+            </Link>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
     <>
       <Link
@@ -87,13 +151,6 @@ export default function Navbar() {
               >
                 Mes demandes
               </Link>
-              <Link
-                href="/dashboard/client/messages"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-              >
-                Messages
-              </Link>
             </>
           )}
           {user.role === "PROVIDER" && (
@@ -104,13 +161,6 @@ export default function Navbar() {
                 className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
               >
                 Réservations
-              </Link>
-              <Link
-                href="/dashboard/provider/messages"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-              >
-                Messages
               </Link>
               <Link
                 href="/dashboard/provider/proposals"
@@ -128,27 +178,7 @@ export default function Navbar() {
               </Link>
             </>
           )}
-          {profileHref ? (
-            <Link
-              href={profileHref}
-              onClick={() => mobile && setIsMenuOpen(false)}
-              title="Mon profil"
-              className={`text-sm font-medium text-gray-700 hover:text-brand-600 transition-colors ${
-                pathname === profileHref ||
-                pathname.startsWith(`${profileHref}/`)
-                  ? "text-brand-600"
-                  : ""
-              }`}
-            >
-              {user.name}
-            </Link>
-          ) : (
-            <span
-              className={`text-gray-500 text-sm ${mobile ? "" : "hidden lg:inline"}`}
-            >
-              {user.name}
-            </span>
-          )}
+          <UserAccountBlock mobile={mobile} />
           <button
             onClick={handleLogout}
             className={`text-gray-600 hover:text-brand-600 font-medium transition-colors ${
