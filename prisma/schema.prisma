@@ -25,6 +25,7 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   emailOtps     EmailOtp[]
+  passwordResetTokens PasswordResetToken[]
   notifications Notification[]
   pushSubscriptions PushSubscription[]
   services      Service[]
@@ -83,6 +84,20 @@ model EmailOtp {
   userId    String
 
   @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
+  @@index([tokenHash])
 }
 
 model Service {

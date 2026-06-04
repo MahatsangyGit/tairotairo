@@ -27,6 +27,7 @@ function LoginPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
+  const resetSuccess = searchParams.get("reset") === "success";
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -85,6 +86,13 @@ function LoginPageContent() {
             Bienvenue sur {SITE_NAME}
           </p>
 
+          {resetSuccess && (
+            <p className="text-brand-700 text-sm bg-brand-50 border border-brand-100 rounded-lg px-4 py-3 mb-4">
+              Votre mot de passe a été mis à jour. Connectez-vous avec votre
+              nouveau mot de passe.
+            </p>
+          )}
+
           <div className="flex flex-col gap-4">
             <input
               type="email"
@@ -95,15 +103,25 @@ function LoginPageContent() {
               }
               className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
             />
-            <input
-              type="password"
-              placeholder="Mot de passe"
-              value={formData.password}
-              onChange={(e) =>
-                setFormData({ ...formData, password: e.target.value })
-              }
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
-            />
+            <div>
+              <input
+                type="password"
+                placeholder="Mot de passe"
+                value={formData.password}
+                onChange={(e) =>
+                  setFormData({ ...formData, password: e.target.value })
+                }
+                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+              />
+              <p className="text-right mt-2">
+                <Link
+                  href="/auth/forgot-password"
+                  className="text-sm text-brand-600 hover:underline"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </p>
+            </div>
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
 

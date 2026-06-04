@@ -137,6 +137,29 @@ export async function sendBookingConfirmedEmail(params: {
   });
 }
 
+export async function sendPasswordResetEmail(params: {
+  to: string;
+  name: string;
+  resetUrl: string;
+}) {
+  return sendEmail({
+    to: params.to,
+    subject: `Réinitialisation de votre mot de passe — ${SITE_NAME}`,
+    html: emailLayout(
+      "Réinitialiser votre mot de passe",
+      `
+        <p>Bonjour ${params.name},</p>
+        <p>Vous avez demandé à réinitialiser votre mot de passe sur ${SITE_NAME}.</p>
+        <p><a href="${params.resetUrl}" style="display:inline-block;background:${BRAND_PRIMARY};color:#fff;padding:12px 20px;border-radius:8px;text-decoration:none;font-weight:600">Choisir un nouveau mot de passe</a></p>
+        <p style="font-size:13px;color:#6b7280">Ce lien expire dans <strong>1 heure</strong>. Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :</p>
+        <p style="font-size:12px;word-break:break-all;color:#6b7280">${params.resetUrl}</p>
+        <p style="font-size:13px;color:#6b7280">Si vous n'êtes pas à l'origine de cette demande, ignorez cet email — votre mot de passe restera inchangé.</p>
+      `
+    ),
+    text: `Bonjour ${params.name}, réinitialisez votre mot de passe : ${params.resetUrl} (valide 1 heure).`,
+  });
+}
+
 export async function sendWelcomeEmail(to: string, name: string) {
   return sendEmail({
     to,
