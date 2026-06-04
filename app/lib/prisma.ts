@@ -15,7 +15,10 @@ function createPrismaClient(): PrismaClient {
 
 /** Détecte un singleton Prisma obsolète (ex. après `prisma generate` sans redémarrage du serveur). */
 function isStalePrismaClient(client: PrismaClient): boolean {
-  return !("providerKycDocument" in client);
+  return (
+    !("providerKycDocument" in client) ||
+    !("providerPortfolioItem" in client)
+  );
 }
 
 function getPrismaClient(): PrismaClient {

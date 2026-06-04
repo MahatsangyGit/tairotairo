@@ -8,6 +8,7 @@ import ProviderNav from "@/components/layout/ProviderNav";
 import ProfileForm, { type ProfileUser } from "@/components/profile/ProfileForm";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import ProviderKycPanel from "@/components/kyc/ProviderKycPanel";
+import ProviderPortfolioPanel from "@/components/portfolio/ProviderPortfolioPanel";
 
 export default function ProviderProfilePage() {
   const router = useRouter();
@@ -53,7 +54,7 @@ export default function ProviderProfilePage() {
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace prestataire</h1>
           <p className="text-gray-500 text-sm">
-            Mon profil public, vérification email et identité (KYC)
+            Mon profil public, portfolio, vérification email et identité (KYC)
           </p>
         </div>
         <ProviderNav />
@@ -70,6 +71,7 @@ export default function ProviderProfilePage() {
         {user && (
           <>
             <ProviderKycPanel />
+            <ProviderPortfolioPanel />
             <ProfileForm initialUser={user} showBio />
             <NotificationPreferences />
           </>

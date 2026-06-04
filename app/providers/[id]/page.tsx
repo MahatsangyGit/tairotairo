@@ -5,6 +5,11 @@ import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
 import { SITE_NAME } from "@/lib/site";
 import UserAvatar from "@/components/profile/UserAvatar";
+import ProviderPortfolioPublic from "@/components/portfolio/ProviderPortfolioPublic";
+import {
+  portfolioItemInclude,
+  serializePortfolioItem,
+} from "@/lib/portfolio-serialize";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -57,8 +62,15 @@ async function loadProvider(id: string) {
         ) / 10
       : 0;
 
+  const portfolioRows = await prisma.providerPortfolioItem.findMany({
+    where: { providerId: id },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    include: portfolioItemInclude,
+  });
+
   return {
     provider: { ...provider, services },
+    portfolio: portfolioRows.map(serializePortfolioItem),
     reviews,
     averageRating,
     totalReviews: reviews.length,
@@ -97,8 +109,14 @@ export default async function ProviderProfilePage({ params }: PageProps) {
     );
   }
 
-  const { provider, reviews, averageRating, totalReviews, identityVerified } =
-    data;
+  const {
+    provider,
+    portfolio,
+    reviews,
+    averageRating,
+    totalReviews,
+    identityVerified,
+  } = data;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -140,6 +158,11 @@ export default async function ProviderProfilePage({ params }: PageProps) {
             </div>
           </div>
         </div>
+
+        <ProviderPortfolioPublic
+          providerId={provider.id}
+          initialItems={portfolio}
+        />
 
         <section className="mb-8">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">
