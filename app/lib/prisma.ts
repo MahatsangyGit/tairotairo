@@ -17,7 +17,8 @@ function createPrismaClient(): PrismaClient {
 function isStalePrismaClient(client: PrismaClient): boolean {
   return (
     !("providerKycDocument" in client) ||
-    !("providerPortfolioItem" in client)
+    !("providerPortfolioItem" in client) ||
+    !("providerSubscription" in client)
   );
 }
 

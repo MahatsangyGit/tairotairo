@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "../../../lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
+import { parsePublicRegistrationRole } from "@/lib/roles";
 
 export async function POST(req: NextRequest) {
   try {
@@ -26,6 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    const safeRole = parsePublicRegistrationRole(role);
 
     const user = await prisma.user.create({
       data: {
@@ -33,7 +35,7 @@ export async function POST(req: NextRequest) {
         email,
         password: hashedPassword,
         phone,
-        role: role || "CLIENT",
+        role: safeRole,
       },
     });
 

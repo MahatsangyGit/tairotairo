@@ -23,9 +23,12 @@ model User {
   notifyPush      Boolean   @default(true)
   kycStatus       KycStatus @default(NOT_STARTED)
   kycSubmittedAt  DateTime?
+  featuredOnHomepage   Boolean   @default(false)
+  featuredOnHomepageAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  providerSubscription ProviderSubscription?
   kycDocuments  ProviderKycDocument[]
   emailOtps     EmailOtp[]
   passwordResetTokens PasswordResetToken[]
@@ -59,6 +62,20 @@ enum KycStatus {
 enum KycDocumentType {
   CIN
   RESIDENCE_CERTIFICATE
+}
+
+model ProviderSubscription {
+  id         String   @id @default(cuid())
+  providerId String   @unique
+  startsAt   DateTime @default(now())
+  expiresAt  DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
 }
 
 model ProviderKycDocument {
@@ -141,6 +158,8 @@ model Service {
   category    String
   location    String
   available   Boolean   @default(true)
+  featuredOnHomepage   Boolean   @default(false)
+  featuredOnHomepageAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 

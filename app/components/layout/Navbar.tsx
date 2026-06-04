@@ -65,6 +65,8 @@ export default function Navbar() {
         ? "/dashboard/provider/profile"
         : null;
 
+  const adminHref = user?.role === "ADMIN" ? "/dashboard/admin" : null;
+
   const messagesHref =
     user?.role === "CLIENT"
       ? "/dashboard/client/messages"
@@ -99,9 +101,13 @@ export default function Navbar() {
       </div>
     );
 
-    if (!profileHref && !messagesHref) {
+    if (!profileHref && !messagesHref && !adminHref) {
       return nameRow;
     }
+
+    const adminActive =
+      adminHref != null &&
+      (pathname === adminHref || pathname.startsWith(`${adminHref}/`));
 
     return (
       <div
@@ -113,6 +119,15 @@ export default function Navbar() {
       >
         {nameRow}
         <div className="flex items-center gap-1.5 flex-wrap">
+          {adminHref && (
+            <Link
+              href={adminHref}
+              onClick={close}
+              className={shortcutClass(adminActive, mobile)}
+            >
+              Administration
+            </Link>
+          )}
           {profileHref && (
             <Link
               href={profileHref}
@@ -173,6 +188,15 @@ export default function Navbar() {
                 Mes demandes
               </Link>
             </>
+          )}
+          {user.role === "ADMIN" && (
+            <Link
+              href="/dashboard/admin"
+              onClick={() => mobile && setIsMenuOpen(false)}
+              className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
+            >
+              Mise en avant
+            </Link>
           )}
           {user.role === "PROVIDER" && (
             <>
