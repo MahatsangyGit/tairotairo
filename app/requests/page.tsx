@@ -12,6 +12,7 @@ import {
   priceFromInput,
   type SearchSort,
 } from "@/lib/advanced-search";
+import { formatSchedule } from "@/lib/datetime-slot";
 
 interface Client {
   id: string;
@@ -27,6 +28,8 @@ interface ServiceRequest {
   category: string;
   location: string;
   desiredDate: string | null;
+  desiredSlotStart: string | null;
+  desiredSlotEnd: string | null;
   createdAt: string;
   client: Client;
 }
@@ -267,11 +270,25 @@ function RequestsPageContent() {
                   <p className="text-gray-500 text-sm mb-4 line-clamp-2">
                     {request.description}
                   </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-amber-700 font-bold">
-                      Budget {request.budget.toLocaleString("fr-MG")} Ar
-                    </span>
-                    <span className="text-gray-400 text-xs">📍 {request.location}</span>
+                  <div className="flex flex-col gap-1 mb-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-amber-700 font-bold">
+                        Budget {request.budget.toLocaleString("fr-MG")} Ar
+                      </span>
+                      <span className="text-gray-400 text-xs">
+                        📍 {request.location}
+                      </span>
+                    </div>
+                    {request.desiredDate && (
+                      <span className="text-gray-500 text-xs">
+                        📅{" "}
+                        {formatSchedule(
+                          request.desiredDate,
+                          request.desiredSlotStart,
+                          request.desiredSlotEnd
+                        )}
+                      </span>
+                    )}
                   </div>
                   <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
                     <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-semibold text-xs shrink-0">

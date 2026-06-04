@@ -124,7 +124,9 @@ model ServiceRequest {
   budget      Float
   category    String
   location    String
-  desiredDate DateTime?
+  desiredDate        DateTime?
+  desiredSlotStart   String?
+  desiredSlotEnd     String?
   open        Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
@@ -164,6 +166,8 @@ model Booking {
   id          String        @id @default(cuid())
   status      BookingStatus @default(PENDING)
   date        DateTime
+  slotStart   String?
+  slotEnd     String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 

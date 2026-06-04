@@ -2,7 +2,7 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@/generated/prisma/client";
 import { MessageKind, PriceOfferStatus } from "@/generated/prisma/enums";
 import {
-  resolveBookingDate,
+  resolveBookingSchedule,
   snapshotFromRequest,
   snapshotFromService,
 } from "@/lib/booking-display";
@@ -118,6 +118,8 @@ async function findRequestNegotiation(
               title: true,
               budget: true,
               desiredDate: true,
+              desiredSlotStart: true,
+              desiredSlotEnd: true,
             },
           },
           booking: { select: { id: true, status: true } },
@@ -137,6 +139,8 @@ async function findRequestNegotiation(
               title: true,
               budget: true,
               desiredDate: true,
+              desiredSlotStart: true,
+              desiredSlotEnd: true,
             },
           },
           booking: { select: { id: true, status: true } },
@@ -538,12 +542,20 @@ async function acceptRequestPriceOffer(
         price
       );
 
+      const schedule = resolveBookingSchedule({
+        desiredDate: request.desiredDate,
+        desiredSlotStart: request.desiredSlotStart,
+        desiredSlotEnd: request.desiredSlotEnd,
+      });
+
       booking = await tx.booking.create({
         data: {
           clientId: request.clientId,
           providerId: response.providerId,
           requestResponseId: response.id,
-          date: resolveBookingDate(request.desiredDate),
+          date: schedule.date,
+          slotStart: schedule.slotStart,
+          slotEnd: schedule.slotEnd,
           status: "CONFIRMED",
           ...snapshot,
         },
@@ -576,12 +588,20 @@ async function acceptRequestPriceOffer(
         price
       );
 
+      const scheduleAccepted = resolveBookingSchedule({
+        desiredDate: request.desiredDate,
+        desiredSlotStart: request.desiredSlotStart,
+        desiredSlotEnd: request.desiredSlotEnd,
+      });
+
       booking = await tx.booking.create({
         data: {
           clientId: request.clientId,
           providerId: response.providerId,
           requestResponseId: response.id,
-          date: resolveBookingDate(request.desiredDate),
+          date: scheduleAccepted.date,
+          slotStart: scheduleAccepted.slotStart,
+          slotEnd: scheduleAccepted.slotEnd,
           status: "CONFIRMED",
           ...snapshot,
         },
@@ -750,6 +770,8 @@ async function loadOfferForAccept(messageId: string, conversationId: string) {
               category: true,
               location: true,
               desiredDate: true,
+              desiredSlotStart: true,
+              desiredSlotEnd: true,
             },
           },
           booking: true,

@@ -4,6 +4,10 @@ import { requireAuth } from "@/lib/auth";
 import { notifyBookingCreated } from "@/lib/notify-booking";
 import { prepareBookingForApi } from "@/lib/booking-status";
 import { snapshotFromService } from "@/lib/booking-display";
+import {
+  parseScheduleInput,
+  scheduleFieldsForDb,
+} from "@/lib/datetime-slot";
 
 export const dynamic = "force-dynamic";
 
@@ -94,14 +98,22 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { serviceId, date } = await req.json();
+    const body = await req.json();
+    const { serviceId } = body;
+    const schedule = parseScheduleInput(body);
 
-    if (!serviceId || !date) {
+    if (schedule.error) {
+      return NextResponse.json({ error: schedule.error }, { status: 400 });
+    }
+
+    if (!serviceId || !schedule.date) {
       return NextResponse.json(
         { error: "serviceId et date sont obligatoires" },
         { status: 400 }
       );
     }
+
+    const { date, slotStart, slotEnd } = scheduleFieldsForDb(schedule);
 
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
@@ -119,7 +131,9 @@ export async function POST(req: NextRequest) {
         clientId: user.userId,
         providerId: service.providerId,
         serviceId,
-        date: new Date(date),
+        date: date!,
+        slotStart,
+        slotEnd,
         ...snapshotFromService({
           id: service.id,
           title: service.title,

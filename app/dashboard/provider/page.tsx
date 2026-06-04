@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { formatSchedule } from "@/lib/datetime-slot";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,8 @@ interface Booking {
   id: string;
   status: BookingStatus;
   date: string;
+  slotStart?: string | null;
+  slotEnd?: string | null;
   createdAt: string;
   service: {
     id: string;
@@ -95,11 +98,11 @@ function BookingCard({
   updatingId: string | null;
 }) {
   const display = getBookingDisplayInfo(booking, { viewer: "provider" });
-  const date = new Date(booking.date).toLocaleDateString("fr-MG", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const date = formatSchedule(
+    booking.date,
+    booking.slotStart,
+    booking.slotEnd
+  );
   const isUpdating = updatingId === booking.id;
 
   const categoryClass =

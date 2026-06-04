@@ -3,6 +3,10 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
+import {
+  parseScheduleInput,
+  scheduleFieldsForDb,
+} from "@/lib/datetime-slot";
 
 // GET - Détail d'une demande
 export async function GET(
@@ -62,8 +66,38 @@ export async function PATCH(
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
-    const { title, description, budget, category, location, desiredDate, open } =
-      body;
+    const { title, description, budget, category, location, open } = body;
+
+    let desiredPatch:
+      | {
+          desiredDate: Date | null;
+          desiredSlotStart: string | null;
+          desiredSlotEnd: string | null;
+        }
+      | undefined;
+
+    if (
+      body.desiredDate !== undefined ||
+      body.desiredSlotStart !== undefined ||
+      body.desiredSlotEnd !== undefined
+    ) {
+      const schedule = parseScheduleInput({
+        desiredDate: body.desiredDate,
+        desiredSlotStart: body.desiredSlotStart,
+        desiredSlotEnd: body.desiredSlotEnd,
+      });
+
+      if (schedule.error) {
+        return NextResponse.json({ error: schedule.error }, { status: 400 });
+      }
+
+      const desired = scheduleFieldsForDb(schedule);
+      desiredPatch = {
+        desiredDate: desired.date,
+        desiredSlotStart: desired.slotStart,
+        desiredSlotEnd: desired.slotEnd,
+      };
+    }
 
     if (
       category &&
@@ -89,9 +123,7 @@ export async function PATCH(
         ...(budget !== undefined && { budget: parseFloat(budget) }),
         ...(category !== undefined && { category }),
         ...(location !== undefined && { location: String(location).trim() }),
-        ...(desiredDate !== undefined && {
-          desiredDate: desiredDate ? new Date(desiredDate) : null,
-        }),
+        ...desiredPatch,
         ...(open !== undefined && { open: Boolean(open) }),
       },
     });

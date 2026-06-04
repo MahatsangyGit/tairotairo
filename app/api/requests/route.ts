@@ -3,6 +3,10 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { parseListSearchParams } from "@/lib/advanced-search";
 import { searchPublicRequests } from "@/lib/request-list-search";
+import {
+  parseScheduleInput,
+  scheduleFieldsForDb,
+} from "@/lib/datetime-slot";
 
 // GET - Lister les demandes (?mine=true pour le client connecté)
 export async function GET(req: NextRequest) {
@@ -61,8 +65,15 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, budget, category, location, desiredDate } =
-      await req.json();
+    const body = await req.json();
+    const { title, description, budget, category, location } = body;
+    const schedule = parseScheduleInput(body);
+
+    if (schedule.error) {
+      return NextResponse.json({ error: schedule.error }, { status: 400 });
+    }
+
+    const desired = scheduleFieldsForDb(schedule);
 
     if (!title || !description || !budget || !category || !location) {
       return NextResponse.json(
@@ -83,7 +94,9 @@ export async function POST(req: NextRequest) {
         budget: parsedBudget,
         category,
         location: String(location).trim(),
-        desiredDate: desiredDate ? new Date(desiredDate) : null,
+        desiredDate: desired.date,
+        desiredSlotStart: desired.slotStart,
+        desiredSlotEnd: desired.slotEnd,
         clientId: user.userId,
       },
     });

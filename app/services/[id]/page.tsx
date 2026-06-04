@@ -6,6 +6,7 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import NegotiateServiceButton from "@/components/messages/NegotiateServiceButton";
+import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -74,8 +75,11 @@ export default function ServiceDetailPage() {
   const [error,         setError]         = useState("");
 
   // Réservation
-  const [date,         setDate]         = useState("");
-  const [booking,      setBooking]      = useState(false);
+  const [date, setDate] = useState("");
+  const [slotEnabled, setSlotEnabled] = useState(false);
+  const [slotStart, setSlotStart] = useState("");
+  const [slotEnd, setSlotEnd] = useState("");
+  const [booking, setBooking] = useState(false);
   const [bookingError, setBookingError] = useState("");
   const [bookingDone,  setBookingDone]  = useState(false);
 
@@ -121,7 +125,12 @@ export default function ServiceDetailPage() {
       const res  = await fetch("/api/bookings", {
         method:  "POST",
         headers: { "Content-Type": "application/json" },
-        body:    JSON.stringify({ serviceId: id, date }),
+        body: JSON.stringify({
+          serviceId: id,
+          date,
+          slotStart: slotEnabled ? slotStart || null : null,
+          slotEnd: slotEnabled ? slotEnd || null : null,
+        }),
       });
 
       const data = await res.json();
@@ -330,9 +339,24 @@ export default function ServiceDetailPage() {
                       onChange={(e) => {
                         setDate(e.target.value);
                         setBookingError("");
+                        if (!e.target.value) {
+                          setSlotEnabled(false);
+                          setSlotStart("");
+                          setSlotEnd("");
+                        }
                       }}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-4"
+                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
                     />
+                    <TimeSlotFields
+                      dateSet={Boolean(date)}
+                      enabled={slotEnabled}
+                      onEnabledChange={setSlotEnabled}
+                      slotStart={slotStart}
+                      slotEnd={slotEnd}
+                      onSlotStartChange={setSlotStart}
+                      onSlotEndChange={setSlotEnd}
+                    />
+                    <div className="mb-4" />
 
                     {bookingError && (
                       <p className="text-red-500 text-sm mb-4">{bookingError}</p>

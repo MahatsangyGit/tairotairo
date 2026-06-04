@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import { formatSchedule } from "@/lib/datetime-slot";
 import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import {
   RESPONSE_STATUS_CLASS,
@@ -42,6 +43,8 @@ interface ServiceRequest {
   category: string;
   location: string;
   desiredDate: string | null;
+  desiredSlotStart: string | null;
+  desiredSlotEnd: string | null;
   open: boolean;
   createdAt: string;
   client: Client;
@@ -172,11 +175,11 @@ export default function RequestDetailPage() {
 
   const desiredDateLabel =
     request?.desiredDate &&
-    new Date(request.desiredDate).toLocaleDateString("fr-MG", {
-      day: "numeric",
-      month: "long",
-      year: "numeric",
-    });
+    formatSchedule(
+      request.desiredDate,
+      request.desiredSlotStart,
+      request.desiredSlotEnd
+    );
 
   const ownResponse =
     user?.role === "PROVIDER"
@@ -218,7 +221,9 @@ export default function RequestDetailPage() {
                 <h1 className="text-2xl font-bold text-gray-800 mb-3">{request.title}</h1>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
                   <span>📍 {request.location}</span>
-                  {desiredDateLabel && <span>📅 Souhaité le {desiredDateLabel}</span>}
+                  {desiredDateLabel && (
+                    <span>📅 Souhaité : {desiredDateLabel}</span>
+                  )}
                   <span
                     className={`font-medium ${request.open ? "text-brand-600" : "text-gray-400"}`}
                   >

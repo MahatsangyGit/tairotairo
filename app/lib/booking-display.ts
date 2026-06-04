@@ -1,3 +1,5 @@
+import { applySlotToDate } from "@/lib/datetime-slot";
+
 export interface BookingDisplayInfo {
   source: "service" | "request";
   id: string;
@@ -200,4 +202,20 @@ export function resolveBookingDate(desiredDate: Date | null): Date {
   fallback.setDate(fallback.getDate() + 7);
   fallback.setHours(9, 0, 0, 0);
   return fallback;
+}
+
+export function resolveBookingSchedule(request: {
+  desiredDate: Date | null;
+  desiredSlotStart?: string | null;
+  desiredSlotEnd?: string | null;
+}): { date: Date; slotStart: string | null; slotEnd: string | null } {
+  const base = resolveBookingDate(request.desiredDate);
+  const slotStart = request.desiredSlotStart ?? null;
+  const slotEnd = request.desiredSlotEnd ?? null;
+
+  return {
+    date: applySlotToDate(base, slotStart),
+    slotStart,
+    slotEnd,
+  };
 }

@@ -5,7 +5,10 @@ import {
   RequestResponseStatus,
   canTransitionResponseStatus,
 } from "@/lib/request-response-status";
-import { resolveBookingDate, snapshotFromRequest } from "@/lib/booking-display";
+import {
+  resolveBookingSchedule,
+  snapshotFromRequest,
+} from "@/lib/booking-display";
 import { notifyBookingConfirmed } from "@/lib/notify-booking";
 import { notifyRequestResponseAccepted } from "@/lib/notify-requests";
 
@@ -62,6 +65,8 @@ export async function PATCH(
             clientId: true,
             open: true,
             desiredDate: true,
+            desiredSlotStart: true,
+            desiredSlotEnd: true,
           },
         },
       },
@@ -134,12 +139,20 @@ export async function PATCH(
           },
         });
 
+        const schedule = resolveBookingSchedule({
+          desiredDate: response.request.desiredDate,
+          desiredSlotStart: response.request.desiredSlotStart,
+          desiredSlotEnd: response.request.desiredSlotEnd,
+        });
+
         const booking = await tx.booking.create({
           data: {
             clientId: response.request.clientId,
             providerId: response.providerId,
             requestResponseId: responseId,
-            date: resolveBookingDate(response.request.desiredDate),
+            date: schedule.date,
+            slotStart: schedule.slotStart,
+            slotEnd: schedule.slotEnd,
             status: "CONFIRMED",
             ...snapshotFromRequest(
               requestForSnapshot,

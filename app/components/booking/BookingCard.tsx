@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { formatSchedule } from "@/lib/datetime-slot";
 import OpenBookingChatButton from "@/components/messages/OpenBookingChatButton";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
@@ -24,6 +25,8 @@ export interface BookingCardData {
   id: string;
   status: BookingStatus;
   date: string;
+  slotStart?: string | null;
+  slotEnd?: string | null;
   service: {
     id: string;
     title: string;
@@ -68,11 +71,11 @@ export default function BookingCard({
     counterpartyLabel === "Prestataire" ? ("client" as const) : ("provider" as const);
   const display = getBookingDisplayInfo(booking, { viewer });
 
-  const date = new Date(booking.date).toLocaleDateString("fr-MG", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const date = formatSchedule(
+    booking.date,
+    booking.slotStart,
+    booking.slotEnd
+  );
 
   const counterparty =
     counterpartyLabel === "Prestataire" ? booking.provider : booking.client;

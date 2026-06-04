@@ -1,15 +1,8 @@
 import prisma from "@/lib/prisma";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { formatSchedule } from "@/lib/datetime-slot";
 import { dispatchNotification } from "@/lib/notifications";
 import { NOTIFICATION_TYPES } from "@/lib/notification-types";
-
-function formatDate(date: Date): string {
-  return date.toLocaleDateString("fr-MG", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
-}
 
 async function loadBookingContext(bookingId: string) {
   return prisma.booking.findUnique({
@@ -51,7 +44,11 @@ export async function notifyBookingCreated(bookingId: string) {
   const display = getBookingDisplayInfo(booking);
   if (!display) return;
 
-  const dateLabel = formatDate(booking.date);
+  const dateLabel = formatSchedule(
+    booking.date,
+    booking.slotStart,
+    booking.slotEnd
+  );
 
   await dispatchNotification({
     userId: booking.providerId,
@@ -69,7 +66,11 @@ export async function notifyBookingConfirmed(bookingId: string) {
   const display = getBookingDisplayInfo(booking);
   if (!display) return;
 
-  const dateLabel = formatDate(booking.date);
+  const dateLabel = formatSchedule(
+    booking.date,
+    booking.slotStart,
+    booking.slotEnd
+  );
   const body = `Votre réservation « ${display.title} » est confirmée pour le ${dateLabel}.`;
 
   await dispatchNotification({

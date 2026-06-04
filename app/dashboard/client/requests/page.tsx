@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ClientNav from "@/components/layout/ClientNav";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
+import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
+import { formatSchedule } from "@/lib/datetime-slot";
 
 interface ServiceRequest {
   id: string;
@@ -15,6 +17,8 @@ interface ServiceRequest {
   category: string;
   location: string;
   desiredDate: string | null;
+  desiredSlotStart: string | null;
+  desiredSlotEnd: string | null;
   open: boolean;
   createdAt: string;
   _count?: { responses: number };
@@ -27,6 +31,9 @@ interface RequestForm {
   category: string;
   location: string;
   desiredDate: string;
+  slotEnabled: boolean;
+  slotStart: string;
+  slotEnd: string;
 }
 
 const EMPTY_FORM: RequestForm = {
@@ -36,6 +43,9 @@ const EMPTY_FORM: RequestForm = {
   category: SERVICE_CATEGORIES[0],
   location: "",
   desiredDate: "",
+  slotEnabled: false,
+  slotStart: "",
+  slotEnd: "",
 };
 
 export default function ClientRequestsPage() {
@@ -105,6 +115,11 @@ export default function ClientRequestsPage() {
       desiredDate: request.desiredDate
         ? new Date(request.desiredDate).toISOString().split("T")[0]
         : "",
+      slotEnabled: Boolean(
+        request.desiredSlotStart || request.desiredSlotEnd
+      ),
+      slotStart: request.desiredSlotStart ?? "",
+      slotEnd: request.desiredSlotEnd ?? "",
     });
     setShowForm(true);
     setActionError("");
@@ -128,6 +143,14 @@ export default function ClientRequestsPage() {
         category: form.category,
         location: form.location,
         desiredDate: form.desiredDate || null,
+        desiredSlotStart:
+          form.desiredDate && form.slotEnabled
+            ? form.slotStart || null
+            : null,
+        desiredSlotEnd:
+          form.desiredDate && form.slotEnabled
+            ? form.slotEnd || null
+            : null,
       };
 
       const res = editingId
@@ -302,8 +325,35 @@ export default function ClientRequestsPage() {
                   type="date"
                   min={minDateStr}
                   value={form.desiredDate}
-                  onChange={(e) => setForm({ ...form, desiredDate: e.target.value })}
+                  onChange={(e) => {
+                    const desiredDate = e.target.value;
+                    setForm({
+                      ...form,
+                      desiredDate,
+                      ...(desiredDate
+                        ? {}
+                        : {
+                            slotEnabled: false,
+                            slotStart: "",
+                            slotEnd: "",
+                          }),
+                    });
+                  }}
                   className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
+                />
+                <TimeSlotFields
+                  variant="amber"
+                  dateSet={Boolean(form.desiredDate)}
+                  enabled={form.slotEnabled}
+                  onEnabledChange={(slotEnabled) =>
+                    setForm({ ...form, slotEnabled })
+                  }
+                  slotStart={form.slotStart}
+                  slotEnd={form.slotEnd}
+                  onSlotStartChange={(slotStart) =>
+                    setForm({ ...form, slotStart })
+                  }
+                  onSlotEndChange={(slotEnd) => setForm({ ...form, slotEnd })}
                 />
               </div>
               <div className="flex gap-2 pt-1">
@@ -401,11 +451,11 @@ export default function ClientRequestsPage() {
                   {request.desiredDate && (
                     <span>
                       📅{" "}
-                      {new Date(request.desiredDate).toLocaleDateString("fr-MG", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      })}
+                      {formatSchedule(
+                        request.desiredDate,
+                        request.desiredSlotStart,
+                        request.desiredSlotEnd
+                      )}
                     </span>
                   )}
                   <Link
