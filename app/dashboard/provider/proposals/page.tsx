@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
+import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import {
   RESPONSE_STATUS_CLASS,
@@ -127,6 +128,7 @@ export default function ProviderProposalsPage() {
         </div>
 
         <ProviderNav />
+        <ProviderKycBanner />
 
         {actionError && (
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">

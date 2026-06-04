@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { parseListSearchParams } from "@/lib/advanced-search";
 import { searchPublicServices } from "@/lib/service-list-search";
 
@@ -60,6 +61,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Seuls les prestataires peuvent créer un service" },
         { status: 403 }
+      );
+    }
+
+    const kycCheck = await assertProviderKycApproved(user.userId, user.role);
+    if (!kycCheck.ok) {
+      return NextResponse.json(
+        { error: kycCheck.error },
+        { status: kycCheck.status }
       );
     }
 

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { getAuthUser, requireAuth } from "@/lib/auth";
+import { assertProviderKycApproved } from "@/lib/provider-kyc";
+import { isKycApproved } from "@/lib/kyc";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 
 // ─── GET /api/services/[id] ───────────────────────────────────────────────────
@@ -22,12 +24,27 @@ export async function GET(
             avatar: true,
             bio:    true,
             phone:  true,
+            kycStatus: true,
           },
         },
       },
     });
 
     if (!service) {
+      return NextResponse.json(
+        { error: "Service introuvable" },
+        { status: 404 }
+      );
+    }
+
+    const viewer = getAuthUser(_req);
+    const isOwner =
+      viewer?.userId === service.providerId || viewer?.role === "ADMIN";
+
+    if (
+      !service.available ||
+      (!isOwner && !isKycApproved(service.provider.kycStatus))
+    ) {
       return NextResponse.json(
         { error: "Service introuvable" },
         { status: 404 }
@@ -88,6 +105,16 @@ export async function PATCH(
 
     if (service.providerId !== user.userId && user.role !== "ADMIN") {
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+    }
+
+    if (user.role === "PROVIDER") {
+      const kycCheck = await assertProviderKycApproved(user.userId, user.role);
+      if (!kycCheck.ok) {
+        return NextResponse.json(
+          { error: kycCheck.error },
+          { status: kycCheck.status }
+        );
+      }
     }
 
     const { title, description, price, category, location, available } = body;

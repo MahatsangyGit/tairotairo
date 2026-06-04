@@ -116,6 +116,7 @@ export function buildServiceWhere(
 ): Prisma.ServiceWhereInput {
   const where: Prisma.ServiceWhereInput = {
     available: true,
+    provider: { kycStatus: "APPROVED" },
     ...(params.category && { category: params.category }),
     ...(params.location && {
       location: { contains: params.location, mode: "insensitive" },

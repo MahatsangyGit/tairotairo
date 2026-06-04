@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
 import ProfileForm, { type ProfileUser } from "@/components/profile/ProfileForm";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
+import ProviderKycPanel from "@/components/kyc/ProviderKycPanel";
 
 export default function ProviderProfilePage() {
   const router = useRouter();
@@ -51,7 +52,9 @@ export default function ProviderProfilePage() {
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace prestataire</h1>
-          <p className="text-gray-500 text-sm">Mon profil public et vérification email</p>
+          <p className="text-gray-500 text-sm">
+            Mon profil public, vérification email et identité (KYC)
+          </p>
         </div>
         <ProviderNav />
         {user && (
@@ -66,6 +69,7 @@ export default function ProviderProfilePage() {
         {error && <p className="text-red-500">{error}</p>}
         {user && (
           <>
+            <ProviderKycPanel />
             <ProfileForm initialUser={user} showBio />
             <NotificationPreferences />
           </>

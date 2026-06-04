@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { getAuthUser, requireAuth } from "@/lib/auth";
 import { notifyNewRequestResponse } from "@/lib/notify-requests";
+import { assertProviderKycApproved } from "@/lib/provider-kyc";
 
 const providerSelect = {
   id: true,
@@ -95,6 +96,16 @@ export async function POST(
         { error: "Seuls les prestataires peuvent proposer" },
         { status: 403 }
       );
+    }
+
+    if (user.role === "PROVIDER") {
+      const kycCheck = await assertProviderKycApproved(user.userId, user.role);
+      if (!kycCheck.ok) {
+        return NextResponse.json(
+          { error: kycCheck.error },
+          { status: kycCheck.status }
+        );
+      }
     }
 
     const { id } = await params;

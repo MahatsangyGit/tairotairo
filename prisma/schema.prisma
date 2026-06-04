@@ -21,9 +21,12 @@ model User {
   emailVerifiedAt DateTime?
   notifyEmail     Boolean   @default(true)
   notifyPush      Boolean   @default(true)
+  kycStatus       KycStatus @default(NOT_STARTED)
+  kycSubmittedAt  DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
+  kycDocuments  ProviderKycDocument[]
   emailOtps     EmailOtp[]
   passwordResetTokens PasswordResetToken[]
   notifications Notification[]
@@ -44,6 +47,34 @@ enum Role {
   CLIENT
   PROVIDER
   ADMIN
+}
+
+enum KycStatus {
+  NOT_STARTED
+  APPROVED
+}
+
+enum KycDocumentType {
+  CIN
+  RESIDENCE_CERTIFICATE
+}
+
+model ProviderKycDocument {
+  id           String          @id @default(cuid())
+  userId       String
+  type         KycDocumentType
+  /// 1 ou 2 pour la CIN (recto/verso), 0 pour le certificat de résidence
+  cinSlot      Int             @default(0)
+  storedName   String
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, cinSlot])
+  @@index([userId])
 }
 
 model Notification {

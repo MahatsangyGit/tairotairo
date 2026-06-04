@@ -18,6 +18,7 @@ async function loadProvider(id: string) {
       avatar: true,
       bio: true,
       emailVerified: true,
+      kycStatus: true,
       createdAt: true,
       services: {
         where: { available: true },
@@ -36,6 +37,9 @@ async function loadProvider(id: string) {
 
   if (!provider) return null;
 
+  const services =
+    provider.kycStatus === "APPROVED" ? provider.services : [];
+
   const reviews = await prisma.review.findMany({
     where: { targetId: id },
     orderBy: { createdAt: "desc" },
@@ -52,7 +56,13 @@ async function loadProvider(id: string) {
         ) / 10
       : 0;
 
-  return { provider, reviews, averageRating, totalReviews: reviews.length };
+  return {
+    provider: { ...provider, services },
+    reviews,
+    averageRating,
+    totalReviews: reviews.length,
+    identityVerified: provider.kycStatus === "APPROVED",
+  };
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
@@ -86,7 +96,8 @@ export default async function ProviderProfilePage({ params }: PageProps) {
     );
   }
 
-  const { provider, reviews, averageRating, totalReviews } = data;
+  const { provider, reviews, averageRating, totalReviews, identityVerified } =
+    data;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -108,11 +119,18 @@ export default async function ProviderProfilePage({ params }: PageProps) {
             )}
             <div>
               <h1 className="text-2xl font-bold text-gray-800">{provider.name}</h1>
-              {provider.emailVerified && (
-                <span className="text-xs text-brand-600 font-medium">
-                  ✓ Email vérifié
-                </span>
-              )}
+              <div className="flex flex-wrap gap-2 mt-1">
+                {provider.emailVerified && (
+                  <span className="text-xs text-brand-600 font-medium">
+                    ✓ Email vérifié
+                  </span>
+                )}
+                {identityVerified && (
+                  <span className="text-xs text-brand-700 font-medium bg-brand-50 px-2 py-0.5 rounded-full">
+                    ✓ Identité vérifiée
+                  </span>
+                )}
+              </div>
               {totalReviews > 0 && (
                 <p className="text-sm text-gray-600 mt-1">
                   ★ {averageRating} ({totalReviews} avis)
