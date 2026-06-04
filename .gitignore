@@ -46,3 +46,4 @@ next-env.d.ts
 /storage/kyc
 /storage/avatars
 /storage/portfolio
+.env
