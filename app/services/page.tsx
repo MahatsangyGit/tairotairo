@@ -2,9 +2,17 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import AdvancedSearchFilters from "@/components/search/AdvancedSearchFilters";
+import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
+import {
+  listSearchToParams,
+  parseSearchSort,
+  priceFromInput,
+  type SearchSort,
+} from "@/lib/advanced-search";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -23,6 +31,8 @@ interface Service {
   location:    string;
   createdAt:   string;
   provider:    Provider;
+  averageRating: number | null;
+  reviewCount: number;
 }
 
 interface Pagination {
@@ -35,13 +45,20 @@ interface Pagination {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 function ServicesPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Initialisés depuis les query params (liens catégories depuis la home)
-  const [search,   setSearch]   = useState(searchParams.get("search")   ?? "");
+  const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [category, setCategory] = useState(searchParams.get("category") ?? "");
   const [location, setLocation] = useState(searchParams.get("location") ?? "");
-  const [page,     setPage]     = useState(1);
+  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") ?? "");
+  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") ?? "");
+  const [sort, setSort] = useState<SearchSort>(
+    parseSearchSort(searchParams.get("sort"))
+  );
+  const [page, setPage] = useState(
+    Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1)
+  );
 
   const [services,   setServices]   = useState<Service[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -55,14 +72,17 @@ function ServicesPageContent() {
     setError("");
 
     try {
-      const params = new URLSearchParams();
-      if (search)   params.set("search",   search);
-      if (category) params.set("category", category);
-      if (location) params.set("location", location);
-      params.set("page", String(page));
-      // limit laissé à la valeur par défaut de l'API (10)
+      const params = listSearchToParams({
+        search,
+        category,
+        location,
+        minPrice: priceFromInput(minPrice),
+        maxPrice: priceFromInput(maxPrice),
+        sort,
+        page,
+      });
 
-      const res  = await fetch(`/api/services?${params.toString()}`);
+      const res = await fetch(`/api/services?${params.toString()}`);
       const data = await res.json();
 
       if (!res.ok) {
@@ -77,11 +97,33 @@ function ServicesPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [search, category, location, page]);
+  }, [search, category, location, minPrice, maxPrice, sort, page]);
 
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
+
+  useEffect(() => {
+    const params = listSearchToParams({
+      search,
+      category,
+      location,
+      minPrice: priceFromInput(minPrice),
+      maxPrice: priceFromInput(maxPrice),
+      sort,
+      page,
+    });
+    const qs = params.toString();
+    router.replace(qs ? `/services?${qs}` : "/services", { scroll: false });
+  }, [search, category, location, minPrice, maxPrice, sort, page, router]);
+
+  const resetAdvancedFilters = () => {
+    setLocation("");
+    setMinPrice("");
+    setMaxPrice("");
+    setSort("newest");
+    setPage(1);
+  };
 
   // ── Handlers ──────────────────────────────────────────────────────────────
 
@@ -110,7 +152,7 @@ function ServicesPageContent() {
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="Rechercher un service..."
+              placeholder="Mots-clés (titre, description, ville, prestataire…)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
@@ -154,21 +196,36 @@ function ServicesPageContent() {
           ))}
         </div>
 
-        {/* ── Localisation + compteur ── */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Filtrer par ville (ex: Antananarivo)"
-            value={location}
-            onChange={(e) => { setLocation(e.target.value); setPage(1); }}
-            className="sm:w-64 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500"
-          />
-          {pagination && !loading && (
-            <p className="text-sm text-gray-500">
-              {pagination.total} service{pagination.total !== 1 ? "s" : ""} trouvé{pagination.total !== 1 ? "s" : ""}
-            </p>
-          )}
-        </div>
+        <AdvancedSearchFilters
+          location={location}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort}
+          onLocationChange={(v) => {
+            setLocation(v);
+            setPage(1);
+          }}
+          onMinPriceChange={(v) => {
+            setMinPrice(v);
+            setPage(1);
+          }}
+          onMaxPriceChange={(v) => {
+            setMaxPrice(v);
+            setPage(1);
+          }}
+          onSortChange={(v) => {
+            setSort(v);
+            setPage(1);
+          }}
+          onReset={resetAdvancedFilters}
+        />
+
+        {pagination && !loading && (
+          <p className="text-sm text-gray-500 mb-4 -mt-2">
+            {pagination.total} service{pagination.total !== 1 ? "s" : ""}{" "}
+            trouvé{pagination.total !== 1 ? "s" : ""}
+          </p>
+        )}
 
         {/* ── Skeleton loading ── */}
         {loading && (
@@ -233,13 +290,19 @@ function ServicesPageContent() {
                     </span>
                   </div>
 
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                    <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold text-xs shrink-0">
-                      {service.provider.name.charAt(0).toUpperCase()}
+                  <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-gray-100">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold text-xs shrink-0">
+                        {service.provider.name.charAt(0).toUpperCase()}
+                      </div>
+                      <span className="text-gray-600 text-sm truncate">
+                        {service.provider.name}
+                      </span>
                     </div>
-                    <span className="text-gray-600 text-sm truncate">
-                      {service.provider.name}
-                    </span>
+                    <ProviderRatingBadge
+                      averageRating={service.averageRating}
+                      reviewCount={service.reviewCount}
+                    />
                   </div>
                 </Link>
               ))}

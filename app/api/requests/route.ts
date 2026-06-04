@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { parseListSearchParams } from "@/lib/advanced-search";
+import { searchPublicRequests } from "@/lib/request-list-search";
 
 // GET - Lister les demandes (?mine=true pour le client connecté)
 export async function GET(req: NextRequest) {
@@ -33,55 +35,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ requests });
     }
 
-    const category = searchParams.get("category");
-    const location = searchParams.get("location");
-    const search = searchParams.get("search");
-    const page = parseInt(searchParams.get("page") ?? "1");
-    const limit = parseInt(searchParams.get("limit") ?? "10");
-    const skip = (page - 1) * limit;
+    const params = parseListSearchParams(searchParams);
+    const result = await searchPublicRequests(params);
 
-    const where = {
-      open: true,
-      ...(category && { category }),
-      ...(location && {
-        location: { contains: location, mode: "insensitive" as const },
-      }),
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { description: { contains: search, mode: "insensitive" as const } },
-        ],
-      }),
-    };
-
-    const [requests, total] = await Promise.all([
-      prisma.serviceRequest.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          client: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-            },
-          },
-        },
-      }),
-      prisma.serviceRequest.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      requests,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
+    return NextResponse.json(result);
   } catch (error) {
     console.error("[GET /api/requests]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

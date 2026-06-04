@@ -2,9 +2,16 @@
 
 import { Suspense, useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import AdvancedSearchFilters from "@/components/search/AdvancedSearchFilters";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
+import {
+  listSearchToParams,
+  parseSearchSort,
+  priceFromInput,
+  type SearchSort,
+} from "@/lib/advanced-search";
 
 interface Client {
   id: string;
@@ -32,12 +39,20 @@ interface Pagination {
 }
 
 function RequestsPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
 
   const [search, setSearch] = useState(searchParams.get("search") ?? "");
   const [category, setCategory] = useState(searchParams.get("category") ?? "");
   const [location, setLocation] = useState(searchParams.get("location") ?? "");
-  const [page, setPage] = useState(1);
+  const [minPrice, setMinPrice] = useState(searchParams.get("minPrice") ?? "");
+  const [maxPrice, setMaxPrice] = useState(searchParams.get("maxPrice") ?? "");
+  const [sort, setSort] = useState<SearchSort>(
+    parseSearchSort(searchParams.get("sort"))
+  );
+  const [page, setPage] = useState(
+    Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1)
+  );
 
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
@@ -49,11 +64,15 @@ function RequestsPageContent() {
     setError("");
 
     try {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (category) params.set("category", category);
-      if (location) params.set("location", location);
-      params.set("page", String(page));
+      const params = listSearchToParams({
+        search,
+        category,
+        location,
+        minPrice: priceFromInput(minPrice),
+        maxPrice: priceFromInput(maxPrice),
+        sort: sort === "rating" ? "newest" : sort,
+        page,
+      });
 
       const res = await fetch(`/api/requests?${params.toString()}`);
       const data = await res.json();
@@ -70,11 +89,34 @@ function RequestsPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [search, category, location, page]);
+  }, [search, category, location, minPrice, maxPrice, sort, page]);
 
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  useEffect(() => {
+    const effectiveSort = sort === "rating" ? "newest" : sort;
+    const params = listSearchToParams({
+      search,
+      category,
+      location,
+      minPrice: priceFromInput(minPrice),
+      maxPrice: priceFromInput(maxPrice),
+      sort: effectiveSort,
+      page,
+    });
+    const qs = params.toString();
+    router.replace(qs ? `/requests?${qs}` : "/requests", { scroll: false });
+  }, [search, category, location, minPrice, maxPrice, sort, page, router]);
+
+  const resetAdvancedFilters = () => {
+    setLocation("");
+    setMinPrice("");
+    setMaxPrice("");
+    setSort("newest");
+    setPage(1);
+  };
 
   const handleCategoryClick = (cat: string) => {
     setCategory(cat === category ? "" : cat);
@@ -101,7 +143,7 @@ function RequestsPageContent() {
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="Rechercher une demande..."
+              placeholder="Mots-clés (titre, description, ville, client…)"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="flex-1 px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
@@ -143,24 +185,39 @@ function RequestsPageContent() {
           ))}
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-          <input
-            type="text"
-            placeholder="Filtrer par ville (ex: Antananarivo)"
-            value={location}
-            onChange={(e) => {
-              setLocation(e.target.value);
-              setPage(1);
-            }}
-            className="sm:w-64 px-4 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-amber-500"
-          />
-          {pagination && !loading && (
-            <p className="text-sm text-gray-500">
-              {pagination.total} demande{pagination.total !== 1 ? "s" : ""} trouvée
-              {pagination.total !== 1 ? "s" : ""}
-            </p>
-          )}
-        </div>
+        <AdvancedSearchFilters
+          variant="amber"
+          priceLabel="Budget (Ar)"
+          showRatingSort={false}
+          location={location}
+          minPrice={minPrice}
+          maxPrice={maxPrice}
+          sort={sort === "rating" ? "newest" : sort}
+          onLocationChange={(v) => {
+            setLocation(v);
+            setPage(1);
+          }}
+          onMinPriceChange={(v) => {
+            setMinPrice(v);
+            setPage(1);
+          }}
+          onMaxPriceChange={(v) => {
+            setMaxPrice(v);
+            setPage(1);
+          }}
+          onSortChange={(v) => {
+            setSort(v);
+            setPage(1);
+          }}
+          onReset={resetAdvancedFilters}
+        />
+
+        {pagination && !loading && (
+          <p className="text-sm text-gray-500 mb-4 -mt-2">
+            {pagination.total} demande{pagination.total !== 1 ? "s" : ""}{" "}
+            trouvée{pagination.total !== 1 ? "s" : ""}
+          </p>
+        )}
 
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

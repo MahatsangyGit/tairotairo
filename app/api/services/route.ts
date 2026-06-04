@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { parseListSearchParams } from "@/lib/advanced-search";
+import { searchPublicServices } from "@/lib/service-list-search";
 
 // GET - Lister et rechercher les services (?mine=true pour le prestataire connecté)
 export async function GET(req: NextRequest) {
@@ -30,53 +32,10 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ services });
     }
 
-    const category = searchParams.get("category");
-    const location = searchParams.get("location");
-    const search = searchParams.get("search");
-    const page = parseInt(searchParams.get("page") ?? "1");
-    const limit = parseInt(searchParams.get("limit") ?? "10");
-    const skip = (page - 1) * limit;
+    const params = parseListSearchParams(searchParams);
+    const result = await searchPublicServices(params);
 
-    const where = {
-      available: true,
-      ...(category && { category }),
-      ...(location && { location: { contains: location, mode: "insensitive" as const } }),
-      ...(search && {
-        OR: [
-          { title: { contains: search, mode: "insensitive" as const } },
-          { description: { contains: search, mode: "insensitive" as const } },
-        ],
-      }),
-    };
-
-    const [services, total] = await Promise.all([
-      prisma.service.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: { createdAt: "desc" },
-        include: {
-          provider: {
-            select: {
-              id: true,
-              name: true,
-              avatar: true,
-            },
-          },
-        },
-      }),
-      prisma.service.count({ where }),
-    ]);
-
-    return NextResponse.json({
-      services,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      },
-    });
+    return NextResponse.json(result);
   } catch (error) {
     return NextResponse.json(
       { error: "Erreur serveur" },
