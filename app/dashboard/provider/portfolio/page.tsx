@@ -5,25 +5,23 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
-import ProfileForm, { type ProfileUser } from "@/components/profile/ProfileForm";
-import NotificationPreferences from "@/components/notifications/NotificationPreferences";
-import ProviderKycPanel from "@/components/kyc/ProviderKycPanel";
+import ProviderPortfolioPanel from "@/components/portfolio/ProviderPortfolioPanel";
 
-export default function ProviderProfilePage() {
+export default function ProviderPortfolioPage() {
   const router = useRouter();
-  const [user, setUser] = useState<ProfileUser | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const fetchMe = async () => {
       try {
         const res = await fetch("/api/users/me");
         const data = await res.json();
 
         if (!res.ok) {
           if (res.status === 401) {
-            router.push("/auth/login?callbackUrl=/dashboard/provider/profile");
+            router.push("/auth/login?callbackUrl=/dashboard/provider/portfolio");
             return;
           }
           setError(data.error ?? "Erreur");
@@ -35,7 +33,7 @@ export default function ProviderProfilePage() {
           return;
         }
 
-        setUser(data.user);
+        setUserId(data.user.id);
       } catch {
         setError("Une erreur est survenue");
       } finally {
@@ -43,7 +41,7 @@ export default function ProviderProfilePage() {
       }
     };
 
-    fetchProfile();
+    fetchMe();
   }, [router]);
 
   return (
@@ -51,15 +49,16 @@ export default function ProviderProfilePage() {
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Mon profil</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">Mon portfolio</h1>
           <p className="text-gray-500 text-sm">
-            Photo, coordonnées, présentation, vérification email et identité (KYC)
+            Vos réalisations visibles sur votre profil public — commentaires
+            possibles par les clients
           </p>
         </div>
         <ProviderNav />
-        {user && (
+        {userId && (
           <Link
-            href={`/providers/${user.id}`}
+            href={`/providers/${userId}`}
             className="inline-block text-sm text-brand-600 font-medium hover:underline mb-4"
           >
             Voir mon profil public →
@@ -67,13 +66,7 @@ export default function ProviderProfilePage() {
         )}
         {loading && <p className="text-gray-500">Chargement...</p>}
         {error && <p className="text-red-500">{error}</p>}
-        {user && (
-          <>
-            <ProviderKycPanel />
-            <ProfileForm initialUser={user} showBio />
-            <NotificationPreferences />
-          </>
-        )}
+        {!loading && !error && <ProviderPortfolioPanel />}
       </div>
     </div>
   );

@@ -169,14 +169,11 @@ export default function ProviderPortfolioPanel() {
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5">
-      <div>
-        <h2 className="font-semibold text-gray-800">Portfolio</h2>
-        <p className="text-sm text-gray-500 mt-1">
-          Présentez vos réalisations sur votre profil public. Image + description
-          — JPEG, PNG ou WebP, max {PORTFOLIO_MAX_FILE_BYTES / (1024 * 1024)} Mo.
-          Les clients peuvent commenter chaque réalisation.
-        </p>
-      </div>
+      <p className="text-sm text-gray-500">
+        Image + description — JPEG, PNG ou WebP, max{" "}
+        {PORTFOLIO_MAX_FILE_BYTES / (1024 * 1024)} Mo. Les clients peuvent
+        commenter chaque réalisation sur votre profil public.
+      </p>
 
       {items.length < maxItems && (
         <div className="border border-gray-100 rounded-xl p-4 flex flex-col gap-3">
