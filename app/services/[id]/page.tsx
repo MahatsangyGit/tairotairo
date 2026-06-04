@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import NegotiateServiceButton from "@/components/messages/NegotiateServiceButton";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
+import UserAvatar from "@/components/profile/UserAvatar";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -234,9 +235,11 @@ export default function ServiceDetailPage() {
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
                 <h2 className="font-semibold text-gray-800 mb-4">À propos du prestataire</h2>
                 <div className="flex items-start gap-4">
-                  <div className="w-12 h-12 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold text-lg shrink-0">
-                    {service.provider.name.charAt(0).toUpperCase()}
-                  </div>
+                  <UserAvatar
+                    name={service.provider.name}
+                    avatar={service.provider.avatar}
+                    size="md"
+                  />
                   <div>
                     <Link
                       href={`/providers/${service.provider.id}`}
@@ -277,9 +280,11 @@ export default function ServiceDetailPage() {
                       <div key={review.id} className="border-b border-gray-100 last:border-0 pb-4 last:pb-0">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold text-xs shrink-0">
-                              {review.author.name.charAt(0).toUpperCase()}
-                            </div>
+                            <UserAvatar
+                              name={review.author.name}
+                              avatar={review.author.avatar}
+                              size="xs"
+                            />
                             <span className="text-sm font-medium text-gray-700">
                               {review.author.name}
                             </span>

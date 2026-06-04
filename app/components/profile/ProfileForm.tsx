@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import EmailVerification from "@/components/auth/EmailVerification";
+import ProfileAvatarUpload from "@/components/profile/ProfileAvatarUpload";
 
 export interface ProfileUser {
   id: string;
@@ -24,7 +25,6 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
   const [name, setName] = useState(initialUser.name);
   const [phone, setPhone] = useState(initialUser.phone ?? "");
   const [bio, setBio] = useState(initialUser.bio ?? "");
-  const [avatar, setAvatar] = useState(initialUser.avatar ?? "");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -42,7 +42,6 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
           name,
           phone,
           bio: showBio ? bio : undefined,
-          avatar,
         }),
       });
 
@@ -54,6 +53,7 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
       }
 
       setUser(data.user);
+      setName(data.user.name);
       setSuccess("Profil mis à jour");
     } catch {
       setError("Une erreur est survenue");
@@ -64,6 +64,12 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
 
   return (
     <div className="flex flex-col gap-6">
+      <ProfileAvatarUpload
+        name={user.name}
+        initialAvatar={user.avatar}
+        onAvatarChange={(avatar) => setUser((u) => ({ ...u, avatar }))}
+      />
+
       <EmailVerification
         email={user.email}
         emailVerified={user.emailVerified}
@@ -91,13 +97,6 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
           placeholder="Téléphone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
-        />
-        <input
-          type="url"
-          placeholder="URL de l'avatar (optionnel)"
-          value={avatar}
-          onChange={(e) => setAvatar(e.target.value)}
           className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
         />
         {showBio && (

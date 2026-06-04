@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import UserAvatar from "@/components/profile/UserAvatar";
 import { SITE_NAME } from "@/lib/site";
 
 interface AuthUser {
@@ -11,6 +12,7 @@ interface AuthUser {
   name: string;
   email: string;
   role: "CLIENT" | "PROVIDER" | "ADMIN";
+  avatar: string | null;
 }
 
 export default function Navbar() {
@@ -34,6 +36,18 @@ export default function Navbar() {
     };
 
     fetchUser();
+
+    const onAvatarUpdated = (event: Event) => {
+      const detail = (event as CustomEvent<{ avatar: string | null }>).detail;
+      setUser((current) =>
+        current ? { ...current, avatar: detail.avatar } : current
+      );
+    };
+
+    window.addEventListener("profile-avatar-updated", onAvatarUpdated);
+    return () => {
+      window.removeEventListener("profile-avatar-updated", onAvatarUpdated);
+    };
   }, [pathname]);
 
   const handleLogout = async () => {
@@ -76,10 +90,17 @@ export default function Navbar() {
       messagesHref != null &&
       (pathname === messagesHref || pathname.startsWith(`${messagesHref}/`));
 
+    const nameRow = (
+      <div className="flex items-center gap-2 min-w-0">
+        <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+        <span className="text-sm font-semibold text-gray-800 truncate">
+          {user.name}
+        </span>
+      </div>
+    );
+
     if (!profileHref && !messagesHref) {
-      return (
-        <span className="text-sm font-semibold text-gray-800">{user.name}</span>
-      );
+      return nameRow;
     }
 
     return (
@@ -90,7 +111,7 @@ export default function Navbar() {
             : "flex items-center gap-2 border-l border-gray-200 pl-4"
         }
       >
-        <span className="text-sm font-semibold text-gray-800">{user.name}</span>
+        {nameRow}
         <div className="flex items-center gap-1.5 flex-wrap">
           {profileHref && (
             <Link

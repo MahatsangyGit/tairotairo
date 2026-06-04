@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import AdvancedSearchFilters from "@/components/search/AdvancedSearchFilters";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
+import UserAvatar from "@/components/profile/UserAvatar";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import {
   listSearchToParams,
@@ -292,9 +293,11 @@ function ServicesPageContent() {
 
                   <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center gap-2 min-w-0">
-                      <div className="w-7 h-7 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-semibold text-xs shrink-0">
-                        {service.provider.name.charAt(0).toUpperCase()}
-                      </div>
+                      <UserAvatar
+                        name={service.provider.name}
+                        avatar={service.provider.avatar}
+                        size="xs"
+                      />
                       <span className="text-gray-600 text-sm truncate">
                         {service.provider.name}
                       </span>

@@ -9,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-function createPrismaClient() {
+function createPrismaClient(): PrismaClient {
   return new PrismaClient({ adapter });
 }
 
@@ -18,14 +18,21 @@ function isStalePrismaClient(client: PrismaClient): boolean {
   return !("providerKycDocument" in client);
 }
 
-let prisma = globalForPrisma.prisma;
-
-if (!prisma || (process.env.NODE_ENV !== "production" && isStalePrismaClient(prisma))) {
-  prisma = createPrismaClient();
+function getPrismaClient(): PrismaClient {
+  const cached = globalForPrisma.prisma;
+  if (
+    cached &&
+    (process.env.NODE_ENV === "production" || !isStalePrismaClient(cached))
+  ) {
+    return cached;
+  }
+  const client = createPrismaClient();
+  if (process.env.NODE_ENV !== "production") {
+    globalForPrisma.prisma = client;
+  }
+  return client;
 }
+
+const prisma = getPrismaClient();
 
 export default prisma;
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}

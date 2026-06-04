@@ -58,7 +58,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { name, phone, bio, avatar } = await req.json();
+    const { name, phone, bio } = await req.json();
 
     if (name !== undefined && !String(name).trim()) {
       return NextResponse.json({ error: "Le nom est obligatoire" }, { status: 400 });
@@ -70,7 +70,6 @@ export async function PATCH(req: NextRequest) {
         ...(name !== undefined && { name: String(name).trim() }),
         ...(phone !== undefined && { phone: phone ? String(phone).trim() : null }),
         ...(bio !== undefined && { bio: bio ? String(bio).trim() : null }),
-        ...(avatar !== undefined && { avatar: avatar ? String(avatar).trim() : null }),
       },
       select: userSelect,
     });

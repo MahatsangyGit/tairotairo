@@ -4,6 +4,7 @@ import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
 import { SITE_NAME } from "@/lib/site";
+import UserAvatar from "@/components/profile/UserAvatar";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -106,17 +107,11 @@ export default async function ProviderProfilePage({ params }: PageProps) {
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
           <div className="flex items-start gap-4">
-            {provider.avatar ? (
-              <img
-                src={provider.avatar}
-                alt={provider.name}
-                className="w-16 h-16 rounded-full object-cover"
-              />
-            ) : (
-              <div className="w-16 h-16 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold text-xl">
-                {provider.name.charAt(0).toUpperCase()}
-              </div>
-            )}
+            <UserAvatar
+              name={provider.name}
+              avatar={provider.avatar}
+              size="lg"
+            />
             <div>
               <h1 className="text-2xl font-bold text-gray-800">{provider.name}</h1>
               <div className="flex flex-wrap gap-2 mt-1">

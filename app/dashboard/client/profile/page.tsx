@@ -50,7 +50,9 @@ export default function ClientProfilePage() {
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace client</h1>
-          <p className="text-gray-500 text-sm">Mon profil et vérification email</p>
+          <p className="text-gray-500 text-sm">
+            Mon profil, photo et vérification email
+          </p>
         </div>
         <ClientNav />
         {loading && <p className="text-gray-500">Chargement...</p>}
