@@ -141,26 +141,24 @@ function ServicesPageContent() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
 
-      {/* ── Header + recherche ── */}
-      <section className="bg-brand-600 text-white py-10 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-4 text-center">
-            Trouvez le bon prestataire
-          </h1>
+      {/* Header */}
+      <section className="bg-neutral-950 text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="text-3xl font-bold mb-5">Trouver un service</h1>
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="Mots-clés (titre, description, ville, prestataire…)"
+              placeholder="Mots-clés, ville, prestataire…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
+              className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-neutral-400 text-sm focus:outline-none focus:border-brand-400 focus:bg-white/15 transition-all"
             />
             <button
               type="submit"
-              className="bg-white text-brand-600 px-6 py-3 rounded-lg font-semibold hover:bg-brand-50 transition-colors"
+              className="bg-brand-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand-500 transition-colors shrink-0"
             >
               Rechercher
             </button>
@@ -168,16 +166,16 @@ function ServicesPageContent() {
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-        {/* ── Pills catégories ── */}
-        <div className="flex flex-wrap gap-2 mb-6">
+        {/* Category pills */}
+        <div className="flex flex-wrap gap-2 mb-5">
           <button
             onClick={() => handleCategoryClick("")}
-            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               category === ""
                 ? "bg-brand-600 text-white border-brand-600"
-                : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
+                : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600"
             }`}
           >
             Tous
@@ -186,10 +184,10 @@ function ServicesPageContent() {
             <button
               key={cat}
               onClick={() => handleCategoryClick(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 category === cat
                   ? "bg-brand-600 text-white border-brand-600"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
+                  : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600"
               }`}
             >
               {cat}
@@ -202,65 +200,53 @@ function ServicesPageContent() {
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort}
-          onLocationChange={(v) => {
-            setLocation(v);
-            setPage(1);
-          }}
-          onMinPriceChange={(v) => {
-            setMinPrice(v);
-            setPage(1);
-          }}
-          onMaxPriceChange={(v) => {
-            setMaxPrice(v);
-            setPage(1);
-          }}
-          onSortChange={(v) => {
-            setSort(v);
-            setPage(1);
-          }}
+          onLocationChange={(v) => { setLocation(v); setPage(1); }}
+          onMinPriceChange={(v) => { setMinPrice(v); setPage(1); }}
+          onMaxPriceChange={(v) => { setMaxPrice(v); setPage(1); }}
+          onSortChange={(v) => { setSort(v); setPage(1); }}
           onReset={resetAdvancedFilters}
         />
 
         {pagination && !loading && (
-          <p className="text-sm text-gray-500 mb-4 -mt-2">
-            {pagination.total} service{pagination.total !== 1 ? "s" : ""}{" "}
-            trouvé{pagination.total !== 1 ? "s" : ""}
+          <p className="text-sm text-neutral-400 mb-4 -mt-2">
+            {pagination.total} service{pagination.total !== 1 ? "s" : ""} trouvé{pagination.total !== 1 ? "s" : ""}
           </p>
         )}
 
-        {/* ── Skeleton loading ── */}
+        {/* Skeleton */}
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-3/4 mb-3" />
-                <div className="h-3 bg-gray-200 rounded w-full mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-2/3 mb-6" />
-                <div className="h-4 bg-gray-200 rounded w-1/4" />
+              <div key={i} className="bg-white rounded-2xl border border-neutral-200 p-5 animate-pulse">
+                <div className="h-3 bg-neutral-100 rounded-full w-1/4 mb-4" />
+                <div className="h-4 bg-neutral-100 rounded-full w-3/4 mb-3" />
+                <div className="h-3 bg-neutral-100 rounded-full w-full mb-2" />
+                <div className="h-3 bg-neutral-100 rounded-full w-2/3 mb-6" />
+                <div className="h-4 bg-neutral-100 rounded-full w-1/4" />
               </div>
             ))}
           </div>
         )}
 
-        {/* ── Erreur ── */}
+        {/* Error */}
         {!loading && error && (
           <div className="text-center py-16">
             <p className="text-red-500 mb-4">{error}</p>
-            <button onClick={fetchServices} className="text-brand-600 font-medium hover:underline">
+            <button onClick={fetchServices} className="text-brand-600 font-medium hover:underline text-sm">
               Réessayer
             </button>
           </div>
         )}
 
-        {/* ── Vide ── */}
+        {/* Empty */}
         {!loading && !error && services.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg mb-2">Aucun service trouvé</p>
-            <p className="text-gray-400 text-sm">Essayez avec d'autres filtres</p>
+          <div className="text-center py-20">
+            <p className="text-neutral-500 mb-2">Aucun service trouvé</p>
+            <p className="text-neutral-400 text-sm">Essayez avec d&apos;autres filtres</p>
           </div>
         )}
 
-        {/* ── Grille ── */}
+        {/* Grid */}
         {!loading && !error && services.length > 0 && (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -268,37 +254,37 @@ function ServicesPageContent() {
                 <Link
                   key={service.id}
                   href={`/services/${service.id}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-brand-200 transition-all"
+                  className="group bg-white rounded-2xl border border-neutral-200 p-5 hover:shadow-md hover:border-brand-200 transition-all"
                 >
                   <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
                     {service.category}
                   </span>
 
-                  <h3 className="font-semibold text-gray-800 mb-2 line-clamp-1">
+                  <h3 className="font-semibold text-neutral-900 mb-2 line-clamp-1 group-hover:text-brand-700 transition-colors">
                     {service.title}
                   </h3>
 
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                  <p className="text-neutral-500 text-sm mb-4 line-clamp-2">
                     {service.description}
                   </p>
 
                   <div className="flex items-center justify-between">
-                    <span className="text-brand-600 font-bold">
+                    <span className="text-brand-600 font-bold text-sm">
                       {service.price.toLocaleString("fr-MG")} Ar
                     </span>
-                    <span className="text-gray-400 text-xs">
+                    <span className="text-neutral-400 text-xs">
                       📍 {service.location}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-gray-100">
+                  <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-neutral-100">
                     <div className="flex items-center gap-2 min-w-0">
                       <UserAvatar
                         name={service.provider.name}
                         avatar={service.provider.avatar}
                         size="xs"
                       />
-                      <span className="text-gray-600 text-sm truncate">
+                      <span className="text-neutral-600 text-xs truncate">
                         {service.provider.name}
                       </span>
                     </div>
@@ -311,23 +297,23 @@ function ServicesPageContent() {
               ))}
             </div>
 
-            {/* ── Pagination ── */}
+            {/* Pagination */}
             {pagination && pagination.totalPages > 1 && (
               <div className="flex justify-center items-center gap-2 mt-10">
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-xl border border-neutral-200 text-sm text-neutral-600 hover:border-brand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Précédent
                 </button>
-                <span className="text-sm text-gray-500 px-2">
+                <span className="text-sm text-neutral-500 px-2">
                   Page {pagination.page} / {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={page === pagination.totalPages}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-brand-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-xl border border-neutral-200 text-sm text-neutral-600 hover:border-brand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Suivant →
                 </button>
@@ -344,8 +330,8 @@ export default function ServicesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <p className="text-gray-500">Chargement...</p>
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
         </div>
       }
     >

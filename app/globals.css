@@ -1,26 +1,85 @@
 @import "tailwindcss";
 
-/* Palette charte : bleu canard #069494 + blanc */
 @theme {
+  /* Brand — bleu canard */
   --color-brand-50: #e8f7f7;
   --color-brand-100: #c5eded;
   --color-brand-200: #8fd9d9;
+  --color-brand-300: #5cc4c4;
   --color-brand-400: #33b0b0;
   --color-brand-500: #0aa0a0;
   --color-brand-600: #069494;
   --color-brand-700: #057676;
   --color-brand-800: #045c5c;
+  --color-brand-900: #033f3f;
+
+  /* Neutral */
+  --color-neutral-50: #f8f9fa;
+  --color-neutral-100: #f1f3f5;
+  --color-neutral-200: #e9ecef;
+  --color-neutral-300: #dee2e6;
+  --color-neutral-400: #ced4da;
+  --color-neutral-500: #adb5bd;
+  --color-neutral-600: #6c757d;
+  --color-neutral-700: #495057;
+  --color-neutral-800: #343a40;
+  --color-neutral-900: #212529;
+
+  /* Status */
+  --color-success-50: #ecfdf5;
+  --color-success-500: #10b981;
+  --color-success-700: #047857;
+  --color-warning-50: #fffbeb;
+  --color-warning-500: #f59e0b;
+  --color-warning-700: #b45309;
+  --color-error-50: #fef2f2;
+  --color-error-500: #ef4444;
+  --color-error-700: #b91c1c;
+
+  /* Accent */
+  --color-accent-50: #fff8ed;
+  --color-accent-100: #fef0d4;
+  --color-accent-500: #f97316;
+  --color-accent-600: #ea6e0e;
+
+  /* Fonts */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Shadows */
+  --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06);
+  --shadow-card-hover: 0 4px 12px 0 rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+  --shadow-nav: 0 1px 0 0 rgb(0 0 0 / 0.06);
 }
 
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #212529;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+}
+
+/* Smooth focus rings */
+:focus-visible {
+  outline: 2px solid #069494;
+  outline-offset: 2px;
+}
+
+/* Remove default focus for mouse users */
+:focus:not(:focus-visible) {
+  outline: none;
 }
