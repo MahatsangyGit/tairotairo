@@ -28,8 +28,11 @@ export async function POST(req: NextRequest) {
     const type = formData.get("type") as string | null;
     const file = formData.get("file");
 
-    if (type !== "CIN" && type !== "RESIDENCE_CERTIFICATE") {
-      return NextResponse.json({ error: "Type de document invalide" }, { status: 400 });
+    if (type !== "CIN") {
+      return NextResponse.json(
+        { error: "Seule la carte d'identité (CIN) est acceptée" },
+        { status: 400 }
+      );
     }
 
     if (!(file instanceof File)) {
@@ -42,31 +45,27 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: validation.error }, { status: 400 });
     }
 
-    const docType = type as KycDocumentType;
-    let cinSlot = 0;
+    const docType: KycDocumentType = "CIN";
+    const slotParam = formData.get("cinSlot");
+    const requestedSlot =
+      slotParam != null && slotParam !== ""
+        ? parseInt(String(slotParam), 10)
+        : null;
 
-    if (docType === "CIN") {
-      const slotParam = formData.get("cinSlot");
-      const requestedSlot =
-        slotParam != null && slotParam !== ""
-          ? parseInt(String(slotParam), 10)
-          : null;
+    const existingCin = await prisma.providerKycDocument.findMany({
+      where: { userId: auth.userId, type: "CIN" },
+      select: { cinSlot: true },
+    });
+    const slots = existingCin.map((d) => d.cinSlot);
+    const resolved = resolveCinSlot(slots, requestedSlot);
 
-      const existingCin = await prisma.providerKycDocument.findMany({
-        where: { userId: auth.userId, type: "CIN" },
-        select: { cinSlot: true },
-      });
-      const slots = existingCin.map((d) => d.cinSlot);
-      const resolved = resolveCinSlot(slots, requestedSlot);
-
-      if (resolved == null) {
-        return NextResponse.json(
-          { error: "Maximum 2 fichiers CIN déjà envoyés. Supprimez-en un pour remplacer." },
-          { status: 400 }
-        );
-      }
-      cinSlot = resolved;
+    if (resolved == null) {
+      return NextResponse.json(
+        { error: "Maximum 2 fichiers CIN déjà envoyés. Supprimez-en un pour remplacer." },
+        { status: 400 }
+      );
     }
+    const cinSlot = resolved;
 
     const existing = await prisma.providerKycDocument.findUnique({
       where: {

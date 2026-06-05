@@ -11,7 +11,7 @@ interface AdminStats {
     newClients30: number;
     newProviders30: number;
   };
-  kyc: { approved: number; notStarted: number };
+  kyc: { approved: number; pending: number; notStarted: number };
   subscriptions: {
     active: number;
     expiringSoon: number;
@@ -217,7 +217,8 @@ export default function AdminStatsPanel() {
             label="Prestataires — vérification KYC"
             segments={[
               { name: "Approuvés", value: stats.kyc.approved, color: "bg-brand-500" },
-              { name: "Non validés", value: stats.kyc.notStarted, color: "bg-amber-400" },
+              { name: "En attente", value: stats.kyc.pending, color: "bg-amber-400" },
+              { name: "Non soumis", value: stats.kyc.notStarted, color: "bg-neutral-300" },
             ]}
           />
         </div>

@@ -3,7 +3,6 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { validateKycCompleteness } from "@/lib/kyc";
 import { getProviderKycPayload } from "@/lib/provider-kyc";
-import { syncProviderHomepageSpotlight } from "@/lib/provider-spotlight";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,19 +28,37 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: check.error }, { status: 400 });
     }
 
+    const existing = await prisma.user.findUnique({
+      where: { id: auth.userId },
+      select: { kycStatus: true },
+    });
+
+    if (existing?.kycStatus === "PENDING") {
+      return NextResponse.json(
+        { error: "Votre dossier est déjà en cours de vérification" },
+        { status: 400 }
+      );
+    }
+
+    if (existing?.kycStatus === "APPROVED") {
+      return NextResponse.json(
+        { error: "Votre identité est déjà vérifiée" },
+        { status: 400 }
+      );
+    }
+
     await prisma.user.update({
       where: { id: auth.userId },
       data: {
-        kycStatus: "APPROVED",
+        kycStatus: "PENDING",
         kycSubmittedAt: new Date(),
       },
     });
 
-    await syncProviderHomepageSpotlight(auth.userId);
-
     const kyc = await getProviderKycPayload(auth.userId);
     return NextResponse.json({
-      message: "Vérification d'identité enregistrée. Votre compte prestataire est activé.",
+      message:
+        "Dossier envoyé. Votre identité sera vérifiée par notre équipe sous peu.",
       kyc,
     });
   } catch (error) {

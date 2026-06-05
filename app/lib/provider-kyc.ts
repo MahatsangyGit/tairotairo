@@ -38,7 +38,6 @@ export async function getProviderKycPayload(
     requirements: {
       cinMin: 1,
       cinMax: 2,
-      residenceRequired: 1,
     },
     isComplete: completeness.ok,
   };
@@ -63,7 +62,7 @@ export async function assertProviderKycApproved(
     return {
       ok: false,
       error:
-        "Vérification d'identité requise. Complétez votre KYC dans Mon profil (CIN + certificat de résidence).",
+        "Vérification d'identité requise. Complétez votre KYC dans Mon profil (CIN).",
       status: 403,
     };
   }

@@ -3,9 +3,11 @@
 import { useState } from "react";
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminSpotlightPanel from "@/components/admin/AdminSpotlightPanel";
+import AdminKycPanel from "@/components/admin/AdminKycPanel";
 
 const TABS = [
   { id: "stats", label: "Statistiques" },
+  { id: "kyc", label: "Vérification KYC" },
   { id: "subscriptions", label: "Abonnements" },
 ] as const;
 
@@ -34,6 +36,7 @@ export default function AdminDashboard() {
       </nav>
 
       {tab === "stats" && <AdminStatsPanel />}
+      {tab === "kyc" && <AdminKycPanel />}
       {tab === "subscriptions" && <AdminSpotlightPanel />}
     </div>
   );

@@ -20,6 +20,7 @@ export async function getAdminStats() {
     newClients30,
     newProviders30,
     kycApproved,
+    kycPending,
     kycNotStarted,
     activeSubscriptions,
     expiringSubscriptions,
@@ -51,6 +52,9 @@ export async function getAdminStats() {
     }),
     prisma.user.count({
       where: { role: "PROVIDER", kycStatus: "APPROVED" },
+    }),
+    prisma.user.count({
+      where: { role: "PROVIDER", kycStatus: "PENDING" },
     }),
     prisma.user.count({
       where: { role: "PROVIDER", kycStatus: "NOT_STARTED" },
@@ -108,6 +112,7 @@ export async function getAdminStats() {
     },
     kyc: {
       approved: kycApproved,
+      pending: kycPending,
       notStarted: kycNotStarted,
     },
     subscriptions: {

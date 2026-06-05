@@ -24,14 +24,15 @@ export interface KycDocumentMeta {
   createdAt: string;
 }
 
+export type KycStatusValue = "NOT_STARTED" | "PENDING" | "APPROVED";
+
 export interface KycStatusPayload {
-  status: "NOT_STARTED" | "APPROVED";
+  status: KycStatusValue;
   submittedAt: string | null;
   documents: KycDocumentMeta[];
   requirements: {
     cinMin: number;
     cinMax: number;
-    residenceRequired: number;
   };
   isComplete: boolean;
 }
@@ -42,13 +43,21 @@ export function isKycApproved(
   return status === "APPROVED";
 }
 
+export function kycStatusLabel(status: string): string {
+  switch (status) {
+    case "APPROVED":
+      return "Approuvé";
+    case "PENDING":
+      return "En attente";
+    default:
+      return "Non soumis";
+  }
+}
+
 export function validateKycCompleteness(
   documents: { type: string }[]
 ): { ok: boolean; error?: string } {
   const cinCount = documents.filter((d) => d.type === "CIN").length;
-  const residenceCount = documents.filter(
-    (d) => d.type === "RESIDENCE_CERTIFICATE"
-  ).length;
 
   if (cinCount < 1) {
     return {
@@ -58,12 +67,6 @@ export function validateKycCompleteness(
   }
   if (cinCount > 2) {
     return { ok: false, error: "Maximum 2 fichiers pour la CIN" };
-  }
-  if (residenceCount < 1) {
-    return {
-      ok: false,
-      error: "Le certificat de résidence est obligatoire",
-    };
   }
   return { ok: true };
 }

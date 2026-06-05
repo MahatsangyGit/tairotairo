@@ -120,6 +120,7 @@ export async function GET(req: NextRequest) {
         ["nouveaux_clients_30j", stats.users.newClients30],
         ["nouveaux_prestataires_30j", stats.users.newProviders30],
         ["kyc_approuves", stats.kyc.approved],
+        ["kyc_en_attente", stats.kyc.pending],
         ["abonnements_actifs", stats.subscriptions.active],
         ["abonnements_expire_bientot", stats.subscriptions.expiringSoon],
         ["annonces_total", stats.services.total],

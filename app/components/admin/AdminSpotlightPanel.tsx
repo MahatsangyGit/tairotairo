@@ -144,10 +144,16 @@ export default function AdminSpotlightPanel() {
                       className={
                         p.kycStatus === "APPROVED"
                           ? "text-brand-600 text-xs"
-                          : "text-amber-600 text-xs"
+                          : p.kycStatus === "PENDING"
+                            ? "text-amber-700 text-xs font-medium"
+                            : "text-amber-600 text-xs"
                       }
                     >
-                      {p.kycStatus === "APPROVED" ? "Approuvé" : "Non validé"}
+                      {p.kycStatus === "APPROVED"
+                        ? "Approuvé"
+                        : p.kycStatus === "PENDING"
+                          ? "En attente"
+                          : "Non validé"}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-xs">

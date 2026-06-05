@@ -20,7 +20,6 @@ export default function ProviderKycPanel() {
 
   const cin1Ref = useRef<HTMLInputElement>(null);
   const cin2Ref = useRef<HTMLInputElement>(null);
-  const residenceRef = useRef<HTMLInputElement>(null);
 
   const fetchKyc = useCallback(async () => {
     setLoading(true);
@@ -45,26 +44,17 @@ export default function ProviderKycPanel() {
   }, [fetchKyc]);
 
   const cinDocs = kyc?.documents.filter((d) => d.type === "CIN") ?? [];
-  const residenceDoc = kyc?.documents.find(
-    (d) => d.type === "RESIDENCE_CERTIFICATE"
-  );
 
-  const uploadFile = async (
-    type: "CIN" | "RESIDENCE_CERTIFICATE",
-    file: File,
-    cinSlot?: number
-  ) => {
-    const key = type === "CIN" ? `CIN-${cinSlot}` : "RESIDENCE";
+  const uploadFile = async (file: File, cinSlot: number) => {
+    const key = `CIN-${cinSlot}`;
     setUploading(key);
     setError("");
     setSuccess("");
 
     const formData = new FormData();
-    formData.set("type", type);
+    formData.set("type", "CIN");
     formData.set("file", file);
-    if (type === "CIN" && cinSlot) {
-      formData.set("cinSlot", String(cinSlot));
-    }
+    formData.set("cinSlot", String(cinSlot));
 
     try {
       const res = await fetch("/api/provider/kyc/upload", {
@@ -86,14 +76,13 @@ export default function ProviderKycPanel() {
   };
 
   const handleFileChange = (
-    type: "CIN" | "RESIDENCE_CERTIFICATE",
-    cinSlot: number | undefined,
+    cinSlot: number,
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     const file = e.target.files?.[0];
     e.target.value = "";
     if (!file) return;
-    void uploadFile(type, file, cinSlot);
+    void uploadFile(file, cinSlot);
   };
 
   const deleteDocument = async (doc: KycDocumentMeta) => {
@@ -189,6 +178,22 @@ export default function ProviderKycPanel() {
         </p>
       </div>
 
+      {kyc?.status === "PENDING" && (
+        <div className="bg-amber-50 border border-amber-100 text-amber-900 text-sm rounded-lg px-4 py-3">
+          Dossier en cours de vérification par notre équipe.
+          {kyc.submittedAt && (
+            <span className="text-amber-700 block text-xs mt-1">
+              Envoyé le{" "}
+              {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
+                day: "numeric",
+                month: "long",
+                year: "numeric",
+              })}
+            </span>
+          )}
+        </div>
+      )}
+
       {kyc?.status === "APPROVED" && (
         <div className="bg-brand-50 border border-brand-100 text-brand-800 text-sm rounded-lg px-4 py-3">
           Identité vérifiée
@@ -205,95 +210,66 @@ export default function ProviderKycPanel() {
         </div>
       )}
 
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div className="border border-gray-100 rounded-xl p-4">
-          <h3 className="text-sm font-medium text-gray-800 mb-1">
-            Carte d&apos;identité (CIN) *
-          </h3>
-          <p className="text-xs text-gray-500 mb-3">
-            1 fichier minimum, 2 maximum (recto / verso).
-          </p>
-          <div className="flex flex-col gap-2">
-              <input
-                ref={cin1Ref}
-                type="file"
-                accept={ACCEPT}
-                className="hidden"
-                onChange={(e) => handleFileChange("CIN", 1, e)}
-              />
-              <input
-                ref={cin2Ref}
-                type="file"
-                accept={ACCEPT}
-                className="hidden"
-                onChange={(e) => handleFileChange("CIN", 2, e)}
-              />
-              <button
-                type="button"
-                disabled={uploading != null || cinDocs.length >= 2}
-                onClick={() => cin1Ref.current?.click()}
-                className="text-sm border border-brand-200 text-brand-700 px-3 py-2 rounded-lg hover:bg-brand-50 disabled:opacity-50"
-              >
-                {uploading === "CIN-1"
-                  ? "Envoi…"
-                  : cinDocs.some((d) => d.cinSlot === 1)
-                    ? "Remplacer CIN (fichier 1)"
-                    : "Ajouter CIN (fichier 1)"}
-              </button>
-              <button
-                type="button"
-                disabled={uploading != null || cinDocs.length >= 2}
-                onClick={() => cin2Ref.current?.click()}
-                className="text-sm border border-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-              >
-                {uploading === "CIN-2"
-                  ? "Envoi…"
-                  : cinDocs.some((d) => d.cinSlot === 2)
-                    ? "Remplacer CIN (fichier 2)"
-                    : "Ajouter CIN (fichier 2 — optionnel)"}
-              </button>
-          </div>
-          {cinDocs.length > 0 && (
-            <ul className="mt-3">{cinDocs.map(renderDocRow)}</ul>
-          )}
-        </div>
-
-        <div className="border border-gray-100 rounded-xl p-4">
-          <h3 className="text-sm font-medium text-gray-800 mb-1">
-            Certificat de résidence *
-          </h3>
-          <p className="text-xs text-gray-500 mb-3">1 fichier obligatoire.</p>
+      <div className="border border-gray-100 rounded-xl p-4 max-w-lg">
+        <h3 className="text-sm font-medium text-gray-800 mb-1">
+          Carte d&apos;identité (CIN) *
+        </h3>
+        <p className="text-xs text-gray-500 mb-3">
+          1 fichier minimum, 2 maximum (recto / verso).
+        </p>
+        <div className="flex flex-col gap-2">
           <input
-            ref={residenceRef}
+            ref={cin1Ref}
             type="file"
             accept={ACCEPT}
             className="hidden"
-            onChange={(e) => handleFileChange("RESIDENCE_CERTIFICATE", undefined, e)}
+            onChange={(e) => handleFileChange(1, e)}
+          />
+          <input
+            ref={cin2Ref}
+            type="file"
+            accept={ACCEPT}
+            className="hidden"
+            onChange={(e) => handleFileChange(2, e)}
           />
           <button
             type="button"
-            disabled={uploading != null}
-            onClick={() => residenceRef.current?.click()}
-            className="text-sm border border-brand-200 text-brand-700 px-3 py-2 rounded-lg hover:bg-brand-50 disabled:opacity-50 w-full"
+            disabled={uploading != null || cinDocs.length >= 2}
+            onClick={() => cin1Ref.current?.click()}
+            className="text-sm border border-brand-200 text-brand-700 px-3 py-2 rounded-lg hover:bg-brand-50 disabled:opacity-50"
           >
-            {uploading === "RESIDENCE"
+            {uploading === "CIN-1"
               ? "Envoi…"
-              : residenceDoc
-                ? "Remplacer le certificat"
-                : "Ajouter le certificat"}
+              : cinDocs.some((d) => d.cinSlot === 1)
+                ? "Remplacer CIN (fichier 1)"
+                : "Ajouter CIN (fichier 1)"}
           </button>
-          {residenceDoc && <ul className="mt-3">{renderDocRow(residenceDoc)}</ul>}
+          <button
+            type="button"
+            disabled={uploading != null || cinDocs.length >= 2}
+            onClick={() => cin2Ref.current?.click()}
+            className="text-sm border border-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
+          >
+            {uploading === "CIN-2"
+              ? "Envoi…"
+              : cinDocs.some((d) => d.cinSlot === 2)
+                ? "Remplacer CIN (fichier 2)"
+                : "Ajouter CIN (fichier 2 — optionnel)"}
+          </button>
         </div>
+        {cinDocs.length > 0 && (
+          <ul className="mt-3">{cinDocs.map(renderDocRow)}</ul>
+        )}
       </div>
 
-      {kyc?.status !== "APPROVED" && (
+      {kyc?.status !== "APPROVED" && kyc?.status !== "PENDING" && (
         <button
           type="button"
           onClick={handleSubmit}
           disabled={!kyc?.isComplete || submitting}
           className="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50 w-fit"
         >
-          {submitting ? "Validation…" : "Valider ma vérification d'identité"}
+          {submitting ? "Envoi…" : "Envoyer pour vérification"}
         </button>
       )}
 
