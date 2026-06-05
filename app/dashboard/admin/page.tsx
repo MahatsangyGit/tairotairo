@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
-import AdminSpotlightPanel from "@/components/admin/AdminSpotlightPanel";
+import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export default function AdminDashboardPage() {
   const router = useRouter();
@@ -36,12 +36,12 @@ export default function AdminDashboardPage() {
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">Administration</h1>
-        <p className="text-gray-500 text-sm mb-8">
-          Abonnements prestataires et mise en avant sur la page d&apos;accueil
+        <h1 className="text-2xl font-bold text-neutral-800 mb-1">Administration</h1>
+        <p className="text-neutral-500 text-sm mb-8">
+          Statistiques de la plateforme, exports CSV et gestion des abonnements
         </p>
-        {loading && <p className="text-gray-500">Vérification des droits…</p>}
-        {allowed && <AdminSpotlightPanel />}
+        {loading && <p className="text-neutral-500">Vérification des droits…</p>}
+        {allowed && <AdminDashboard />}
       </div>
     </div>
   );
