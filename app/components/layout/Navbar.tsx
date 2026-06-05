@@ -272,14 +272,30 @@ export default function Navbar() {
                 )}
 
                 <div className="h-px bg-neutral-100 my-2" />
-                <div className="flex items-center gap-3 px-3 py-2">
-                  <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
-                    <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                {profileHref ? (
+                  <Link
+                    href={profileHref}
+                    onClick={close}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
+                      isActive(profileHref) ? "bg-brand-50" : "hover:bg-neutral-50"
+                    }`}
+                  >
+                    <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
+                      <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                    </div>
+                  </Link>
+                ) : (
+                  <div className="flex items-center gap-3 px-3 py-2">
+                    <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
+                      <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                    </div>
                   </div>
-                </div>
-                {profileHref && (
+                )}
+                {profileHref && user.role === "CLIENT" && (
                   <MobileNavLink href={profileHref} label="Mon profil" active={isActive(profileHref)} onClick={close} />
                 )}
                 {adminHref && (
