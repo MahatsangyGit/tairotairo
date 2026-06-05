@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { BRAND_PRIMARY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     locale: "fr_MG",
     siteName: SITE_NAME,
   },
+};
+
+export const viewport: Viewport = {
   themeColor: BRAND_PRIMARY,
 };
 

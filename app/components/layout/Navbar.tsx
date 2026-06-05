@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/notifications/NotificationBell";
@@ -21,6 +21,7 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authLoading, setAuthLoading] = useState(true);
+  const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,6 +51,18 @@ export default function Navbar() {
     };
   }, [pathname]);
 
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    if (isMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    }
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isMenuOpen]);
+
   const handleLogout = async () => {
     await fetch("/api/auth/logout", { method: "POST" });
     setUser(null);
@@ -57,6 +70,8 @@ export default function Navbar() {
     router.push("/");
     router.refresh();
   };
+
+  const close = () => setIsMenuOpen(false);
 
   const profileHref =
     user?.role === "CLIENT"
@@ -74,226 +89,253 @@ export default function Navbar() {
         ? "/dashboard/provider/messages"
         : null;
 
-  const shortcutClass = (active: boolean, mobile: boolean) =>
-    `text-xs font-medium px-2.5 py-1 rounded-lg border transition-colors ${
-      active
-        ? "bg-brand-600 text-white border-brand-600"
-        : "border-brand-200 text-brand-600 hover:bg-brand-50"
-    } ${mobile ? "inline-block" : ""}`;
+  const isActive = (href: string) =>
+    pathname === href || pathname.startsWith(`${href}/`);
 
-  const UserAccountBlock = ({ mobile = false }: { mobile?: boolean }) => {
-    if (!user) return null;
-
-    const close = () => mobile && setIsMenuOpen(false);
-    const profileActive =
-      profileHref != null &&
-      (pathname === profileHref || pathname.startsWith(`${profileHref}/`));
-    const messagesActive =
-      messagesHref != null &&
-      (pathname === messagesHref || pathname.startsWith(`${messagesHref}/`));
-
-    const nameRow = (
-      <div className="flex items-center gap-2 min-w-0">
-        <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-        <span className="text-sm font-semibold text-gray-800 truncate">
-          {user.name}
-        </span>
-      </div>
-    );
-
-    if (!profileHref && !messagesHref && !adminHref) {
-      return nameRow;
-    }
-
-    const adminActive =
-      adminHref != null &&
-      (pathname === adminHref || pathname.startsWith(`${adminHref}/`));
-
-    return (
-      <div
-        className={
-          mobile
-            ? "flex flex-col items-start gap-2 w-full"
-            : "flex items-center gap-2 border-l border-gray-200 pl-4"
-        }
-      >
-        {nameRow}
-        <div className="flex items-center gap-1.5 flex-wrap">
-          {adminHref && (
-            <Link
-              href={adminHref}
-              onClick={close}
-              className={shortcutClass(adminActive, mobile)}
-            >
-              Administration
-            </Link>
-          )}
-          {profileHref && (
-            <Link
-              href={profileHref}
-              onClick={close}
-              className={shortcutClass(profileActive, mobile)}
-            >
-              Mon profil
-            </Link>
-          )}
-          {messagesHref && (
-            <Link
-              href={messagesHref}
-              onClick={close}
-              className={shortcutClass(messagesActive, mobile)}
-            >
-              Messages
-            </Link>
-          )}
-        </div>
-      </div>
-    );
-  };
-
-  const NavLinks = ({ mobile = false }: { mobile?: boolean }) => (
-    <>
-      <Link
-        href="/services"
-        onClick={() => mobile && setIsMenuOpen(false)}
-        className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-      >
-        Services
-      </Link>
-      <Link
-        href="/requests"
-        onClick={() => mobile && setIsMenuOpen(false)}
-        className="text-gray-600 hover:text-amber-600 font-medium transition-colors"
-      >
-        Demandes
-      </Link>
-
-      {!authLoading && user && (
-        <>
-          <NotificationBell />
-          {user.role === "CLIENT" && (
-            <>
-              <Link
-                href="/dashboard/client"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-              >
-                Réservations
-              </Link>
-              <Link
-                href="/dashboard/client/requests"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-amber-600 font-medium transition-colors"
-              >
-                Mes demandes
-              </Link>
-            </>
-          )}
-          {user.role === "ADMIN" && (
-            <Link
-              href="/dashboard/admin"
-              onClick={() => mobile && setIsMenuOpen(false)}
-              className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-            >
-              Mise en avant
-            </Link>
-          )}
-          {user.role === "PROVIDER" && (
-            <>
-              <Link
-                href="/dashboard/provider"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-              >
-                Réservations
-              </Link>
-              <Link
-                href="/dashboard/provider/proposals"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-              >
-                Mes propositions
-              </Link>
-              <Link
-                href="/dashboard/provider/services"
-                onClick={() => mobile && setIsMenuOpen(false)}
-                className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-              >
-                Mes annonces
-              </Link>
-            </>
-          )}
-          <UserAccountBlock mobile={mobile} />
-          <button
-            onClick={handleLogout}
-            className={`text-gray-600 hover:text-brand-600 font-medium transition-colors ${
-              mobile ? "text-left" : ""
-            }`}
-          >
-            Déconnexion
-          </button>
-        </>
-      )}
-
-      {!authLoading && !user && (
-        <>
-          <Link
-            href="/auth/login"
-            onClick={() => mobile && setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-          >
-            Connexion
-          </Link>
-          <Link
-            href="/dashboard/provider"
-            onClick={() => mobile && setIsMenuOpen(false)}
-            className="text-gray-600 hover:text-brand-600 font-medium transition-colors"
-          >
-            Espace pro
-          </Link>
-          <Link
-            href="/auth/register"
-            onClick={() => mobile && setIsMenuOpen(false)}
-            className={`bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition-colors ${
-              mobile ? "text-center" : ""
-            }`}
-          >
-            S&apos;inscrire
-          </Link>
-        </>
-      )}
-    </>
-  );
+  const navLinkClass = (href: string) =>
+    `text-sm font-medium transition-colors ${
+      isActive(href)
+        ? "text-brand-600"
+        : "text-neutral-600 hover:text-neutral-900"
+    }`;
 
   return (
-    <nav className="bg-white shadow-sm border-b border-gray-200">
+    <nav className="sticky top-0 z-50 bg-white border-b border-neutral-200" style={{ boxShadow: "0 1px 0 0 rgb(0 0 0 / 0.06)" }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
-          <Link href="/" className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-brand-600">{SITE_NAME}</span>
+        <div className="flex items-center justify-between h-16">
+
+          {/* Logo */}
+          <Link
+            href="/"
+            className="flex items-center gap-2 shrink-0"
+            onClick={close}
+          >
+            <span className="w-7 h-7 rounded-lg bg-brand-600 flex items-center justify-center">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden>
+                <circle cx="7" cy="7" r="5.5" stroke="white" strokeWidth="2" />
+                <path d="M4 7h6M7 4v6" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </span>
+            <span className="text-lg font-bold text-neutral-900 tracking-tight">
+              {SITE_NAME}
+            </span>
           </Link>
 
+          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <NavLinks />
+            <Link href="/services" className={navLinkClass("/services")}>
+              Services
+            </Link>
+            <Link href="/requests" className={navLinkClass("/requests")}>
+              Demandes
+            </Link>
+
+            {!authLoading && user && (
+              <>
+                {user.role === "CLIENT" && (
+                  <>
+                    <Link href="/dashboard/client" className={navLinkClass("/dashboard/client")}>
+                      Réservations
+                    </Link>
+                    <Link href="/dashboard/client/requests" className={navLinkClass("/dashboard/client/requests")}>
+                      Mes demandes
+                    </Link>
+                  </>
+                )}
+                {user.role === "PROVIDER" && (
+                  <>
+                    <Link href="/dashboard/provider" className={navLinkClass("/dashboard/provider")}>
+                      Tableau de bord
+                    </Link>
+                    <Link href="/dashboard/provider/services" className={navLinkClass("/dashboard/provider/services")}>
+                      Mes annonces
+                    </Link>
+                  </>
+                )}
+                {user.role === "ADMIN" && (
+                  <Link href="/dashboard/admin" className={navLinkClass("/dashboard/admin")}>
+                    Administration
+                  </Link>
+                )}
+              </>
+            )}
           </div>
 
+          {/* Desktop right side */}
+          <div className="hidden md:flex items-center gap-3">
+            {!authLoading && user && (
+              <>
+                <NotificationBell />
+                {messagesHref && (
+                  <Link
+                    href={messagesHref}
+                    className="p-2 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg transition-colors"
+                    title="Messages"
+                  >
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
+                      <path d="M2 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 3V5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
+                    </svg>
+                  </Link>
+                )}
+                <div className="flex items-center gap-2 pl-3 border-l border-neutral-200">
+                  {profileHref ? (
+                    <Link href={profileHref} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+                      <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+                      <span className="text-sm font-medium text-neutral-800 max-w-28 truncate">
+                        {user.name}
+                      </span>
+                    </Link>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+                      <span className="text-sm font-medium text-neutral-800 max-w-28 truncate">
+                        {user.name}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={handleLogout}
+                    className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors px-1"
+                  >
+                    Déconnexion
+                  </button>
+                </div>
+              </>
+            )}
+
+            {!authLoading && !user && (
+              <>
+                <Link
+                  href="/auth/login"
+                  className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
+                >
+                  Connexion
+                </Link>
+                <Link
+                  href="/auth/register"
+                  className="text-sm font-semibold bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors"
+                >
+                  S&apos;inscrire
+                </Link>
+              </>
+            )}
+          </div>
+
+          {/* Mobile hamburger */}
           <button
-            onClick={() => setIsMenuOpen(!isMenuOpen)}
-            className="md:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100"
-            aria-label="Menu"
+            onClick={() => setIsMenuOpen((o) => !o)}
+            className="md:hidden p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors"
+            aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
+            aria-expanded={isMenuOpen}
           >
-            <div className="w-5 h-0.5 bg-current mb-1" />
-            <div className="w-5 h-0.5 bg-current mb-1" />
-            <div className="w-5 h-0.5 bg-current" />
+            {isMenuOpen ? (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <path d="M4 4l12 12M16 4L4 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            ) : (
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden>
+                <path d="M3 5h14M3 10h14M3 15h14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            )}
           </button>
         </div>
-
-        {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-gray-100 flex flex-col gap-3">
-            <NavLinks mobile />
-          </div>
-        )}
       </div>
+
+      {/* Mobile menu */}
+      {isMenuOpen && (
+        <div ref={menuRef} className="md:hidden border-t border-neutral-200 bg-white">
+          <div className="px-4 py-4 flex flex-col gap-1">
+            <MobileNavLink href="/services" label="Services" active={isActive("/services")} onClick={close} />
+            <MobileNavLink href="/requests" label="Demandes" active={isActive("/requests")} onClick={close} />
+
+            {!authLoading && user && (
+              <>
+                <div className="h-px bg-neutral-100 my-2" />
+                {user.role === "CLIENT" && (
+                  <>
+                    <MobileNavLink href="/dashboard/client" label="Réservations" active={isActive("/dashboard/client")} onClick={close} />
+                    <MobileNavLink href="/dashboard/client/requests" label="Mes demandes" active={isActive("/dashboard/client/requests")} onClick={close} />
+                  </>
+                )}
+                {user.role === "PROVIDER" && (
+                  <>
+                    <MobileNavLink href="/dashboard/provider" label="Tableau de bord" active={isActive("/dashboard/provider")} onClick={close} />
+                    <MobileNavLink href="/dashboard/provider/services" label="Mes annonces" active={isActive("/dashboard/provider/services")} onClick={close} />
+                    <MobileNavLink href="/dashboard/provider/proposals" label="Mes propositions" active={isActive("/dashboard/provider/proposals")} onClick={close} />
+                  </>
+                )}
+                {user.role === "ADMIN" && (
+                  <MobileNavLink href="/dashboard/admin" label="Administration" active={isActive("/dashboard/admin")} onClick={close} />
+                )}
+                {messagesHref && (
+                  <MobileNavLink href={messagesHref} label="Messages" active={isActive(messagesHref)} onClick={close} />
+                )}
+
+                <div className="h-px bg-neutral-100 my-2" />
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
+                    <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                  </div>
+                </div>
+                {profileHref && (
+                  <MobileNavLink href={profileHref} label="Mon profil" active={isActive(profileHref)} onClick={close} />
+                )}
+                {adminHref && (
+                  <MobileNavLink href={adminHref} label="Administration" active={isActive(adminHref)} onClick={close} />
+                )}
+                <button
+                  onClick={handleLogout}
+                  className="text-left px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
+                >
+                  Déconnexion
+                </button>
+              </>
+            )}
+
+            {!authLoading && !user && (
+              <>
+                <div className="h-px bg-neutral-100 my-2" />
+                <MobileNavLink href="/auth/login" label="Connexion" active={isActive("/auth/login")} onClick={close} />
+                <Link
+                  href="/auth/register"
+                  onClick={close}
+                  className="mt-1 block text-center bg-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-700 transition-colors"
+                >
+                  S&apos;inscrire
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
+  );
+}
+
+function MobileNavLink({
+  href,
+  label,
+  active,
+  onClick,
+}: {
+  href: string;
+  label: string;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onClick}
+      className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+        active
+          ? "bg-brand-50 text-brand-700"
+          : "text-neutral-700 hover:bg-neutral-50"
+      }`}
+    >
+      {label}
+    </Link>
   );
 }

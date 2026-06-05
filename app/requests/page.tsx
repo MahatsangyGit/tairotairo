@@ -132,28 +132,26 @@ function RequestsPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       <Navbar />
 
-      <section className="bg-amber-600 text-white py-10 px-4">
-        <div className="max-w-4xl mx-auto">
-          <h1 className="text-3xl font-bold mb-2 text-center">
-            Demandes de clients
-          </h1>
-          <p className="text-amber-100 text-center mb-4 text-sm">
+      <section className="bg-neutral-950 text-white">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <h1 className="text-3xl font-bold mb-2">Demandes de clients</h1>
+          <p className="text-neutral-400 text-sm mb-5">
             Trouvez des missions publiées par des particuliers
           </p>
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <input
               type="text"
-              placeholder="Mots-clés (titre, description, ville, client…)"
+              placeholder="Mots-clés, ville, client…"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="flex-1 px-4 py-3 rounded-lg text-gray-800 focus:outline-none focus:ring-2 focus:ring-white"
+              className="flex-1 px-4 py-3 rounded-xl bg-white/10 border border-white/20 text-white placeholder-neutral-400 text-sm focus:outline-none focus:border-brand-400 focus:bg-white/15 transition-all"
             />
             <button
               type="submit"
-              className="bg-white text-amber-700 px-6 py-3 rounded-lg font-semibold hover:bg-amber-50 transition-colors"
+              className="bg-brand-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand-500 transition-colors shrink-0"
             >
               Rechercher
             </button>
@@ -161,14 +159,14 @@ function RequestsPageContent() {
         </div>
       </section>
 
-      <div className="max-w-6xl mx-auto px-4 py-8">
-        <div className="flex flex-wrap gap-2 mb-6">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="flex flex-wrap gap-2 mb-5">
           <button
             onClick={() => handleCategoryClick("")}
-            className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+            className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               category === ""
-                ? "bg-amber-600 text-white border-amber-600"
-                : "bg-white text-gray-600 border-gray-200 hover:border-amber-400"
+                ? "bg-neutral-900 text-white border-neutral-900"
+                : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400"
             }`}
           >
             Tous
@@ -177,10 +175,10 @@ function RequestsPageContent() {
             <button
               key={cat}
               onClick={() => handleCategoryClick(cat)}
-              className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+              className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 category === cat
-                  ? "bg-amber-600 text-white border-amber-600"
-                  : "bg-white text-gray-600 border-gray-200 hover:border-amber-400"
+                  ? "bg-neutral-900 text-white border-neutral-900"
+                  : "bg-white text-neutral-600 border-neutral-200 hover:border-neutral-400"
               }`}
             >
               {cat}
@@ -196,39 +194,23 @@ function RequestsPageContent() {
           minPrice={minPrice}
           maxPrice={maxPrice}
           sort={sort === "rating" ? "newest" : sort}
-          onLocationChange={(v) => {
-            setLocation(v);
-            setPage(1);
-          }}
-          onMinPriceChange={(v) => {
-            setMinPrice(v);
-            setPage(1);
-          }}
-          onMaxPriceChange={(v) => {
-            setMaxPrice(v);
-            setPage(1);
-          }}
-          onSortChange={(v) => {
-            setSort(v);
-            setPage(1);
-          }}
+          onLocationChange={(v) => { setLocation(v); setPage(1); }}
+          onMinPriceChange={(v) => { setMinPrice(v); setPage(1); }}
+          onMaxPriceChange={(v) => { setMaxPrice(v); setPage(1); }}
+          onSortChange={(v) => { setSort(v); setPage(1); }}
           onReset={resetAdvancedFilters}
         />
 
         {pagination && !loading && (
-          <p className="text-sm text-gray-500 mb-4 -mt-2">
-            {pagination.total} demande{pagination.total !== 1 ? "s" : ""}{" "}
-            trouvée{pagination.total !== 1 ? "s" : ""}
+          <p className="text-sm text-neutral-400 mb-4 -mt-2">
+            {pagination.total} demande{pagination.total !== 1 ? "s" : ""} trouvée{pagination.total !== 1 ? "s" : ""}
           </p>
         )}
 
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse h-40"
-              />
+              <div key={i} className="bg-white rounded-2xl border border-neutral-200 p-5 animate-pulse h-40" />
             ))}
           </div>
         )}
@@ -236,19 +218,16 @@ function RequestsPageContent() {
         {!loading && error && (
           <div className="text-center py-16">
             <p className="text-red-500 mb-4">{error}</p>
-            <button
-              onClick={fetchRequests}
-              className="text-amber-600 font-medium hover:underline"
-            >
+            <button onClick={fetchRequests} className="text-brand-600 font-medium hover:underline text-sm">
               Réessayer
             </button>
           </div>
         )}
 
         {!loading && !error && requests.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-gray-500 text-lg mb-2">Aucune demande trouvée</p>
-            <p className="text-gray-400 text-sm">Essayez avec d&apos;autres filtres</p>
+          <div className="text-center py-20">
+            <p className="text-neutral-500 mb-2">Aucune demande trouvée</p>
+            <p className="text-neutral-400 text-sm">Essayez avec d&apos;autres filtres</p>
           </div>
         )}
 
@@ -259,28 +238,28 @@ function RequestsPageContent() {
                 <Link
                   key={request.id}
                   href={`/requests/${request.id}`}
-                  className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm hover:shadow-md hover:border-amber-200 transition-all"
+                  className="group bg-white rounded-2xl border border-neutral-200 p-5 hover:shadow-md hover:border-neutral-300 transition-all"
                 >
-                  <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
+                  <span className="inline-block bg-neutral-100 text-neutral-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
                     {request.category}
                   </span>
-                  <h3 className="font-semibold text-gray-800 mb-2 line-clamp-1">
+                  <h3 className="font-semibold text-neutral-900 mb-2 line-clamp-1 group-hover:text-brand-700 transition-colors">
                     {request.title}
                   </h3>
-                  <p className="text-gray-500 text-sm mb-4 line-clamp-2">
+                  <p className="text-neutral-500 text-sm mb-4 line-clamp-2">
                     {request.description}
                   </p>
                   <div className="flex flex-col gap-1 mb-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-amber-700 font-bold">
+                      <span className="text-neutral-900 font-bold text-sm">
                         Budget {request.budget.toLocaleString("fr-MG")} Ar
                       </span>
-                      <span className="text-gray-400 text-xs">
+                      <span className="text-neutral-400 text-xs">
                         📍 {request.location}
                       </span>
                     </div>
                     {request.desiredDate && (
-                      <span className="text-gray-500 text-xs">
+                      <span className="text-neutral-500 text-xs">
                         📅{" "}
                         {formatSchedule(
                           request.desiredDate,
@@ -290,11 +269,11 @@ function RequestsPageContent() {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-gray-100">
-                    <div className="w-7 h-7 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-semibold text-xs shrink-0">
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-neutral-100">
+                    <div className="w-6 h-6 rounded-full bg-neutral-200 flex items-center justify-center text-neutral-600 font-semibold text-xs shrink-0">
                       {request.client.name.charAt(0).toUpperCase()}
                     </div>
-                    <span className="text-gray-600 text-sm truncate">
+                    <span className="text-neutral-600 text-xs truncate">
                       {request.client.name}
                     </span>
                   </div>
@@ -307,19 +286,17 @@ function RequestsPageContent() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-amber-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-xl border border-neutral-200 text-sm text-neutral-600 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Précédent
                 </button>
-                <span className="text-sm text-gray-500 px-2">
+                <span className="text-sm text-neutral-500 px-2">
                   Page {pagination.page} / {pagination.totalPages}
                 </span>
                 <button
-                  onClick={() =>
-                    setPage((p) => Math.min(pagination.totalPages, p + 1))
-                  }
+                  onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={page === pagination.totalPages}
-                  className="px-4 py-2 rounded-lg border border-gray-200 text-gray-600 hover:border-amber-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="px-4 py-2 rounded-xl border border-neutral-200 text-sm text-neutral-600 hover:border-neutral-400 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Suivant →
                 </button>
@@ -336,8 +313,8 @@ export default function RequestsPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <p className="text-gray-500">Chargement...</p>
+        <div className="min-h-screen bg-white flex items-center justify-center">
+          <div className="w-8 h-8 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
         </div>
       }
     >

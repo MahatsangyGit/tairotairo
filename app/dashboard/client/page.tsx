@@ -144,15 +144,14 @@ export default function ClientDashboardPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50">
       <Navbar />
 
-      <div className="max-w-4xl mx-auto px-4 py-10">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        {/* Header */}
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace client</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-neutral-900 mb-1">Espace client</h1>
+          <p className="text-neutral-500 text-sm">
             Suivez l&apos;état de vos réservations de services
           </p>
         </div>
@@ -160,34 +159,34 @@ export default function ClientDashboardPage() {
         <ClientNav />
 
         {actionError && (
-          <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-            {actionError}
-          </p>
+          <div className="bg-error-50 border border-red-100 rounded-xl px-4 py-3 mb-4">
+            <p className="text-error-700 text-sm">{actionError}</p>
+          </div>
         )}
 
         {/* Stat cards */}
         {!loading && !error && bookings.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {(["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"] as BookingStatus[]).map((s) => (
-              <div key={s} className="bg-white rounded-xl border border-gray-100 p-4 text-center">
-                <p className="text-2xl font-bold text-gray-800">{counts[s] ?? 0}</p>
-                <p className="text-xs text-gray-400 mt-0.5">{STATUS_LABEL[s]}</p>
+              <div key={s} className="bg-white rounded-xl border border-neutral-200 p-4 text-center">
+                <p className="text-2xl font-bold text-neutral-900">{counts[s] ?? 0}</p>
+                <p className="text-xs text-neutral-400 mt-0.5">{STATUS_LABEL[s]}</p>
               </div>
             ))}
           </div>
         )}
 
-        {/* Filtres */}
+        {/* Filters */}
         {!loading && !error && bookings.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
             {FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => setActiveFilter(f.value)}
-                className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                   activeFilter === f.value
                     ? "bg-brand-600 text-white border-brand-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
+                    : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300"
                 }`}
               >
                 {f.label}
@@ -203,53 +202,46 @@ export default function ClientDashboardPage() {
         {loading && (
           <div className="flex flex-col gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse">
-                <div className="h-4 bg-gray-200 rounded w-1/4 mb-3" />
-                <div className="h-5 bg-gray-200 rounded w-1/2 mb-6" />
-                <div className="h-3 bg-gray-200 rounded w-full mb-2" />
-                <div className="h-3 bg-gray-200 rounded w-2/3" />
+              <div key={i} className="bg-white rounded-2xl border border-neutral-200 p-6 animate-pulse">
+                <div className="h-3 bg-neutral-100 rounded-full w-1/4 mb-3" />
+                <div className="h-5 bg-neutral-100 rounded-full w-1/2 mb-6" />
+                <div className="h-3 bg-neutral-100 rounded-full w-full mb-2" />
+                <div className="h-3 bg-neutral-100 rounded-full w-2/3" />
               </div>
             ))}
           </div>
         )}
 
-        {/* Erreur */}
         {!loading && error && (
           <div className="text-center py-20">
             <p className="text-red-500 mb-4">{error}</p>
-            <button
-              onClick={() => fetchBookings()}
-              className="text-brand-600 font-medium hover:underline"
-            >
+            <button onClick={() => fetchBookings()} className="text-brand-600 font-medium hover:underline text-sm">
               Réessayer
             </button>
           </div>
         )}
 
-        {/* Aucune réservation */}
         {!loading && !error && bookings.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg mb-2">Aucune réservation pour l'instant</p>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-neutral-600 text-lg mb-2">Aucune réservation pour l&apos;instant</p>
+            <p className="text-neutral-400 text-sm mb-6">
               Trouvez un prestataire et réservez votre premier service
             </p>
             <Link
               href="/services"
-              className="bg-brand-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors inline-block"
+              className="bg-brand-600 text-white px-6 py-3 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors inline-block"
             >
               Voir les services
             </Link>
           </div>
         )}
 
-        {/* Liste filtrée vide */}
         {!loading && !error && bookings.length > 0 && filtered.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-400 text-sm">Aucune réservation dans cette catégorie</p>
+            <p className="text-neutral-400 text-sm">Aucune réservation dans cette catégorie</p>
           </div>
         )}
 
-        {/* Liste */}
         {!loading && !error && filtered.length > 0 && (
           <div className="flex flex-col gap-4">
             {filtered.map((booking) => (
@@ -268,7 +260,7 @@ export default function ClientDashboardPage() {
                   />
                 )}
                 {booking.review && (
-                  <p className="text-sm text-gray-500 mt-2 ml-1">
+                  <p className="text-xs text-neutral-400 mt-2 ml-1">
                     ✓ Avis publié ({booking.review.rating}/5)
                   </p>
                 )}

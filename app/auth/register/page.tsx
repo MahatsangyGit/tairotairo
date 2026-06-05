@@ -55,80 +55,100 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-neutral-50 flex flex-col">
       <Navbar />
-      <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Créer un compte
-          </h1>
-          <p className="text-gray-500 mb-6">
-            Rejoignez {SITE_NAME} gratuitement
-          </p>
+      <div className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="w-full max-w-sm">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-brand-600 mb-4">
+              <svg width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
+                <circle cx="11" cy="11" r="9" stroke="white" strokeWidth="2" />
+                <path d="M7 11h8M11 7v8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
+              </svg>
+            </div>
+            <h1 className="text-2xl font-bold text-neutral-900">Créer un compte</h1>
+            <p className="text-neutral-500 text-sm mt-1">Rejoignez {SITE_NAME} gratuitement</p>
+          </div>
 
-          {/* Choix du rôle */}
-          <div className="flex gap-3 mb-6">
-            {(["CLIENT", "PROVIDER"] as Role[]).map((role) => (
+          <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm">
+            {/* Role toggle */}
+            <div className="flex gap-2 mb-5 p-1 bg-neutral-100 rounded-xl">
+              {(["CLIENT", "PROVIDER"] as Role[]).map((role) => (
+                <button
+                  key={role}
+                  onClick={() => setFormData({ ...formData, role })}
+                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
+                    formData.role === role
+                      ? "bg-white text-brand-700 shadow-sm"
+                      : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  {role === "CLIENT" ? "Je cherche" : "Je propose"}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <div>
+                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Nom complet</label>
+                <input
+                  type="text"
+                  placeholder="Jean Dupont"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Adresse email</label>
+                <input
+                  type="email"
+                  placeholder="vous@exemple.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Mot de passe</label>
+                <input
+                  type="password"
+                  placeholder="••••••••"
+                  value={formData.password}
+                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Téléphone</label>
+                <input
+                  type="tel"
+                  placeholder="034 00 000 00"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
+                />
+              </div>
+
+              {error && (
+                <div className="bg-error-50 border border-red-100 rounded-xl px-4 py-3">
+                  <p className="text-error-700 text-sm">{error}</p>
+                </div>
+              )}
+
               <button
-                key={role}
-                onClick={() => setFormData({ ...formData, role })}
-                className={`flex-1 py-3 rounded-lg font-medium border transition-all ${
-                  formData.role === role
-                    ? "bg-brand-600 text-white border-brand-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
-                }`}
+                onClick={handleSubmit}
+                disabled={loading}
+                className="w-full bg-brand-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
               >
-                {role === "CLIENT" ? "Je cherche" : "Je propose"}
+                {loading ? "Création..." : "Créer mon compte"}
               </button>
-            ))}
+            </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <input
-              type="text"
-              placeholder="Nom complet"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
-            />
-            <input
-              type="email"
-              placeholder="Email"
-              value={formData.email}
-              onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
-            />
-            <input
-              type="password"
-              placeholder="Mot de passe"
-              value={formData.password}
-              onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
-            />
-            <input
-              type="tel"
-              placeholder="Téléphone (ex: 034 00 000 00)"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
-            />
-
-            {error && (
-              <p className="text-red-500 text-sm">{error}</p>
-            )}
-
-            <button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50"
-            >
-              {loading ? "Création..." : "Créer mon compte"}
-            </button>
-          </div>
-
-          <p className="text-center text-black mt-6">
+          <p className="text-center text-neutral-500 text-sm mt-5">
             Déjà un compte ?{" "}
-            <Link href="/auth/login" className="text-brand-600 font-medium hover:underline">
+            <Link href="/auth/login" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
               Se connecter
             </Link>
           </p>

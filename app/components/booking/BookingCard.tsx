@@ -15,10 +15,10 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 };
 
 const STATUS_CLASS: Record<BookingStatus, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
-  COMPLETED: "bg-brand-50 text-brand-700 border-brand-200",
-  CANCELLED: "bg-red-50 text-red-700 border-red-200",
+  PENDING: "bg-warning-50 text-warning-700 border-warning-500/20",
+  CONFIRMED: "bg-brand-50 text-brand-700 border-brand-200",
+  COMPLETED: "bg-success-50 text-success-700 border-success-500/20",
+  CANCELLED: "bg-error-50 text-error-700 border-red-200",
 };
 
 export interface BookingCardData {
@@ -86,7 +86,7 @@ export default function BookingCard({
       : "bg-brand-50 text-brand-700";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-white rounded-2xl border border-neutral-200 p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -96,13 +96,13 @@ export default function BookingCard({
               {display.category}
             </span>
             {display.source === "request" && (
-              <span className="text-xs text-amber-700 font-medium">
+              <span className="text-xs text-neutral-500 font-medium">
                 {display.archived ? "Demande supprimée" : "Via demande"}
               </span>
             )}
           </div>
-          <h3 className="font-semibold text-gray-800">{display.title}</h3>
-          <p className="text-gray-500 text-sm mt-0.5">📍 {display.location}</p>
+          <h3 className="font-semibold text-neutral-900">{display.title}</h3>
+          <p className="text-neutral-500 text-sm mt-0.5">📍 {display.location}</p>
         </div>
         <span
           className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${STATUS_CLASS[booking.status]}`}
@@ -111,26 +111,26 @@ export default function BookingCard({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-gray-100 mb-4">
+      <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-neutral-100 mb-4">
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">Date prévue</p>
-          <p className="text-sm font-medium text-gray-700">{date}</p>
+          <p className="text-xs text-neutral-400 mb-0.5">Date prévue</p>
+          <p className="text-sm font-medium text-neutral-700">{date}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">Prix</p>
-          <p className="text-sm font-medium text-brand-600">
+          <p className="text-xs text-neutral-400 mb-0.5">Prix</p>
+          <p className="text-sm font-semibold text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
         </div>
         {counterparty && (
           <>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">{counterpartyLabel}</p>
-              <p className="text-sm font-medium text-gray-700">{counterparty.name}</p>
+              <p className="text-xs text-neutral-400 mb-0.5">{counterpartyLabel}</p>
+              <p className="text-sm font-medium text-neutral-700">{counterparty.name}</p>
             </div>
             {counterparty.phone && (
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Contact</p>
+                <p className="text-xs text-neutral-400 mb-0.5">Contact</p>
                 <a
                   href={`tel:${counterparty.phone}`}
                   className="text-sm font-medium text-brand-600 hover:underline"
@@ -152,18 +152,18 @@ export default function BookingCard({
             <button
               onClick={() => onCancel(booking.id)}
               disabled={cancellingId === booking.id}
-              className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50"
+              className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
             >
-              {cancellingId === booking.id ? "..." : "Annuler la réservation"}
+              {cancellingId === booking.id ? "..." : "Annuler"}
             </button>
           )}
         <Link
           href={display.href}
-          className="text-sm text-brand-600 font-medium hover:underline ml-auto"
+          className="text-sm text-brand-600 font-medium hover:text-brand-700 transition-colors ml-auto"
         >
           {display.source === "request"
             ? display.archived
-              ? "Historique des demandes →"
+              ? "Historique →"
               : "Voir la demande →"
             : "Voir le service →"}
         </Link>
