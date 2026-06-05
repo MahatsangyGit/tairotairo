@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import ProviderNav from "@/components/layout/ProviderNav";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
+import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 
 interface Service {
   id: string;
@@ -16,8 +17,20 @@ interface Service {
   category: string;
   location: string;
   available: boolean;
+  featuredOnHomepage: boolean;
   createdAt: string;
 }
+
+interface SpotlightState {
+  providerFeatured: boolean;
+  canFeature: boolean;
+  featuredService: { id: string; title: string } | null;
+}
+
+type SubscriptionState = {
+  expiresAt: string;
+  isActive: boolean;
+} | null;
 
 interface ServiceForm {
   title: string;
@@ -46,6 +59,9 @@ export default function ProviderServicesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ServiceForm>(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
+  const [subscription, setSubscription] = useState<SubscriptionState>(null);
+  const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
+  const [spotlightBusyId, setSpotlightBusyId] = useState<string | null>(null);
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -76,9 +92,22 @@ export default function ProviderServicesPage() {
     }
   }, [router]);
 
+  const fetchSpotlight = useCallback(async () => {
+    try {
+      const res = await fetch("/api/provider/subscription");
+      const data = await res.json();
+      if (!res.ok) return;
+      setSubscription(data.subscription ?? null);
+      setSpotlight(data.spotlight ?? null);
+    } catch {
+      /* ignore */
+    }
+  }, []);
+
   useEffect(() => {
     fetchServices();
-  }, [fetchServices]);
+    fetchSpotlight();
+  }, [fetchServices, fetchSpotlight]);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -175,11 +204,63 @@ export default function ProviderServicesPage() {
         return;
       }
 
+      const updated = data.service as Service;
       setServices((prev) =>
-        prev.map((s) => (s.id === service.id ? data.service : s))
+        prev.map((s) => (s.id === service.id ? updated : s))
+      );
+      if (!updated.available && updated.featuredOnHomepage === false) {
+        setSpotlight((prev) =>
+          prev?.featuredService?.id === service.id
+            ? { ...prev, featuredService: null }
+            : prev
+        );
+      }
+    } catch {
+      setActionError("Une erreur est survenue");
+    }
+  };
+
+  const toggleFeaturedService = async (service: Service) => {
+    setActionError("");
+    setSpotlightBusyId(service.id);
+
+    const nextId = service.featuredOnHomepage ? null : service.id;
+
+    try {
+      const res = await fetch("/api/provider/featured-service", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serviceId: nextId }),
+      });
+      const data = await res.json();
+
+      if (!res.ok) {
+        setActionError(data.error ?? "Impossible de modifier la mise en avant");
+        return;
+      }
+
+      setServices((prev) =>
+        prev.map((s) => ({
+          ...s,
+          featuredOnHomepage: nextId !== null && s.id === nextId,
+        }))
+      );
+      setSpotlight((prev) =>
+        prev
+          ? {
+              ...prev,
+              providerFeatured: nextId !== null || prev.providerFeatured,
+              featuredService:
+                nextId === null
+                  ? null
+                  : { id: service.id, title: service.title },
+            }
+          : prev
       );
     } catch {
       setActionError("Une erreur est survenue");
+    } finally {
+      setSpotlightBusyId(null);
     }
   };
 
@@ -216,6 +297,39 @@ export default function ProviderServicesPage() {
 
         <ProviderNav />
         <ProviderKycBanner />
+
+        {subscription?.isActive && spotlight?.canFeature && (
+          <div className="mb-6 bg-brand-50 border border-brand-100 rounded-xl px-4 py-4 text-sm text-brand-900">
+            <p className="font-medium">Abonnement actif — mise en avant automatique</p>
+            <p className="text-brand-800 mt-1">
+              Votre profil apparaît dans « Nos prestataires du mois » sur l&apos;accueil
+              jusqu&apos;au{" "}
+              {new Date(subscription.expiresAt).toLocaleDateString("fr-MG")}.
+              Choisissez une annonce en ligne à mettre en avant dans « Annonces du
+              moment ».
+            </p>
+          </div>
+        )}
+
+        {subscription?.isActive && !spotlight?.canFeature && (
+          <div className="mb-6 bg-amber-50 border border-amber-100 rounded-xl px-4 py-4 text-sm text-amber-900">
+            <p className="font-medium">Abonnement actif</p>
+            <p className="mt-1">
+              Complétez la vérification d&apos;identité (KYC) pour activer la mise en
+              avant sur l&apos;accueil.
+            </p>
+          </div>
+        )}
+
+        {!subscription?.isActive && (
+          <div className="mb-6 bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 text-sm text-gray-600">
+            <p>
+              L&apos;abonnement mensuel ({SUBSCRIPTION_PERIOD_DAYS} jours) met votre
+              profil en avant sur l&apos;accueil et dans les suggestions. Contactez
+              l&apos;équipe pour souscrire.
+            </p>
+          </div>
+        )}
 
         {actionError && (
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
@@ -358,15 +472,22 @@ export default function ProviderServicesPage() {
                       {service.description}
                     </p>
                   </div>
-                  <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${
-                      service.available
-                        ? "bg-brand-50 text-brand-700 border-brand-200"
-                        : "bg-gray-50 text-gray-500 border-gray-200"
-                    }`}
-                  >
-                    {service.available ? "En ligne" : "Hors ligne"}
-                  </span>
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <span
+                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+                        service.available
+                          ? "bg-brand-50 text-brand-700 border-brand-200"
+                          : "bg-gray-50 text-gray-500 border-gray-200"
+                      }`}
+                    >
+                      {service.available ? "En ligne" : "Hors ligne"}
+                    </span>
+                    {service.featuredOnHomepage && (
+                      <span className="text-xs font-medium text-amber-700">
+                        En avant sur l&apos;accueil
+                      </span>
+                    )}
+                  </div>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
@@ -395,6 +516,23 @@ export default function ProviderServicesPage() {
                   >
                     {service.available ? "Désactiver" : "Réactiver"}
                   </button>
+                  {spotlight?.canFeature && service.available && (
+                    <button
+                      onClick={() => toggleFeaturedService(service)}
+                      disabled={spotlightBusyId != null}
+                      className={`px-4 py-2 rounded-lg text-sm font-medium border disabled:opacity-50 ${
+                        service.featuredOnHomepage
+                          ? "border-amber-300 bg-amber-50 text-amber-800 hover:bg-amber-100"
+                          : "border-brand-200 text-brand-700 hover:bg-brand-50"
+                      }`}
+                    >
+                      {spotlightBusyId === service.id
+                        ? "…"
+                        : service.featuredOnHomepage
+                          ? "Retirer de l'accueil"
+                          : "Mettre en avant sur l'accueil"}
+                    </button>
+                  )}
                   <button
                     onClick={() => handleDelete(service.id)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50"

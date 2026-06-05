@@ -28,6 +28,17 @@ export async function GET(req: NextRequest) {
       const services = await prisma.service.findMany({
         where: { providerId: user.userId },
         orderBy: { createdAt: "desc" },
+        select: {
+          id: true,
+          title: true,
+          description: true,
+          price: true,
+          category: true,
+          location: true,
+          available: true,
+          featuredOnHomepage: true,
+          createdAt: true,
+        },
       });
 
       return NextResponse.json({ services });

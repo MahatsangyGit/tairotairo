@@ -4,6 +4,7 @@ import { getAuthUser, requireAuth } from "@/lib/auth";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { isKycApproved } from "@/lib/kyc";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
+import { clearServiceFeaturedIfNeeded } from "@/lib/provider-spotlight";
 
 // ─── GET /api/services/[id] ───────────────────────────────────────────────────
 
@@ -137,6 +138,12 @@ export async function PATCH(
         ...(available !== undefined && { available: Boolean(available) }),
       },
     });
+
+    if (available === false && service.featuredOnHomepage) {
+      await clearServiceFeaturedIfNeeded(id);
+      updated.featuredOnHomepage = false;
+      updated.featuredOnHomepageAt = null;
+    }
 
     return NextResponse.json({
       message: "Service mis à jour",

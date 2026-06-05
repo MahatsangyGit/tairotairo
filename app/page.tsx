@@ -57,7 +57,7 @@ export default async function HomePage() {
               <span className="text-brand-400">de confiance</span>
             </h1>
             <p className="text-neutral-400 text-lg mb-10 leading-relaxed">
-              Rapide, simple et sécurisé. Connectez-vous avec des professionnels
+              Rapide, simple et sécurisé. Connectez-vous avec des prestataires
               qualifiés près de chez vous.
             </p>
             <div className="flex flex-col sm:flex-row gap-3">

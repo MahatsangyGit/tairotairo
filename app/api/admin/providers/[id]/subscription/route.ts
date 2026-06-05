@@ -6,6 +6,10 @@ import {
   serializeSubscription,
   SUBSCRIPTION_PERIOD_DAYS,
 } from "@/lib/subscription";
+import {
+  disableProviderHomepageSpotlight,
+  syncProviderHomepageSpotlight,
+} from "@/lib/provider-spotlight";
 
 export const dynamic = "force-dynamic";
 
@@ -52,9 +56,16 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       },
     });
 
+    const spotlightEnabled = await syncProviderHomepageSpotlight(id);
+
     return NextResponse.json({
-      message: `Abonnement prolongé de ${months} période(s) (${SUBSCRIPTION_PERIOD_DAYS} jours chacune)`,
+      message: `Abonnement prolongé de ${months} période(s) (${SUBSCRIPTION_PERIOD_DAYS} jours chacune)${
+        spotlightEnabled
+          ? ". Le prestataire est mis en avant sur l'accueil pour la durée de l'abonnement."
+          : ". Mise en avant sur l'accueil dès que le KYC est approuvé."
+      }`,
       subscription: serializeSubscription(subscription),
+      spotlightEnabled,
     });
   } catch (error) {
     console.error("[POST /api/admin/providers/[id]/subscription]", error);
@@ -69,23 +80,8 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     const { id } = await params;
 
-    await prisma.$transaction([
-      prisma.providerSubscription.deleteMany({ where: { providerId: id } }),
-      prisma.user.update({
-        where: { id },
-        data: {
-          featuredOnHomepage: false,
-          featuredOnHomepageAt: null,
-        },
-      }),
-      prisma.service.updateMany({
-        where: { providerId: id },
-        data: {
-          featuredOnHomepage: false,
-          featuredOnHomepageAt: null,
-        },
-      }),
-    ]);
+    await prisma.providerSubscription.deleteMany({ where: { providerId: id } });
+    await disableProviderHomepageSpotlight(id);
 
     return NextResponse.json({ message: "Abonnement retiré et mises en avant désactivées" });
   } catch (error) {

@@ -105,52 +105,6 @@ export default function AdminSpotlightPanel() {
     }
   };
 
-  const toggleProviderFeatured = async (providerId: string, featured: boolean) => {
-    setBusyId(`pf-${providerId}`);
-    setError("");
-    try {
-      const res = await fetch(`/api/admin/providers/${providerId}/featured`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ featured }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Échec");
-        return;
-      }
-      setSuccess(data.message);
-      await load();
-    } catch {
-      setError("Une erreur est survenue");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const toggleServiceFeatured = async (serviceId: string, featured: boolean) => {
-    setBusyId(`sf-${serviceId}`);
-    setError("");
-    try {
-      const res = await fetch(`/api/admin/services/${serviceId}/featured`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ featured }),
-      });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.error ?? "Échec");
-        return;
-      }
-      setSuccess(data.message);
-      await load();
-    } catch {
-      setError("Une erreur est survenue");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
   if (loading) {
     return <p className="text-gray-500">Chargement…</p>;
   }
@@ -159,9 +113,10 @@ export default function AdminSpotlightPanel() {
     <div className="flex flex-col gap-8">
       <p className="text-sm text-gray-600 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
         L&apos;<strong>abonnement mensuel actif</strong> ({SUBSCRIPTION_PERIOD_DAYS}{" "}
-        jours par période) affiche le prestataire dans la section{" "}
-        <strong>« Nos suggestions »</strong> sur la page de recherche des services.
-        La mise en avant sur l&apos;accueil s&apos;active séparément ci-dessous.
+        jours par période) met automatiquement le prestataire en avant sur
+        l&apos;accueil (si KYC approuvé), dans{" "}
+        <strong>« Nos suggestions »</strong> sur la recherche, et lui permet de
+        choisir une annonce à mettre en avant depuis son espace prestataire.
       </p>
 
       <section>
@@ -234,20 +189,6 @@ export default function AdminSpotlightPanel() {
                           Retirer abo.
                         </button>
                       )}
-                      <button
-                        type="button"
-                        disabled={
-                          busyId != null ||
-                          (!p.featuredOnHomepage &&
-                            (!p.subscription?.isActive || p.kycStatus !== "APPROVED"))
-                        }
-                        onClick={() =>
-                          toggleProviderFeatured(p.id, !p.featuredOnHomepage)
-                        }
-                        className="text-xs bg-amber-50 text-amber-800 px-2 py-1 rounded border border-amber-200 hover:bg-amber-100 disabled:opacity-50"
-                      >
-                        {p.featuredOnHomepage ? "Retirer avant" : "Mettre en avant"}
-                      </button>
                     </div>
                   </td>
                 </tr>
@@ -267,7 +208,7 @@ export default function AdminSpotlightPanel() {
                 <th className="px-4 py-3 font-medium">Prestataire</th>
                 <th className="px-4 py-3 font-medium">Abo.</th>
                 <th className="px-4 py-3 font-medium">En avant</th>
-                <th className="px-4 py-3 font-medium">Action</th>
+                <th className="px-4 py-3 font-medium">Statut</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -295,21 +236,12 @@ export default function AdminSpotlightPanel() {
                       <span className="text-gray-400 text-xs">Non</span>
                     )}
                   </td>
-                  <td className="px-4 py-3">
-                    <button
-                      type="button"
-                      disabled={
-                        busyId != null ||
-                        (!s.featuredOnHomepage &&
-                          (!s.providerSubscriptionActive || !s.available))
-                      }
-                      onClick={() =>
-                        toggleServiceFeatured(s.id, !s.featuredOnHomepage)
-                      }
-                      className="text-xs bg-amber-50 text-amber-800 px-2 py-1 rounded border border-amber-200 hover:bg-amber-100 disabled:opacity-50"
-                    >
-                      {s.featuredOnHomepage ? "Retirer" : "Mettre en avant"}
-                    </button>
+                  <td className="px-4 py-3 text-xs text-gray-500">
+                    {s.featuredOnHomepage
+                      ? "Choix du prestataire"
+                      : s.providerSubscriptionActive
+                        ? "Non sélectionnée"
+                        : "—"}
                   </td>
                 </tr>
               ))}

@@ -3,6 +3,7 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { validateKycCompleteness } from "@/lib/kyc";
 import { getProviderKycPayload } from "@/lib/provider-kyc";
+import { syncProviderHomepageSpotlight } from "@/lib/provider-spotlight";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -35,6 +36,8 @@ export async function POST(req: NextRequest) {
         kycSubmittedAt: new Date(),
       },
     });
+
+    await syncProviderHomepageSpotlight(auth.userId);
 
     const kyc = await getProviderKycPayload(auth.userId);
     return NextResponse.json({
