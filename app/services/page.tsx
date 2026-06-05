@@ -6,6 +6,9 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import AdvancedSearchFilters from "@/components/search/AdvancedSearchFilters";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
+import SuggestedProvidersSection, {
+  type SuggestedProvider,
+} from "@/components/search/SuggestedProvidersSection";
 import UserAvatar from "@/components/profile/UserAvatar";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import {
@@ -61,7 +64,8 @@ function ServicesPageContent() {
     Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1)
   );
 
-  const [services,   setServices]   = useState<Service[]>([]);
+  const [services, setServices] = useState<Service[]>([]);
+  const [suggestions, setSuggestions] = useState<SuggestedProvider[]>([]);
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState("");
@@ -92,6 +96,7 @@ function ServicesPageContent() {
       }
 
       setServices(data.services);
+      setSuggestions(data.suggestions ?? []);
       setPagination(data.pagination);
     } catch {
       setError("Une erreur est survenue");
@@ -226,6 +231,10 @@ function ServicesPageContent() {
             {pagination.total} service{pagination.total !== 1 ? "s" : ""}{" "}
             trouvé{pagination.total !== 1 ? "s" : ""}
           </p>
+        )}
+
+        {!loading && !error && suggestions.length > 0 && (
+          <SuggestedProvidersSection providers={suggestions} />
         )}
 
         {/* ── Skeleton loading ── */}

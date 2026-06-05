@@ -6,6 +6,7 @@ import {
   serviceOrderBy,
   type ParsedListSearch,
 } from "@/lib/advanced-search";
+import { getSubscribedProviderSuggestions } from "@/lib/provider-list-search";
 
 const providerSelect = {
   id: true,
@@ -51,11 +52,16 @@ export async function searchPublicServices(params: ParsedListSearch) {
   const orderBy = serviceOrderBy(params.sort);
   const skip = (params.page - 1) * params.limit;
 
+  const suggestionsPromise = getSubscribedProviderSuggestions();
+
   if (params.sort === "rating") {
-    const rows = await prisma.service.findMany({
-      where,
-      include: { provider: { select: providerSelect } },
-    });
+    const [rows, suggestions] = await Promise.all([
+      prisma.service.findMany({
+        where,
+        include: { provider: { select: providerSelect } },
+      }),
+      suggestionsPromise,
+    ]);
 
     const enriched = rows
       .map(serializeService)
@@ -67,10 +73,10 @@ export async function searchPublicServices(params: ParsedListSearch) {
       });
 
     const { items, pagination } = paginate(enriched, params.page, params.limit);
-    return { services: items, pagination };
+    return { services: items, suggestions, pagination };
   }
 
-  const [rows, total] = await Promise.all([
+  const [rows, total, suggestions] = await Promise.all([
     prisma.service.findMany({
       where,
       skip,
@@ -79,10 +85,12 @@ export async function searchPublicServices(params: ParsedListSearch) {
       include: { provider: { select: providerSelect } },
     }),
     prisma.service.count({ where }),
+    suggestionsPromise,
   ]);
 
   return {
     services: rows.map(serializeService),
+    suggestions,
     pagination: {
       total,
       page: params.page,

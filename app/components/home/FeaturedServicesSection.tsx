@@ -29,10 +29,7 @@ export default function FeaturedServicesSection({
     <section className="max-w-6xl mx-auto px-4 py-12">
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
-            Sponsorisé
-          </span>
-          <h2 className="text-2xl font-bold text-gray-800 mt-1">Annonces en avant</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Annonces du moment</h2>
         </div>
         <Link href="/services" className="text-sm text-brand-600 font-medium hover:underline">
           Toutes les annonces →
@@ -45,9 +42,6 @@ export default function FeaturedServicesSection({
             href={`/services/${service.id}`}
             className="bg-white rounded-2xl border border-amber-100 shadow-sm hover:shadow-md hover:border-amber-200 transition-all overflow-hidden ring-1 ring-amber-50"
           >
-            <div className="bg-gradient-to-r from-amber-50 to-brand-50 px-3 py-1.5">
-              <span className="text-xs font-medium text-amber-700">★ En avant</span>
-            </div>
             <div className="p-4">
               <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full">
                 {service.category}

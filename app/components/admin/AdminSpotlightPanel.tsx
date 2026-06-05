@@ -158,10 +158,10 @@ export default function AdminSpotlightPanel() {
   return (
     <div className="flex flex-col gap-8">
       <p className="text-sm text-gray-600 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
-        La mise en avant sur l&apos;accueil est réservée aux prestataires avec un{" "}
-        <strong>abonnement mensuel actif</strong> ({SUBSCRIPTION_PERIOD_DAYS} jours par
-        période). Attribuez d&apos;abord l&apos;abonnement, puis activez prestataire ou
-        annonces.
+        L&apos;<strong>abonnement mensuel actif</strong> ({SUBSCRIPTION_PERIOD_DAYS}{" "}
+        jours par période) affiche le prestataire dans la section{" "}
+        <strong>« Nos suggestions »</strong> sur la page de recherche des services.
+        La mise en avant sur l&apos;accueil s&apos;active séparément ci-dessous.
       </p>
 
       <section>

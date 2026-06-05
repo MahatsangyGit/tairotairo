@@ -23,10 +23,7 @@ export default function FeaturedProvidersSection({
     <section className="max-w-6xl mx-auto px-4 py-12 border-t border-gray-100">
       <div className="flex items-end justify-between gap-4 mb-6">
         <div>
-          <span className="text-xs font-semibold uppercase tracking-wide text-amber-600">
-            Sponsorisé
-          </span>
-          <h2 className="text-2xl font-bold text-gray-800 mt-1">Prestataires en avant</h2>
+          <h2 className="text-2xl font-bold text-gray-800">Nos prestataires du mois</h2>
         </div>
         <Link href="/services" className="text-sm text-brand-600 font-medium hover:underline">
           Explorer →
@@ -39,8 +36,7 @@ export default function FeaturedProvidersSection({
             href={`/providers/${provider.id}`}
             className="bg-white rounded-2xl border border-amber-100 p-5 shadow-sm hover:shadow-md hover:border-amber-200 transition-all ring-1 ring-amber-50"
           >
-            <span className="text-xs font-medium text-amber-700">★ En avant</span>
-            <div className="flex items-center gap-3 mt-3">
+            <div className="flex items-center gap-3">
               <UserAvatar name={provider.name} avatar={provider.avatar} size="md" />
               <div className="min-w-0">
                 <h3 className="font-semibold text-gray-800 truncate">{provider.name}</h3>
