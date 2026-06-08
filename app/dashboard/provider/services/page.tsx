@@ -325,8 +325,13 @@ export default function ProviderServicesPage() {
           <div className="mb-6 bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 text-sm text-gray-600">
             <p>
               L&apos;abonnement mensuel ({SUBSCRIPTION_PERIOD_DAYS} jours) met votre
-              profil en avant sur l&apos;accueil et dans les suggestions. Contactez
-              l&apos;équipe pour souscrire.
+              profil en avant sur l&apos;accueil et dans les suggestions.{" "}
+              <Link
+                href="/dashboard/provider/subscription"
+                className="text-brand-600 font-medium hover:underline"
+              >
+                Souscrire maintenant →
+              </Link>
             </p>
           </div>
         )}

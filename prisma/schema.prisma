@@ -29,6 +29,7 @@ model User {
   updatedAt     DateTime  @updatedAt
 
   providerSubscription ProviderSubscription?
+  subscriptionPayments ProviderSubscriptionPayment[]
   kycDocuments  ProviderKycDocument[]
   emailOtps     EmailOtp[]
   passwordResetTokens PasswordResetToken[]
@@ -77,6 +78,30 @@ model ProviderSubscription {
   provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
 
   @@index([expiresAt])
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model ProviderSubscriptionPayment {
+  id            String                    @id @default(cuid())
+  providerId    String
+  months        Int
+  amount        Float
+  currency      String                    @default("MGA")
+  paymentMethod PaymentMethod
+  phone         String
+  status        SubscriptionPaymentStatus @default(PENDING)
+  referenceId   String                    @unique
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
 }
 
 model ProviderKycDocument {

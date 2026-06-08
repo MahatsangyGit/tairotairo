@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { serializeSubscription } from "@/lib/subscription";
+import {
+  getSubscriptionPlans,
+  SUBSCRIPTION_BENEFITS,
+  SUBSCRIPTION_MONTHLY_PRICE_MGA,
+} from "@/lib/subscription-plans";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +21,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Réservé aux prestataires" }, { status: 403 });
     }
 
-    const [subscription, user, featuredService] = await Promise.all([
+    const [subscription, user, featuredService, recentPayments] = await Promise.all([
       prisma.providerSubscription.findUnique({
         where: { providerId: auth.userId },
       }),
@@ -28,6 +33,21 @@ export async function GET(req: NextRequest) {
         where: { providerId: auth.userId, featuredOnHomepage: true },
         select: { id: true, title: true },
         orderBy: { featuredOnHomepageAt: "desc" },
+      }),
+      prisma.providerSubscriptionPayment.findMany({
+        where: { providerId: auth.userId },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+        select: {
+          id: true,
+          months: true,
+          amount: true,
+          paymentMethod: true,
+          phone: true,
+          status: true,
+          referenceId: true,
+          createdAt: true,
+        },
       }),
     ]);
 
@@ -42,6 +62,13 @@ export async function GET(req: NextRequest) {
           ? { id: featuredService.id, title: featuredService.title }
           : null,
       },
+      plans: getSubscriptionPlans(),
+      benefits: SUBSCRIPTION_BENEFITS,
+      monthlyPriceMGA: SUBSCRIPTION_MONTHLY_PRICE_MGA,
+      payments: recentPayments.map((p) => ({
+        ...p,
+        createdAt: p.createdAt.toISOString(),
+      })),
     });
   } catch (error) {
     console.error("[GET /api/provider/subscription]", error);

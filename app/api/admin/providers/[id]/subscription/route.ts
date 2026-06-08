@@ -1,15 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
-import {
-  extendSubscriptionExpiry,
-  serializeSubscription,
-  SUBSCRIPTION_PERIOD_DAYS,
-} from "@/lib/subscription";
-import {
-  disableProviderHomepageSpotlight,
-  syncProviderHomepageSpotlight,
-} from "@/lib/provider-spotlight";
+import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
+import { activateProviderSubscription } from "@/lib/activate-provider-subscription";
+import { disableProviderHomepageSpotlight } from "@/lib/provider-spotlight";
 
 export const dynamic = "force-dynamic";
 
@@ -37,35 +31,16 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Prestataire introuvable" }, { status: 404 });
     }
 
-    const existing = await prisma.providerSubscription.findUnique({
-      where: { providerId: id },
-    });
-
-    const expiresAt = extendSubscriptionExpiry(existing?.expiresAt, months);
-
-    const subscription = await prisma.providerSubscription.upsert({
-      where: { providerId: id },
-      create: {
-        providerId: id,
-        expiresAt,
-        notes: notes ?? null,
-      },
-      update: {
-        expiresAt,
-        ...(notes !== undefined && { notes }),
-      },
-    });
-
-    const spotlightEnabled = await syncProviderHomepageSpotlight(id);
+    const activation = await activateProviderSubscription(
+      id,
+      months,
+      notes ?? `Attribué par admin`
+    );
 
     return NextResponse.json({
-      message: `Abonnement prolongé de ${months} période(s) (${SUBSCRIPTION_PERIOD_DAYS} jours chacune)${
-        spotlightEnabled
-          ? ". Le prestataire est mis en avant sur l'accueil pour la durée de l'abonnement."
-          : ". Mise en avant sur l'accueil dès que le KYC est approuvé."
-      }`,
-      subscription: serializeSubscription(subscription),
-      spotlightEnabled,
+      message: `Abonnement prolongé de ${months} période(s) (${SUBSCRIPTION_PERIOD_DAYS} jours chacune). ${activation.message}`,
+      subscription: activation.subscription,
+      spotlightEnabled: activation.spotlightEnabled,
     });
   } catch (error) {
     console.error("[POST /api/admin/providers/[id]/subscription]", error);
