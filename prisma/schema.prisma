@@ -64,7 +64,6 @@ enum KycStatus {
 
 enum KycDocumentType {
   CIN
-  RESIDENCE_CERTIFICATE
 }
 
 model ProviderSubscription {
@@ -109,7 +108,7 @@ model ProviderKycDocument {
   id           String          @id @default(cuid())
   userId       String
   type         KycDocumentType
-  /// 1 ou 2 pour la CIN (recto/verso), 0 pour le certificat de résidence
+  /// 1 ou 2 pour la CIN (recto/verso)
   cinSlot      Int             @default(0)
   storedName   String
   originalName String

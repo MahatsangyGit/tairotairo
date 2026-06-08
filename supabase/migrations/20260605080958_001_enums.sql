@@ -6,7 +6,7 @@ Creates all PostgreSQL enum types used across the schema.
 ## Enums created:
 - `role` — User role: CLIENT, PROVIDER, ADMIN
 - `kyc_status` — KYC verification state: NOT_STARTED, APPROVED
-- `kyc_document_type` — Document types for KYC: CIN, RESIDENCE_CERTIFICATE
+- `kyc_document_type` — Document types for KYC: CIN
 - `booking_status` — Booking lifecycle: PENDING, CONFIRMED, COMPLETED, CANCELLED
 - `request_response_status` — Proposal status: PENDING, ACCEPTED, REJECTED, WITHDRAWN, COMPLETED
 - `message_kind` — Message type: TEXT, PRICE_OFFER
@@ -27,7 +27,7 @@ DO $$ BEGIN
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN
-  CREATE TYPE kyc_document_type AS ENUM ('CIN', 'RESIDENCE_CERTIFICATE');
+  CREATE TYPE kyc_document_type AS ENUM ('CIN');
 EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 
 DO $$ BEGIN

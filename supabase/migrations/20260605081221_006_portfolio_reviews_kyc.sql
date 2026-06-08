@@ -36,8 +36,8 @@ Public comments left on portfolio items by any user.
 KYC identity verification documents uploaded by providers.
 - `id` — CUID primary key
 - `user_id` — FK to users
-- `type` — enum: CIN / RESIDENCE_CERTIFICATE
-- `cin_slot` — 0, 1, or 2 (for CIN front/back; 0 for certificate)
+- `type` — enum: CIN
+- `cin_slot` — 1 or 2 (for CIN front/back)
 - `stored_name` — filename in object storage
 - `original_name` — original filename uploaded by user
 - `mime_type` — document MIME type

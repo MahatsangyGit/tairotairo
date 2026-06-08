@@ -12,7 +12,7 @@ export const KYC_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf"] as const
 
 export const KYC_CIN_SLOTS = [1, 2] as const;
 
-export type KycDocumentType = "CIN" | "RESIDENCE_CERTIFICATE";
+export type KycDocumentType = "CIN";
 
 export interface KycDocumentMeta {
   id: string;
@@ -72,12 +72,9 @@ export function validateKycCompleteness(
 }
 
 export function documentTypeLabel(
-  type: KycDocumentType,
+  _type: KycDocumentType,
   cinSlot: number
 ): string {
-  if (type === "RESIDENCE_CERTIFICATE") {
-    return "Certificat de résidence";
-  }
   return cinSlot === 2 ? "CIN (verso / 2e fichier)" : "CIN (recto)";
 }
 
