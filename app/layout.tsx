@@ -30,6 +30,14 @@ export const metadata: Metadata = {
   openGraph: {
     locale: "fr_MG",
     siteName: SITE_NAME,
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+  robots: {
+    index: true,
+    follow: true,
   },
 };
 

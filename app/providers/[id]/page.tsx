@@ -3,7 +3,8 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
-import { SITE_NAME } from "@/lib/site";
+import JsonLd from "@/components/seo/JsonLd";
+import { buildPageMetadata, jsonLdBreadcrumbList, jsonLdLocalBusiness } from "@/lib/seo";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderPortfolioPublic from "@/components/portfolio/ProviderPortfolioPublic";
 import {
@@ -81,14 +82,18 @@ async function loadProvider(id: string) {
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
   const data = await loadProvider(id);
-  if (!data) return { title: `Prestataire introuvable — ${SITE_NAME}` };
+  if (!data) return { title: "Prestataire introuvable" };
 
-  return {
-    title: `${data.provider.name} — Prestataire sur ${SITE_NAME}`,
-    description:
-      data.provider.bio ??
-      `Services proposés par ${data.provider.name} à Madagascar`,
-  };
+  const description =
+    data.provider.bio ??
+    `Services proposés par ${data.provider.name} à Madagascar. Consultez le profil, les avis et le portfolio.`;
+
+  return buildPageMetadata({
+    title: `${data.provider.name} — Prestataire vérifié`,
+    description,
+    path: `/providers/${id}`,
+    type: "profile",
+  });
 }
 
 export default async function ProviderProfilePage({ params }: PageProps) {
@@ -120,6 +125,22 @@ export default async function ProviderProfilePage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd
+        data={[
+          jsonLdBreadcrumbList([
+            { name: "Accueil", path: "/" },
+            { name: "Prestataires", path: "/providers" },
+            { name: provider.name, path: `/providers/${id}` },
+          ]),
+          jsonLdLocalBusiness({
+            id: provider.id,
+            name: provider.name,
+            description: provider.bio,
+            averageRating,
+            reviewCount: totalReviews,
+          }),
+        ]}
+      />
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">

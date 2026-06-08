@@ -1,28 +1,24 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-
-export const dynamic = "force-dynamic";
+import JsonLd from "@/components/seo/JsonLd";
 import FeaturedProvidersSection from "@/components/home/FeaturedProvidersSection";
 import FeaturedServicesSection from "@/components/home/FeaturedServicesSection";
 import {
   getFeaturedProvidersForHome,
   getFeaturedServicesForHome,
 } from "@/lib/featured-home";
+import { CATEGORY_META, servicesCategoryPath } from "@/lib/categories";
 import { PARENT_COMPANY, SITE_NAME } from "@/lib/site";
+import {
+  homeMetadata,
+  jsonLdOrganization,
+  jsonLdWebSite,
+} from "@/lib/seo";
 
-const CATEGORIES = [
-  { name: "Plomberie", icon: "🔧" },
-  { name: "Mécanique", icon: "🛠️" },
-  { name: "Électricité", icon: "⚡" },
-  { name: "Jardinage", icon: "🌿" },
-  { name: "Ménage", icon: "🧹" },
-  { name: "Cours", icon: "📚" },
-  { name: "Informatique", icon: "💻" },
-  { name: "Cuisine", icon: "🍳" },
-  { name: "Transport", icon: "🚗" },
-  { name: "Iraka", icon: "🏠" },
-  { name: "Evénementiel", icon: "🎉" },
-];
+export const dynamic = "force-dynamic";
+
+export const metadata: Metadata = homeMetadata();
 
 export default async function HomePage() {
   const [featuredServices, featuredProviders] = await Promise.all([
@@ -35,6 +31,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <JsonLd data={[jsonLdWebSite(), jsonLdOrganization()]} />
       <Navbar />
 
       {/* Hero */}
@@ -127,10 +124,10 @@ export default async function HomePage() {
           </Link>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {CATEGORIES.map((cat) => (
+          {CATEGORY_META.map((cat) => (
             <Link
-              key={cat.name}
-              href={`/services?category=${encodeURIComponent(cat.name)}`}
+              key={cat.slug}
+              href={servicesCategoryPath(cat.slug)}
               className="group flex flex-col items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-all"
             >
               <span className="text-2xl" role="img" aria-label={cat.name}>
@@ -251,6 +248,7 @@ export default async function HomePage() {
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
             <Link href="/requests" className="hover:text-foreground transition-colors">Demandes</Link>
+            <Link href="/providers" className="hover:text-foreground transition-colors">Prestataires</Link>
             <Link href="/auth/register" className="hover:text-foreground transition-colors">S&apos;inscrire</Link>
           </div>
           <p className="text-xs text-muted-foreground">
