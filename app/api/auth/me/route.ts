@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         avatar: true,
         bio: true,
         emailVerified: true,
+        suspendedAt: true,
       },
     });
 
@@ -28,7 +29,18 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ user: null });
     }
 
-    return NextResponse.json({ user });
+    if (user.suspendedAt) {
+      const response = NextResponse.json(
+        { user: null, suspended: true },
+        { status: 403 }
+      );
+      response.cookies.delete("token");
+      return response;
+    }
+
+    const { suspendedAt: _, ...userWithoutSuspended } = user;
+
+    return NextResponse.json({ user: userWithoutSuspended });
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
