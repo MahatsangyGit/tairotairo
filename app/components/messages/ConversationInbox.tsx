@@ -66,7 +66,7 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
   }, [load]);
 
   if (loading) {
-    return <p className="text-gray-500">Chargement des conversations...</p>;
+    return <p className="text-muted-foreground">Chargement des conversations...</p>;
   }
 
   if (error) {
@@ -75,9 +75,9 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
 
   if (conversations.length === 0) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 text-center">
-        <p className="text-gray-600 font-medium mb-2">Aucune conversation</p>
-        <p className="text-gray-500 text-sm">
+      <div className="bg-card rounded-2xl border border-border shadow-sm p-8 text-center">
+        <p className="text-muted-foreground font-medium mb-2">Aucune conversation</p>
+        <p className="text-muted-foreground text-sm">
           {emptyHint ??
             "Ouvrez une conversation depuis une réservation pour échanger avec votre interlocuteur."}
         </p>
@@ -91,28 +91,28 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
         <li key={c.id}>
           <Link
             href={c.href}
-            className="flex items-start gap-4 bg-white rounded-2xl border border-gray-100 shadow-sm p-4 hover:border-brand-200 transition-colors"
+            className="flex items-start gap-4 bg-card rounded-2xl border border-border shadow-sm p-4 hover:border-brand-200 transition-colors"
           >
             <div className="w-11 h-11 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-semibold shrink-0">
               {c.counterparty.name.charAt(0).toUpperCase()}
             </div>
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
-                <p className="font-semibold text-gray-800 truncate">{c.counterparty.name}</p>
+                <p className="font-semibold text-foreground truncate">{c.counterparty.name}</p>
                 {c.lastMessage && (
-                  <span className="text-xs text-gray-400 shrink-0">
+                  <span className="text-xs text-muted-foreground shrink-0">
                     {formatWhen(c.lastMessage.createdAt)}
                   </span>
                 )}
               </div>
-              <p className="text-sm text-gray-500 truncate">{c.subject}</p>
+              <p className="text-sm text-muted-foreground truncate">{c.subject}</p>
               {c.lastMessage ? (
-                <p className="text-sm text-gray-600 mt-1 truncate">
+                <p className="text-sm text-muted-foreground mt-1 truncate">
                   {c.lastMessage.isMine ? "Vous : " : ""}
                   {c.lastMessage.body}
                 </p>
               ) : (
-                <p className="text-sm text-gray-400 mt-1 italic">Aucun message</p>
+                <p className="text-sm text-muted-foreground mt-1 italic">Aucun message</p>
               )}
             </div>
             {c.unreadCount > 0 && (

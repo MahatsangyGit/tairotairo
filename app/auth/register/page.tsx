@@ -67,7 +67,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm">
@@ -78,8 +78,8 @@ export default function RegisterPage() {
                 <path d="M7 11h8M11 7v8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-neutral-900">Créer un compte</h1>
-            <p className="text-neutral-500 text-sm mt-1">Rejoignez {SITE_NAME} gratuitement</p>
+            <h1 className="text-2xl font-bold text-foreground">Créer un compte</h1>
+            <p className="text-muted-foreground text-sm mt-1">Rejoignez {SITE_NAME} gratuitement</p>
           </div>
 
           <Card>
@@ -158,7 +158,7 @@ export default function RegisterPage() {
             </CardContent>
           </Card>
 
-          <p className="text-center text-neutral-500 text-sm mt-5">
+          <p className="text-center text-muted-foreground text-sm mt-5">
             Déjà un compte ?{" "}
             <Link
               href="/auth/login"

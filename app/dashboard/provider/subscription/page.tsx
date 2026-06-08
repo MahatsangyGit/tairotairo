@@ -141,13 +141,13 @@ export default function ProviderSubscriptionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-3xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-neutral-900">Abonnement prestataire</h1>
-          <p className="text-neutral-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-foreground">Abonnement prestataire</h1>
+          <p className="text-muted-foreground text-sm mt-1">
             Boostez votre visibilité sur {SUBSCRIPTION_PERIOD_DAYS} jours par période
           </p>
         </div>
@@ -155,7 +155,7 @@ export default function ProviderSubscriptionPage() {
         <ProviderNav />
 
         {loading && (
-          <div className="bg-white rounded-2xl border border-neutral-200 p-8 animate-pulse h-48" />
+          <div className="bg-card rounded-2xl border border-border p-8 animate-pulse h-48" />
         )}
 
         {!loading && subscription?.isActive && (
@@ -186,11 +186,11 @@ export default function ProviderSubscriptionPage() {
 
         {!loading && (
           <div className="grid gap-6">
-            <section className="bg-white rounded-2xl border border-neutral-200 p-6">
-              <h2 className="font-semibold text-neutral-900 mb-4">Ce que vous obtenez</h2>
+            <section className="bg-card rounded-2xl border border-border p-6">
+              <h2 className="font-semibold text-foreground mb-4">Ce que vous obtenez</h2>
               <ul className="space-y-2">
                 {benefits.map((b) => (
-                  <li key={b} className="flex items-start gap-2 text-sm text-neutral-700">
+                  <li key={b} className="flex items-start gap-2 text-sm text-foreground">
                     <span className="text-brand-600 mt-0.5">✓</span>
                     {b}
                   </li>
@@ -198,8 +198,8 @@ export default function ProviderSubscriptionPage() {
               </ul>
             </section>
 
-            <section className="bg-white rounded-2xl border border-neutral-200 p-6">
-              <h2 className="font-semibold text-neutral-900 mb-4">Choisir une formule</h2>
+            <section className="bg-card rounded-2xl border border-border p-6">
+              <h2 className="font-semibold text-foreground mb-4">Choisir une formule</h2>
               <div className="grid sm:grid-cols-2 gap-3">
                 {plans.map((plan) => (
                   <button
@@ -213,14 +213,14 @@ export default function ProviderSubscriptionPage() {
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-semibold text-neutral-900">{plan.label}</span>
+                      <span className="font-semibold text-foreground">{plan.label}</span>
                       {plan.savingsLabel && (
                         <span className="text-xs font-medium bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
                           {plan.savingsLabel}
                         </span>
                       )}
                     </div>
-                    <p className="text-xs text-neutral-500 mt-1">{plan.description}</p>
+                    <p className="text-xs text-muted-foreground mt-1">{plan.description}</p>
                     <p className="text-lg font-bold text-brand-700 mt-3">
                       {plan.priceMGA.toLocaleString("fr-MG")} Ar
                     </p>
@@ -229,11 +229,11 @@ export default function ProviderSubscriptionPage() {
               </div>
             </section>
 
-            <section className="bg-white rounded-2xl border border-neutral-200 p-6">
-              <h2 className="font-semibold text-neutral-900 mb-4">Paiement Mobile Money</h2>
+            <section className="bg-card rounded-2xl border border-border p-6">
+              <h2 className="font-semibold text-foreground mb-4">Paiement Mobile Money</h2>
               <div className="flex flex-col gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  <label className="block text-sm font-medium text-foreground mb-2">
                     Opérateur
                   </label>
                   <div className="grid sm:grid-cols-3 gap-2">
@@ -249,7 +249,7 @@ export default function ProviderSubscriptionPage() {
                         className={`rounded-lg border px-3 py-2.5 text-sm font-medium transition-colors ${
                           paymentMethod === m.id
                             ? "border-brand-500 bg-brand-50 text-brand-800"
-                            : "border-neutral-200 text-neutral-600 hover:border-brand-300"
+                            : "border-neutral-200 text-muted-foreground hover:border-brand-300"
                         }`}
                       >
                         {m.label}
@@ -259,7 +259,7 @@ export default function ProviderSubscriptionPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="phone" className="block text-sm font-medium text-neutral-700 mb-1">
+                  <label htmlFor="phone" className="block text-sm font-medium text-foreground mb-1">
                     Numéro Mobile Money
                   </label>
                   <input
@@ -268,17 +268,17 @@ export default function ProviderSubscriptionPage() {
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     placeholder="034 12 345 67"
-                    className="w-full px-4 py-3 border border-neutral-200 rounded-lg focus:outline-none focus:border-brand-500"
+                    className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
                   />
-                  <p className="text-xs text-neutral-400 mt-1">
+                  <p className="text-xs text-muted-foreground mt-1">
                     Vous recevrez une demande de confirmation sur ce numéro.
                   </p>
                 </div>
 
                 {selected && (
-                  <div className="flex items-center justify-between pt-2 border-t border-neutral-100">
-                    <span className="text-sm text-neutral-600">Total à payer</span>
-                    <span className="text-xl font-bold text-neutral-900">
+                  <div className="flex items-center justify-between pt-2 border-t border-border">
+                    <span className="text-sm text-muted-foreground">Total à payer</span>
+                    <span className="text-xl font-bold text-foreground">
                       {selected.priceMGA.toLocaleString("fr-MG")} Ar
                     </span>
                   </div>
@@ -300,12 +300,12 @@ export default function ProviderSubscriptionPage() {
             </section>
 
             {payments.length > 0 && (
-              <section className="bg-white rounded-2xl border border-neutral-200 p-6">
-                <h2 className="font-semibold text-neutral-900 mb-4">Historique des paiements</h2>
+              <section className="bg-card rounded-2xl border border-border p-6">
+                <h2 className="font-semibold text-foreground mb-4">Historique des paiements</h2>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-left text-neutral-500 border-b border-neutral-100">
+                      <tr className="text-left text-muted-foreground border-b border-border">
                         <th className="pb-2 font-medium">Date</th>
                         <th className="pb-2 font-medium">Montant</th>
                         <th className="pb-2 font-medium">Méthode</th>
@@ -315,13 +315,13 @@ export default function ProviderSubscriptionPage() {
                     <tbody className="divide-y divide-neutral-50">
                       {payments.map((p) => (
                         <tr key={p.id}>
-                          <td className="py-2.5 text-neutral-700">
+                          <td className="py-2.5 text-foreground">
                             {new Date(p.createdAt).toLocaleDateString("fr-MG")}
                           </td>
                           <td className="py-2.5 font-medium">
                             {p.amount.toLocaleString("fr-MG")} Ar
                           </td>
-                          <td className="py-2.5 text-neutral-600">
+                          <td className="py-2.5 text-muted-foreground">
                             {METHOD_LABELS[p.paymentMethod] ?? p.paymentMethod}
                           </td>
                           <td className="py-2.5">

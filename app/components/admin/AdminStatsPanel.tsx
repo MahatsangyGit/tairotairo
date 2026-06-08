@@ -61,14 +61,14 @@ function StatCard({
     brand: "border-brand-100 bg-brand-50/50",
     amber: "border-amber-100 bg-amber-50/50",
     blue: "border-blue-100 bg-blue-50/50",
-    neutral: "border-neutral-200 bg-white",
+    neutral: "border-neutral-200 bg-card",
   }[accent];
 
   return (
     <div className={`rounded-2xl border p-5 ${accentClass}`}>
-      <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">{label}</p>
-      <p className="text-2xl font-bold text-neutral-900 mt-1">{value}</p>
-      {hint && <p className="text-xs text-neutral-500 mt-1">{hint}</p>}
+      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{label}</p>
+      <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
+      {hint && <p className="text-xs text-muted-foreground mt-1">{hint}</p>}
     </div>
   );
 }
@@ -84,15 +84,15 @@ function BreakdownBar({
   if (total === 0) {
     return (
       <div>
-        <p className="text-sm font-medium text-neutral-700 mb-2">{label}</p>
-        <p className="text-xs text-neutral-400">Aucune donnée</p>
+        <p className="text-sm font-medium text-foreground mb-2">{label}</p>
+        <p className="text-xs text-muted-foreground">Aucune donnée</p>
       </div>
     );
   }
 
   return (
     <div>
-      <p className="text-sm font-medium text-neutral-700 mb-3">{label}</p>
+      <p className="text-sm font-medium text-foreground mb-3">{label}</p>
       <div className="flex h-3 rounded-full overflow-hidden bg-neutral-100 mb-3">
         {segments.map((s) =>
           s.value > 0 ? (
@@ -107,7 +107,7 @@ function BreakdownBar({
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1">
         {segments.map((s) => (
-          <span key={s.name} className="text-xs text-neutral-600">
+          <span key={s.name} className="text-xs text-muted-foreground">
             <span className={`inline-block w-2 h-2 rounded-full mr-1.5 ${s.color}`} />
             {s.name} ({s.value})
           </span>
@@ -152,7 +152,7 @@ export default function AdminStatsPanel() {
   };
 
   if (loading) {
-    return <p className="text-neutral-500">Chargement des statistiques…</p>;
+    return <p className="text-muted-foreground">Chargement des statistiques…</p>;
   }
 
   if (error || !stats) {
@@ -173,7 +173,7 @@ export default function AdminStatsPanel() {
   return (
     <div className="flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-xs text-neutral-400">
+        <p className="text-xs text-muted-foreground">
           Mis à jour le{" "}
           {new Date(stats.generatedAt).toLocaleString("fr-MG", {
             dateStyle: "medium",
@@ -190,7 +190,7 @@ export default function AdminStatsPanel() {
       </div>
 
       <section>
-        <h2 className="text-lg font-semibold text-neutral-800 mb-4">Vue d&apos;ensemble</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Vue d&apos;ensemble</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Clients" value={stats.users.clients} hint={`+${stats.users.newClients30} sur 30 j`} />
           <StatCard label="Prestataires" value={stats.users.providers} hint={`+${stats.users.newProviders30} sur 30 j`} accent="blue" />
@@ -200,7 +200,7 @@ export default function AdminStatsPanel() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6">
+        <div className="bg-card rounded-2xl border border-border p-6">
           <BreakdownBar
             label="Réservations par statut"
             segments={[
@@ -212,7 +212,7 @@ export default function AdminStatsPanel() {
           />
         </div>
 
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6">
+        <div className="bg-card rounded-2xl border border-border p-6">
           <BreakdownBar
             label="Prestataires — vérification KYC"
             segments={[
@@ -225,7 +225,7 @@ export default function AdminStatsPanel() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-neutral-800 mb-4">Activité & contenu</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Activité & contenu</h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard label="Annonces en ligne" value={stats.services.available} hint={`${stats.services.total} au total`} accent="neutral" />
           <StatCard label="Annonces en avant" value={stats.services.featured} hint={`${stats.subscriptions.featuredProviders} prestataires`} accent="amber" />
@@ -240,10 +240,10 @@ export default function AdminStatsPanel() {
       </section>
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6">
-          <h3 className="text-sm font-semibold text-neutral-800 mb-4">Top catégories</h3>
+        <div className="bg-card rounded-2xl border border-border p-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Top catégories</h3>
           {stats.services.topCategories.length === 0 ? (
-            <p className="text-sm text-neutral-400">Aucune annonce</p>
+            <p className="text-sm text-muted-foreground">Aucune annonce</p>
           ) : (
             <ul className="space-y-3">
               {stats.services.topCategories.map((c) => {
@@ -253,8 +253,8 @@ export default function AdminStatsPanel() {
                 return (
                   <li key={c.category}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="text-neutral-700">{c.category}</span>
-                      <span className="text-neutral-500">{c.count}</span>
+                      <span className="text-foreground">{c.category}</span>
+                      <span className="text-muted-foreground">{c.count}</span>
                     </div>
                     <div className="h-2 bg-neutral-100 rounded-full overflow-hidden">
                       <div
@@ -269,23 +269,23 @@ export default function AdminStatsPanel() {
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-neutral-200 p-6">
-          <h3 className="text-sm font-semibold text-neutral-800 mb-4">Messagerie & paiements</h3>
+        <div className="bg-card rounded-2xl border border-border p-6">
+          <h3 className="text-sm font-semibold text-foreground mb-4">Messagerie & paiements</h3>
           <dl className="space-y-4">
             <div className="flex justify-between text-sm">
-              <dt className="text-neutral-500">Conversations</dt>
-              <dd className="font-medium text-neutral-800">{stats.messaging.conversations}</dd>
+              <dt className="text-muted-foreground">Conversations</dt>
+              <dd className="font-medium text-foreground">{stats.messaging.conversations}</dd>
             </div>
             <div className="flex justify-between text-sm">
-              <dt className="text-neutral-500">Messages envoyés</dt>
-              <dd className="font-medium text-neutral-800">{stats.messaging.messages}</dd>
+              <dt className="text-muted-foreground">Messages envoyés</dt>
+              <dd className="font-medium text-foreground">{stats.messaging.messages}</dd>
             </div>
             <div className="flex justify-between text-sm">
-              <dt className="text-neutral-500">Transactions réussies</dt>
-              <dd className="font-medium text-neutral-800">{stats.transactions.successful}</dd>
+              <dt className="text-muted-foreground">Transactions réussies</dt>
+              <dd className="font-medium text-foreground">{stats.transactions.successful}</dd>
             </div>
-            <div className="flex justify-between text-sm pt-2 border-t border-neutral-100">
-              <dt className="text-neutral-500">Revenu enregistré</dt>
+            <div className="flex justify-between text-sm pt-2 border-t border-border">
+              <dt className="text-muted-foreground">Revenu enregistré</dt>
               <dd className="font-bold text-brand-700">
                 {stats.transactions.totalRevenue.toLocaleString("fr-MG")} Ar
               </dd>
@@ -295,8 +295,8 @@ export default function AdminStatsPanel() {
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold text-neutral-800 mb-2">Exports CSV</h2>
-        <p className="text-sm text-neutral-500 mb-4">
+        <h2 className="text-lg font-semibold text-foreground mb-2">Exports CSV</h2>
+        <p className="text-sm text-muted-foreground mb-4">
           Téléchargez les données au format CSV (UTF-8, compatible Excel).
         </p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -306,12 +306,12 @@ export default function AdminStatsPanel() {
               type="button"
               disabled={exporting != null}
               onClick={() => handleExport(opt.type)}
-              className="text-left bg-white rounded-xl border border-neutral-200 px-4 py-3 hover:border-brand-300 hover:bg-brand-50/30 transition-colors disabled:opacity-50"
+              className="text-left bg-card rounded-xl border border-border px-4 py-3 hover:border-brand-300 hover:bg-brand-50/30 transition-colors disabled:opacity-50"
             >
-              <p className="text-sm font-medium text-neutral-800">
+              <p className="text-sm font-medium text-foreground">
                 {exporting === opt.type ? "Téléchargement…" : `Exporter ${opt.label}`}
               </p>
-              <p className="text-xs text-neutral-500 mt-0.5">{opt.description}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{opt.description}</p>
             </button>
           ))}
         </div>

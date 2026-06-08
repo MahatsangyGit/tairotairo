@@ -47,12 +47,12 @@ export default function ProviderProfilePage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Mon profil</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-foreground mb-1">Mon profil</h1>
+          <p className="text-muted-foreground text-sm">
             Photo, coordonnées, présentation, vérification email et identité (KYC)
           </p>
         </div>
@@ -65,7 +65,7 @@ export default function ProviderProfilePage() {
             Voir mon profil public →
           </Link>
         )}
-        {loading && <p className="text-gray-500">Chargement...</p>}
+        {loading && <p className="text-muted-foreground">Chargement...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {user && (
           <>

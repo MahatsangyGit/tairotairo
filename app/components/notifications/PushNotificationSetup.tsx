@@ -118,16 +118,16 @@ export default function PushNotificationSetup() {
 
   if (!supported) {
     return (
-      <p className="text-sm text-gray-400">
+      <p className="text-sm text-muted-foreground">
         Les notifications push ne sont pas supportées par ce navigateur.
       </p>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-      <h2 className="font-semibold text-gray-800 mb-2">Notifications push</h2>
-      <p className="text-sm text-gray-500 mb-4">
+    <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+      <h2 className="font-semibold text-foreground mb-2">Notifications push</h2>
+      <p className="text-sm text-muted-foreground mb-4">
         Recevez des alertes sur cet appareil (navigateur ouvert ou en arrière-plan).
       </p>
       {!configured && (

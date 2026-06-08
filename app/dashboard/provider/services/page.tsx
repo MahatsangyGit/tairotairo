@@ -287,13 +287,13 @@ export default function ProviderServicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace prestataire</h1>
-          <p className="text-gray-500 text-sm">Publiez et gérez vos annonces de services</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Espace prestataire</h1>
+          <p className="text-muted-foreground text-sm">Publiez et gérez vos annonces de services</p>
         </div>
 
         <ProviderNav />
@@ -323,7 +323,7 @@ export default function ProviderServicesPage() {
         )}
 
         {!subscription?.isActive && (
-          <div className="mb-6 bg-gray-50 border border-gray-100 rounded-xl px-4 py-4 text-sm text-gray-600">
+          <div className="mb-6 bg-muted/40 border border-border rounded-xl px-4 py-4 text-sm text-muted-foreground">
             <p>
               L&apos;abonnement mensuel ({SUBSCRIPTION_PERIOD_DAYS} jours) met votre
               profil en avant sur l&apos;accueil et dans les suggestions.{" "}
@@ -355,8 +355,8 @@ export default function ProviderServicesPage() {
             + Nouvelle annonce
           </button>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-            <h2 className="font-semibold text-gray-800 mb-4">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6">
+            <h2 className="font-semibold text-foreground mb-4">
               {editingId ? "Modifier l'annonce" : "Nouvelle annonce"}
             </h2>
             <div className="flex flex-col gap-3">
@@ -365,14 +365,14 @@ export default function ProviderServicesPage() {
                 placeholder="Titre (ex: Réparation fuite d'eau)"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
               />
               <textarea
                 placeholder="Description détaillée"
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500 resize-none"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500 resize-none"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
@@ -381,12 +381,12 @@ export default function ProviderServicesPage() {
                   placeholder="Prix (Ar)"
                   value={form.price}
                   onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
                 />
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500 bg-white"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500 bg-card"
                 >
                   {SERVICE_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -400,7 +400,7 @@ export default function ProviderServicesPage() {
                 placeholder="Ville (ex: Antananarivo)"
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
               />
               <div className="flex gap-2 pt-1">
                 <button
@@ -412,7 +412,7 @@ export default function ProviderServicesPage() {
                 </button>
                 <button
                   onClick={resetForm}
-                  className="px-5 py-2.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  className="px-5 py-2.5 rounded-lg font-medium border border-border text-muted-foreground hover:bg-muted/50"
                 >
                   Annuler
                 </button>
@@ -426,7 +426,7 @@ export default function ProviderServicesPage() {
             {Array.from({ length: 2 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse h-32"
+                className="bg-card rounded-2xl border border-border p-6 animate-pulse h-32"
               />
             ))}
           </div>
@@ -445,9 +445,9 @@ export default function ProviderServicesPage() {
         )}
 
         {!loading && !error && services.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <p className="text-gray-500 mb-2">Aucune annonce publiée</p>
-            <p className="text-gray-400 text-sm mb-4">
+          <div className="text-center py-16 bg-card rounded-2xl border border-border">
+            <p className="text-muted-foreground mb-2">Aucune annonce publiée</p>
+            <p className="text-muted-foreground text-sm mb-4">
               Créez votre première offre pour recevoir des réservations
             </p>
             {!showForm && (
@@ -466,15 +466,15 @@ export default function ProviderServicesPage() {
             {services.map((service) => (
               <div
                 key={service.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                className="bg-card rounded-2xl border border-border shadow-sm p-6"
               >
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
                       {service.category}
                     </span>
-                    <h3 className="font-semibold text-gray-800">{service.title}</h3>
-                    <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                    <h3 className="font-semibold text-foreground">{service.title}</h3>
+                    <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
                       {service.description}
                     </p>
                   </div>
@@ -483,7 +483,7 @@ export default function ProviderServicesPage() {
                       className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
                         service.available
                           ? "bg-brand-50 text-brand-700 border-brand-200"
-                          : "bg-gray-50 text-gray-500 border-gray-200"
+                          : "bg-muted/40 text-muted-foreground border-gray-200"
                       }`}
                     >
                       {service.available ? "En ligne" : "Hors ligne"}
@@ -496,7 +496,7 @@ export default function ProviderServicesPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
                   <span className="text-brand-600 font-bold">
                     {service.price.toLocaleString("fr-MG")} Ar
                   </span>
@@ -512,13 +512,13 @@ export default function ProviderServicesPage() {
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
                   <button
                     onClick={() => startEdit(service)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-brand-400"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-brand-400"
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => toggleAvailable(service)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-brand-400"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-brand-400"
                   >
                     {service.available ? "Désactiver" : "Réactiver"}
                   </button>

@@ -20,10 +20,10 @@ export default function FeaturedProvidersSection({
   if (providers.length === 0) return null;
 
   return (
-    <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-neutral-100">
+    <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12 border-t border-border">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-neutral-900">
+          <h2 className="text-2xl font-bold text-foreground">
             Nos prestataires du mois
           </h2>
         </div>
@@ -39,12 +39,12 @@ export default function FeaturedProvidersSection({
           <Link
             key={provider.id}
             href={`/providers/${provider.id}`}
-            className="group bg-white rounded-2xl border border-neutral-200 p-5 shadow-sm hover:shadow-md hover:border-brand-200 transition-all"
+            className="group bg-card rounded-2xl border border-border p-5 shadow-sm hover:shadow-md hover:border-brand-200 transition-all"
           >
             <div className="flex items-center gap-3">
               <UserAvatar name={provider.name} avatar={provider.avatar} size="md" />
               <div className="min-w-0">
-                <h3 className="font-semibold text-neutral-900 truncate group-hover:text-brand-700 transition-colors">
+                <h3 className="font-semibold text-foreground truncate group-hover:text-brand-700 transition-colors">
                   {provider.name}
                 </h3>
                 <ProviderRatingBadge
@@ -54,11 +54,11 @@ export default function FeaturedProvidersSection({
               </div>
             </div>
             {provider.bio && (
-              <p className="text-sm text-neutral-500 mt-3 line-clamp-2">
+              <p className="text-sm text-muted-foreground mt-3 line-clamp-2">
                 {provider.bio}
               </p>
             )}
-            <p className="text-xs text-neutral-400 mt-2">
+            <p className="text-xs text-muted-foreground mt-2">
               {provider.serviceCount} annonce{provider.serviceCount !== 1 ? "s" : ""}{" "}
               en ligne
             </p>

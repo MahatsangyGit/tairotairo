@@ -76,7 +76,7 @@ export default function ProviderPortfolioPublic({
 
   return (
     <section className="mb-8">
-      <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      <h2 className="text-lg font-semibold text-foreground mb-4">
         Portfolio ({items.length})
       </h2>
 
@@ -84,7 +84,7 @@ export default function ProviderPortfolioPublic({
         {items.map((item) => (
           <article
             key={item.id}
-            className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm"
+            className="bg-card rounded-xl border border-border overflow-hidden shadow-sm"
           >
             <img
               src={item.imageUrl}
@@ -92,7 +92,7 @@ export default function ProviderPortfolioPublic({
               className="w-full h-48 object-cover bg-gray-100"
             />
             <div className="p-4">
-              <p className="text-gray-600 text-sm whitespace-pre-line leading-relaxed">
+              <p className="text-muted-foreground text-sm whitespace-pre-line leading-relaxed">
                 {item.description}
               </p>
 
@@ -106,13 +106,13 @@ export default function ProviderPortfolioPublic({
                         size="xs"
                       />
                       <div className="min-w-0 flex-1">
-                        <p className="text-xs font-medium text-gray-800">
+                        <p className="text-xs font-medium text-foreground">
                           {comment.author.name}
                         </p>
-                        <p className="text-sm text-gray-600 mt-0.5">
+                        <p className="text-sm text-muted-foreground mt-0.5">
                           {comment.body}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {new Date(comment.createdAt).toLocaleDateString("fr-MG", {
                             day: "numeric",
                             month: "short",
@@ -138,7 +138,7 @@ export default function ProviderPortfolioPublic({
                         [item.id]: e.target.value,
                       }))
                     }
-                    className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-brand-500"
+                    className="w-full text-sm px-3 py-2 border border-border rounded-lg resize-none focus:outline-none focus:border-brand-500"
                   />
                   <button
                     type="button"
@@ -153,14 +153,14 @@ export default function ProviderPortfolioPublic({
                   </button>
                 </div>
               ) : authRole === null ? (
-                <p className="mt-4 text-xs text-gray-400 border-t border-gray-100 pt-3">
+                <p className="mt-4 text-xs text-muted-foreground border-t border-gray-100 pt-3">
                   <Link href="/auth/login" className="text-brand-600 hover:underline">
                     Connectez-vous
                   </Link>{" "}
                   en tant que client pour commenter.
                 </p>
               ) : authRole === "PROVIDER" && authUserId === providerId ? null : authRole === "PROVIDER" ? (
-                <p className="mt-4 text-xs text-gray-400 border-t border-gray-100 pt-3">
+                <p className="mt-4 text-xs text-muted-foreground border-t border-gray-100 pt-3">
                   Les commentaires sont réservés aux clients.
                 </p>
               ) : null}

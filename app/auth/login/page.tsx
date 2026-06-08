@@ -87,7 +87,7 @@ function LoginPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-neutral-50 flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col">
       <Navbar />
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-sm">
@@ -98,8 +98,8 @@ function LoginPageContent() {
                 <path d="M7 11h8M11 7v8" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-neutral-900">Connexion</h1>
-            <p className="text-neutral-500 text-sm mt-1">Bienvenue sur {SITE_NAME}</p>
+            <h1 className="text-2xl font-bold text-foreground">Connexion</h1>
+            <p className="text-muted-foreground text-sm mt-1">Bienvenue sur {SITE_NAME}</p>
           </div>
 
           <Card>
@@ -169,7 +169,7 @@ function LoginPageContent() {
             </CardContent>
           </Card>
 
-          <p className="text-center text-neutral-500 text-sm mt-5">
+          <p className="text-center text-muted-foreground text-sm mt-5">
             Pas encore de compte ?{" "}
             <Link
               href="/auth/register"
@@ -188,7 +188,7 @@ export default function LoginPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-neutral-50 flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="w-8 h-8 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
         </div>
       }

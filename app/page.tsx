@@ -34,7 +34,7 @@ export default async function HomePage() {
     featuredServices.length > 0 || featuredProviders.length > 0;
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Hero */}
@@ -56,7 +56,7 @@ export default async function HomePage() {
               Trouvez un prestataire{" "}
               <span className="text-brand-400">de confiance</span>
             </h1>
-            <p className="text-neutral-400 text-lg mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
               Rapide, simple et sécurisé. Connectez-vous avec des prestataires
               qualifiés près de chez vous.
             </p>
@@ -82,7 +82,7 @@ export default async function HomePage() {
       </section>
 
       {/* Stats strip */}
-      <section className="border-b border-neutral-100 bg-neutral-50">
+      <section className="border-b border-border bg-muted/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-wrap gap-6 sm:gap-12 justify-center text-center">
             {[
@@ -92,8 +92,8 @@ export default async function HomePage() {
               { value: "24h", label: "Réponse moyenne" },
             ].map((stat) => (
               <div key={stat.label}>
-                <p className="text-2xl font-bold text-neutral-900">{stat.value}</p>
-                <p className="text-xs text-neutral-500 mt-0.5">{stat.label}</p>
+                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
               </div>
             ))}
           </div>
@@ -115,13 +115,13 @@ export default async function HomePage() {
             <p className="text-brand-600 text-xs font-semibold uppercase tracking-widest mb-2">
               Parcourir
             </p>
-            <h2 className="text-3xl font-bold text-neutral-900">
+            <h2 className="text-3xl font-bold text-foreground">
               Nos catégories
             </h2>
           </div>
           <Link
             href="/services"
-            className="text-sm font-medium text-neutral-500 hover:text-neutral-900 transition-colors hidden sm:inline"
+            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
           >
             Tout voir →
           </Link>
@@ -131,12 +131,12 @@ export default async function HomePage() {
             <Link
               key={cat.name}
               href={`/services?category=${encodeURIComponent(cat.name)}`}
-              className="group flex flex-col items-center gap-3 p-5 bg-white border border-neutral-200 rounded-2xl hover:border-brand-300 hover:bg-brand-50 transition-all"
+              className="group flex flex-col items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-all"
             >
               <span className="text-2xl" role="img" aria-label={cat.name}>
                 {cat.icon}
               </span>
-              <span className="text-sm font-medium text-neutral-700 group-hover:text-brand-700 transition-colors text-center">
+              <span className="text-sm font-medium text-foreground group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors text-center">
                 {cat.name}
               </span>
             </Link>
@@ -145,7 +145,7 @@ export default async function HomePage() {
       </section>
 
       {/* Split CTA */}
-      <section className="border-t border-neutral-100">
+      <section className="border-t border-border">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="bg-neutral-950 text-white rounded-2xl p-8 flex flex-col gap-4">
@@ -158,7 +158,7 @@ export default async function HomePage() {
                 <h3 className="text-xl font-bold mb-2">
                   Vous cherchez un prestataire ?
                 </h3>
-                <p className="text-neutral-400 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   Publiez une annonce de demande et recevez des propositions de
                   prestataires qualifiés.
                 </p>
@@ -182,10 +182,10 @@ export default async function HomePage() {
                 </svg>
               </div>
               <div>
-                <h3 className="text-xl font-bold text-neutral-900 mb-2">
+                <h3 className="text-xl font-bold text-foreground mb-2">
                   Vous êtes prestataire ?
                 </h3>
-                <p className="text-neutral-600 text-sm leading-relaxed">
+                <p className="text-muted-foreground text-sm leading-relaxed">
                   Rejoignez {SITE_NAME} et trouvez des clients près de chez vous.
                   Mettez votre profil en avant et développez votre activité.
                 </p>
@@ -210,13 +210,13 @@ export default async function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-neutral-100 bg-neutral-50">
+      <section className="border-t border-border bg-muted/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center mb-12">
             <p className="text-brand-600 text-xs font-semibold uppercase tracking-widest mb-2">
               Simple &amp; rapide
             </p>
-            <h2 className="text-3xl font-bold text-neutral-900">
+            <h2 className="text-3xl font-bold text-foreground">
               Comment ça marche ?
             </h2>
           </div>
@@ -228,8 +228,8 @@ export default async function HomePage() {
             ].map((item) => (
               <div key={item.step} className="flex flex-col items-center text-center gap-3">
                 <span className="text-4xl font-bold text-brand-200">{item.step}</span>
-                <h3 className="font-semibold text-neutral-900">{item.title}</h3>
-                <p className="text-sm text-neutral-500 leading-relaxed">{item.desc}</p>
+                <h3 className="font-semibold text-foreground">{item.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>
             ))}
           </div>
@@ -237,7 +237,7 @@ export default async function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-neutral-200 bg-white">
+      <footer className="border-t border-border bg-card">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-md bg-brand-600 flex items-center justify-center">
@@ -246,16 +246,16 @@ export default async function HomePage() {
                 <path d="M4 7h6M7 4v6" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </span>
-            <span className="font-semibold text-neutral-900">{SITE_NAME}</span>
+            <span className="font-semibold text-foreground">{SITE_NAME}</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-neutral-500">
-            <Link href="/services" className="hover:text-neutral-900 transition-colors">Services</Link>
-            <Link href="/requests" className="hover:text-neutral-900 transition-colors">Demandes</Link>
-            <Link href="/auth/register" className="hover:text-neutral-900 transition-colors">S&apos;inscrire</Link>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
+            <Link href="/requests" className="hover:text-foreground transition-colors">Demandes</Link>
+            <Link href="/auth/register" className="hover:text-foreground transition-colors">S&apos;inscrire</Link>
           </div>
-          <p className="text-xs text-neutral-400">
+          <p className="text-xs text-muted-foreground">
             Édité par{" "}
-            <span className="text-neutral-600">{PARENT_COMPANY}</span>
+            <span className="text-muted-foreground">{PARENT_COMPANY}</span>
           </p>
         </div>
       </footer>

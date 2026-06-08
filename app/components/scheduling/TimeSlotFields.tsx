@@ -38,13 +38,13 @@ export default function TimeSlotFields({
           onChange={(e) => onEnabledChange(e.target.checked)}
           className={`w-4 h-4 rounded border-gray-300 ${accentClass}`}
         />
-        <span className="text-sm text-gray-700">
+        <span className="text-sm text-foreground">
           Préciser un créneau horaire (optionnel)
         </span>
       </label>
 
       {!dateSet && (
-        <p className="text-xs text-gray-400">
+        <p className="text-xs text-muted-foreground">
           Sélectionnez d&apos;abord une date pour activer le créneau.
         </p>
       )}
@@ -52,25 +52,25 @@ export default function TimeSlotFields({
       {enabled && dateSet && (
         <div className="grid grid-cols-2 gap-3 pl-0 sm:pl-6">
           <label className="block">
-            <span className="text-xs font-medium text-gray-600 mb-1 block">
+            <span className="text-xs font-medium text-muted-foreground mb-1 block">
               Début
             </span>
             <input
               type="time"
               value={slotStart}
               onChange={(e) => onSlotStartChange(e.target.value)}
-              className={`w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none ${focusClass}`}
+              className={`w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none ${focusClass}`}
             />
           </label>
           <label className="block">
-            <span className="text-xs font-medium text-gray-600 mb-1 block">
+            <span className="text-xs font-medium text-muted-foreground mb-1 block">
               Fin (optionnel)
             </span>
             <input
               type="time"
               value={slotEnd}
               onChange={(e) => onSlotEndChange(e.target.value)}
-              className={`w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none ${focusClass}`}
+              className={`w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none ${focusClass}`}
             />
           </label>
         </div>

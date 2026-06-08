@@ -179,7 +179,7 @@ export default function MessageThreadView({
   };
 
   if (loading) {
-    return <p className="text-gray-500">Chargement...</p>;
+    return <p className="text-muted-foreground">Chargement...</p>;
   }
 
   if (error && !conversation) {
@@ -209,20 +209,20 @@ export default function MessageThreadView({
         >
           ← Retour aux messages
         </Link>
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-          <p className="font-semibold text-gray-800">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-4">
+          <p className="font-semibold text-foreground">
             {conversation.counterparty.name}
           </p>
-          <p className="text-sm text-gray-500">{conversation.subject}</p>
+          <p className="text-sm text-muted-foreground">{conversation.subject}</p>
           {negotiation && (
-            <p className="text-xs text-amber-700 mt-1">
+            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
               {negotiation.source === "service"
                 ? "Discussion liée à une annonce — négociez le prix ci-dessous"
                 : "Discussion liée à une proposition — négociez le prix ci-dessous"}
             </p>
           )}
           {conversation.isDirect && !negotiation && (
-            <p className="text-xs text-gray-500 mt-1">Discussion directe</p>
+            <p className="text-xs text-muted-foreground mt-1">Discussion directe</p>
           )}
         </div>
       </div>
@@ -235,9 +235,9 @@ export default function MessageThreadView({
         />
       )}
 
-      <div className="flex-1 overflow-y-auto bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-4 flex flex-col gap-3">
+      <div className="flex-1 overflow-y-auto bg-card rounded-2xl border border-border shadow-sm p-4 mb-4 flex flex-col gap-3">
         {messages.length === 0 ? (
-          <p className="text-gray-400 text-sm text-center py-8">
+          <p className="text-muted-foreground text-sm text-center py-8">
             Aucun message. Envoyez le premier !
           </p>
         ) : (
@@ -259,16 +259,16 @@ export default function MessageThreadView({
                     isPriceOffer
                       ? m.isMine
                         ? "bg-amber-600 text-white rounded-br-md"
-                        : "bg-amber-50 text-amber-950 border border-amber-200 rounded-bl-md"
+                        : "bg-amber-50 text-amber-950 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-50 dark:border-amber-800 rounded-bl-md"
                       : m.isMine
                         ? "bg-brand-600 text-white rounded-br-md"
-                        : "bg-gray-100 text-gray-800 rounded-bl-md"
+                        : "bg-muted text-foreground rounded-bl-md"
                   }`}
                 >
                   {isPriceOffer && (
                     <p
                       className={`text-xs font-semibold mb-1 ${
-                        m.isMine ? "text-amber-100" : "text-amber-700"
+                        m.isMine ? "text-amber-100" : "text-amber-700 dark:text-amber-300"
                       }`}
                     >
                       💰 Proposition de prix
@@ -282,7 +282,7 @@ export default function MessageThreadView({
                   {m.offerStatus === "ACCEPTED" && (
                     <p
                       className={`text-xs mt-1 font-medium ${
-                        m.isMine ? "text-amber-100" : "text-brand-700"
+                        m.isMine ? "text-amber-100" : "text-brand-700 dark:text-brand-300"
                       }`}
                     >
                       ✓ Accepté
@@ -291,7 +291,7 @@ export default function MessageThreadView({
                   {m.offerStatus === "SUPERSEDED" && (
                     <p
                       className={`text-xs mt-1 ${
-                        m.isMine ? "text-amber-200" : "text-gray-400"
+                        m.isMine ? "text-amber-200" : "text-muted-foreground"
                       }`}
                     >
                       Remplacée
@@ -313,7 +313,7 @@ export default function MessageThreadView({
                         ? isPriceOffer
                           ? "text-amber-100"
                           : "text-brand-100"
-                        : "text-gray-400"
+                        : "text-muted-foreground"
                     }`}
                   >
                     {formatTime(m.createdAt)}
@@ -335,7 +335,7 @@ export default function MessageThreadView({
           placeholder="Écrivez votre message..."
           rows={2}
           maxLength={2000}
-          className="flex-1 px-3 py-2 border border-gray-200 rounded-xl text-sm resize-none focus:outline-none focus:border-brand-500"
+          className="flex-1 px-3 py-2 border border-border bg-input/30 text-foreground placeholder:text-muted-foreground rounded-xl text-sm resize-none focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/20"
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();

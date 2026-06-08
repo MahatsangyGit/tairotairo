@@ -42,13 +42,13 @@ export default function NotificationPreferences() {
     }
   };
 
-  if (loading) return <p className="text-gray-500 text-sm">Chargement...</p>;
+  if (loading) return <p className="text-muted-foreground text-sm">Chargement...</p>;
 
   return (
     <div className="flex flex-col gap-6">
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <h2 className="font-semibold text-gray-800 mb-2">Canaux de notification</h2>
-        <p className="text-sm text-gray-500 mb-4">
+      <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+        <h2 className="font-semibold text-foreground mb-2">Canaux de notification</h2>
+        <p className="text-sm text-muted-foreground mb-4">
           Les alertes (réservations, propositions, KYC, etc.) apparaissent dans la
           cloche et peuvent être envoyées en push. Les emails sont envoyés pour les
           messages in-app et les mises à jour de vérification d&apos;identité (KYC).
@@ -61,7 +61,7 @@ export default function NotificationPreferences() {
             onChange={(e) => setNotifyEmail(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 text-brand-600"
           />
-          <span className="text-sm text-gray-700">
+          <span className="text-sm text-foreground">
             Email (messages in-app et statut KYC)
           </span>
         </label>
@@ -73,7 +73,7 @@ export default function NotificationPreferences() {
             onChange={(e) => setNotifyPush(e.target.checked)}
             className="w-4 h-4 rounded border-gray-300 text-brand-600"
           />
-          <span className="text-sm text-gray-700">Notifications push (navigateur)</span>
+          <span className="text-sm text-foreground">Notifications push (navigateur)</span>
         </label>
 
         {message && (

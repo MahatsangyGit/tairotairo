@@ -122,13 +122,13 @@ export default function ProviderProposalsPage() {
   }, {});
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace prestataire</h1>
-          <p className="text-gray-500 text-sm">Suivez vos propositions envoyées aux clients</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Espace prestataire</h1>
+          <p className="text-muted-foreground text-sm">Suivez vos propositions envoyées aux clients</p>
         </div>
 
         <ProviderNav />
@@ -148,10 +148,10 @@ export default function ProviderProposalsPage() {
               (s) => (
                 <div
                   key={s}
-                  className="bg-white rounded-xl border border-gray-100 p-4 text-center"
+                  className="bg-card rounded-xl border border-border p-4 text-center"
                 >
-                  <p className="text-2xl font-bold text-gray-800">{counts[s] ?? 0}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{RESPONSE_STATUS_LABEL[s]}</p>
+                  <p className="text-2xl font-bold text-foreground">{counts[s] ?? 0}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{RESPONSE_STATUS_LABEL[s]}</p>
                 </div>
               )
             )}
@@ -163,7 +163,7 @@ export default function ProviderProposalsPage() {
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse h-32"
+                className="bg-card rounded-2xl border border-border p-6 animate-pulse h-32"
               />
             ))}
           </div>
@@ -182,9 +182,9 @@ export default function ProviderProposalsPage() {
         )}
 
         {!loading && !error && responses.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <p className="text-gray-500 mb-2">Aucune proposition envoyée</p>
-            <p className="text-gray-400 text-sm mb-4">
+          <div className="text-center py-16 bg-card rounded-2xl border border-border">
+            <p className="text-muted-foreground mb-2">Aucune proposition envoyée</p>
+            <p className="text-muted-foreground text-sm mb-4">
               Parcourez les demandes clients et proposez vos services
             </p>
             <Link
@@ -203,17 +203,17 @@ export default function ProviderProposalsPage() {
               return (
               <div
                 key={response.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                className="bg-card rounded-2xl border border-border shadow-sm p-6"
               >
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
                       {response.request.category}
                     </span>
-                    <h3 className="font-semibold text-gray-800">
+                    <h3 className="font-semibold text-foreground">
                       {response.request.title}
                     </h3>
-                    <p className="text-gray-500 text-sm mt-0.5">
+                    <p className="text-muted-foreground text-sm mt-0.5">
                       📍 {response.request.location} · Budget client{" "}
                       {response.request.budget.toLocaleString("fr-MG")} Ar
                     </p>
@@ -225,7 +225,7 @@ export default function ProviderProposalsPage() {
                   </span>
                 </div>
 
-                <p className="text-gray-600 text-sm mb-3 whitespace-pre-line">
+                <p className="text-muted-foreground text-sm mb-3 whitespace-pre-line">
                   {response.message}
                 </p>
 

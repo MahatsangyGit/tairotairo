@@ -240,13 +240,13 @@ export default function ClientRequestsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace client</h1>
-          <p className="text-gray-500 text-sm">
+          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
+          <p className="text-muted-foreground text-sm">
             Publiez une demande pour trouver un prestataire près de chez vous
           </p>
         </div>
@@ -271,8 +271,8 @@ export default function ClientRequestsPage() {
             + Nouvelle demande
           </button>
         ) : (
-          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
-            <h2 className="font-semibold text-gray-800 mb-4">
+          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6">
+            <h2 className="font-semibold text-foreground mb-4">
               {editingId ? "Modifier la demande" : "Nouvelle demande de service"}
             </h2>
             <div className="flex flex-col gap-3">
@@ -281,14 +281,14 @@ export default function ClientRequestsPage() {
                 placeholder="Titre (ex: Réparation robinet qui fuit)"
                 value={form.title}
                 onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
               />
               <textarea
                 placeholder="Décrivez votre besoin en détail"
                 rows={4}
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 resize-none"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500 resize-none"
               />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <input
@@ -297,12 +297,12 @@ export default function ClientRequestsPage() {
                   placeholder="Budget proposé (Ar)"
                   value={form.budget}
                   onChange={(e) => setForm({ ...form, budget: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
                 />
                 <select
                   value={form.category}
                   onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500 bg-white"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500 bg-card"
                 >
                   {SERVICE_CATEGORIES.map((cat) => (
                     <option key={cat} value={cat}>
@@ -316,10 +316,10 @@ export default function ClientRequestsPage() {
                 placeholder="Ville (ex: Antananarivo)"
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
+                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
               />
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-foreground mb-1.5">
                   Date souhaitée (optionnel)
                 </label>
                 <input
@@ -340,7 +340,7 @@ export default function ClientRequestsPage() {
                           }),
                     });
                   }}
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-amber-500"
+                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
                 />
                 <TimeSlotFields
                   variant="amber"
@@ -367,7 +367,7 @@ export default function ClientRequestsPage() {
                 </button>
                 <button
                   onClick={resetForm}
-                  className="px-5 py-2.5 rounded-lg font-medium border border-gray-200 text-gray-600 hover:bg-gray-50"
+                  className="px-5 py-2.5 rounded-lg font-medium border border-border text-muted-foreground hover:bg-muted/50"
                 >
                   Annuler
                 </button>
@@ -381,7 +381,7 @@ export default function ClientRequestsPage() {
             {Array.from({ length: 2 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse h-32"
+                className="bg-card rounded-2xl border border-border p-6 animate-pulse h-32"
               />
             ))}
           </div>
@@ -400,9 +400,9 @@ export default function ClientRequestsPage() {
         )}
 
         {!loading && !error && requests.length === 0 && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-            <p className="text-gray-500 mb-2">Aucune demande publiée</p>
-            <p className="text-gray-400 text-sm mb-4">
+          <div className="text-center py-16 bg-card rounded-2xl border border-border">
+            <p className="text-muted-foreground mb-2">Aucune demande publiée</p>
+            <p className="text-muted-foreground text-sm mb-4">
               Décrivez votre besoin pour que les prestataires vous contactent
             </p>
             {!showForm && (
@@ -421,15 +421,15 @@ export default function ClientRequestsPage() {
             {requests.map((request) => (
               <div
                 key={request.id}
-                className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                className="bg-card rounded-2xl border border-border shadow-sm p-6"
               >
                 <div className="flex items-start justify-between gap-4 mb-3">
                   <div>
                     <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
                       {request.category}
                     </span>
-                    <h3 className="font-semibold text-gray-800">{request.title}</h3>
-                    <p className="text-gray-500 text-sm mt-1 line-clamp-2">
+                    <h3 className="font-semibold text-foreground">{request.title}</h3>
+                    <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
                       {request.description}
                     </p>
                   </div>
@@ -437,14 +437,14 @@ export default function ClientRequestsPage() {
                     className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${
                       request.open
                         ? "bg-brand-50 text-brand-700 border-brand-200"
-                        : "bg-gray-50 text-gray-500 border-gray-200"
+                        : "bg-muted/40 text-muted-foreground border-gray-200"
                     }`}
                   >
                     {request.open ? "Ouverte" : "Fermée"}
                   </span>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-4">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
                   <span className="text-amber-700 font-bold">
                     {request.budget.toLocaleString("fr-MG")} Ar
                   </span>
@@ -479,13 +479,13 @@ export default function ClientRequestsPage() {
                   </Link>
                   <button
                     onClick={() => startEdit(request)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-amber-400"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-amber-400"
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => toggleOpen(request)}
-                    className="px-4 py-2 rounded-lg text-sm font-medium border border-gray-200 text-gray-700 hover:border-amber-400"
+                    className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-amber-400"
                   >
                     {request.open ? "Fermer" : "Rouvrir"}
                   </button>

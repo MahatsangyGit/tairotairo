@@ -69,7 +69,7 @@ export default function ReviewForm({
 
   return (
     <div className="mt-4 pt-4 border-t border-brand-100 bg-brand-50/50 rounded-xl p-4">
-      <h4 className="font-semibold text-gray-800 text-sm mb-2">
+      <h4 className="font-semibold text-foreground text-sm mb-2">
         Laisser un avis pour {providerName}
       </h4>
       <StarPicker value={rating} onChange={setRating} />
@@ -78,7 +78,7 @@ export default function ReviewForm({
         rows={3}
         value={comment}
         onChange={(e) => setComment(e.target.value)}
-        className="w-full mt-3 px-3 py-2 border border-gray-200 rounded-lg text-sm resize-none focus:outline-none focus:border-brand-500"
+        className="w-full mt-3 px-3 py-2 border border-border rounded-lg text-sm resize-none focus:outline-none focus:border-brand-500"
       />
       {error && <p className="text-red-500 text-sm mt-2">{error}</p>}
       <button

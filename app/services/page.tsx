@@ -146,7 +146,7 @@ function ServicesPageContent() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       {/* Header */}
@@ -180,7 +180,7 @@ function ServicesPageContent() {
             className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
               category === ""
                 ? "bg-brand-600 text-white border-brand-600"
-                : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600"
+                : "bg-card text-muted-foreground border-neutral-200 hover:border-brand-300 hover:text-brand-600"
             }`}
           >
             Tous
@@ -192,7 +192,7 @@ function ServicesPageContent() {
               className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                 category === cat
                   ? "bg-brand-600 text-white border-brand-600"
-                  : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300 hover:text-brand-600"
+                  : "bg-card text-muted-foreground border-neutral-200 hover:border-brand-300 hover:text-brand-600"
               }`}
             >
               {cat}
@@ -213,7 +213,7 @@ function ServicesPageContent() {
         />
 
         {pagination && !loading && (
-          <p className="text-sm text-neutral-400 mb-4 -mt-2">
+          <p className="text-sm text-muted-foreground mb-4 -mt-2">
             {pagination.total} service{pagination.total !== 1 ? "s" : ""} trouvé{pagination.total !== 1 ? "s" : ""}
           </p>
         )}
@@ -226,7 +226,7 @@ function ServicesPageContent() {
         {loading && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-neutral-200 p-5 animate-pulse">
+              <div key={i} className="bg-card rounded-2xl border border-border p-5 animate-pulse">
                 <div className="h-3 bg-neutral-100 rounded-full w-1/4 mb-4" />
                 <div className="h-4 bg-neutral-100 rounded-full w-3/4 mb-3" />
                 <div className="h-3 bg-neutral-100 rounded-full w-full mb-2" />
@@ -250,8 +250,8 @@ function ServicesPageContent() {
         {/* Empty */}
         {!loading && !error && services.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-neutral-500 mb-2">Aucun service trouvé</p>
-            <p className="text-neutral-400 text-sm">Essayez avec d&apos;autres filtres</p>
+            <p className="text-muted-foreground mb-2">Aucun service trouvé</p>
+            <p className="text-muted-foreground text-sm">Essayez avec d&apos;autres filtres</p>
           </div>
         )}
 
@@ -263,17 +263,17 @@ function ServicesPageContent() {
                 <Link
                   key={service.id}
                   href={`/services/${service.id}`}
-                  className="group bg-white rounded-2xl border border-neutral-200 p-5 hover:shadow-md hover:border-brand-200 transition-all"
+                  className="group bg-card rounded-2xl border border-border p-5 hover:shadow-md hover:border-brand-200 transition-all"
                 >
                   <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
                     {service.category}
                   </span>
 
-                  <h3 className="font-semibold text-neutral-900 mb-2 line-clamp-1 group-hover:text-brand-700 transition-colors">
+                  <h3 className="font-semibold text-foreground mb-2 line-clamp-1 group-hover:text-brand-700 transition-colors">
                     {service.title}
                   </h3>
 
-                  <p className="text-neutral-500 text-sm mb-4 line-clamp-2">
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-2">
                     {service.description}
                   </p>
 
@@ -281,19 +281,19 @@ function ServicesPageContent() {
                     <span className="text-brand-600 font-bold text-sm">
                       {service.price.toLocaleString("fr-MG")} Ar
                     </span>
-                    <span className="text-neutral-400 text-xs">
+                    <span className="text-muted-foreground text-xs">
                       📍 {service.location}
                     </span>
                   </div>
 
-                  <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-neutral-100">
+                  <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-border">
                     <div className="flex items-center gap-2 min-w-0">
                       <UserAvatar
                         name={service.provider.name}
                         avatar={service.provider.avatar}
                         size="xs"
                       />
-                      <span className="text-neutral-600 text-xs truncate">
+                      <span className="text-muted-foreground text-xs truncate">
                         {service.provider.name}
                       </span>
                     </div>
@@ -312,17 +312,17 @@ function ServicesPageContent() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 text-sm text-neutral-600 hover:border-brand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:border-brand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   ← Précédent
                 </button>
-                <span className="text-sm text-neutral-500 px-2">
+                <span className="text-sm text-muted-foreground px-2">
                   Page {pagination.page} / {pagination.totalPages}
                 </span>
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.totalPages, p + 1))}
                   disabled={page === pagination.totalPages}
-                  className="px-4 py-2 rounded-xl border border-neutral-200 text-sm text-neutral-600 hover:border-brand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-4 py-2 rounded-xl border border-border text-sm text-muted-foreground hover:border-brand-300 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 >
                   Suivant →
                 </button>
@@ -339,7 +339,7 @@ export default function ServicesPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="w-8 h-8 rounded-full border-2 border-brand-600 border-t-transparent animate-spin" />
         </div>
       }

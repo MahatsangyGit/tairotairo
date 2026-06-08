@@ -112,7 +112,7 @@ function BookingCard({
       : "bg-brand-50 text-brand-700";
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+    <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -127,30 +127,30 @@ function BookingCard({
               </span>
             )}
           </div>
-          <h3 className="font-semibold text-gray-800">{display.title}</h3>
-          <p className="text-gray-500 text-sm mt-0.5">📍 {display.location}</p>
+          <h3 className="font-semibold text-foreground">{display.title}</h3>
+          <p className="text-muted-foreground text-sm mt-0.5">📍 {display.location}</p>
         </div>
         <StatusBadge status={booking.status} />
       </div>
 
       <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-gray-100 mb-4">
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">Date prévue</p>
-          <p className="text-sm font-medium text-gray-700">{date}</p>
+          <p className="text-xs text-muted-foreground mb-0.5">Date prévue</p>
+          <p className="text-sm font-medium text-foreground">{date}</p>
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">Prix</p>
+          <p className="text-xs text-muted-foreground mb-0.5">Prix</p>
           <p className="text-sm font-medium text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
         </div>
         <div>
-          <p className="text-xs text-gray-400 mb-0.5">Client</p>
-          <p className="text-sm font-medium text-gray-700">{booking.client.name}</p>
+          <p className="text-xs text-muted-foreground mb-0.5">Client</p>
+          <p className="text-sm font-medium text-foreground">{booking.client.name}</p>
         </div>
         {booking.client.phone && (
           <div>
-            <p className="text-xs text-gray-400 mb-0.5">Téléphone</p>
+            <p className="text-xs text-muted-foreground mb-0.5">Téléphone</p>
             <a
               href={`tel:${booking.client.phone}`}
               className="text-sm font-medium text-brand-600 hover:underline"
@@ -160,10 +160,10 @@ function BookingCard({
           </div>
         )}
         <div className="col-span-2">
-          <p className="text-xs text-gray-400 mb-0.5">Email</p>
+          <p className="text-xs text-muted-foreground mb-0.5">Email</p>
           <a
             href={`mailto:${booking.client.email}`}
-            className="text-sm font-medium text-gray-700 hover:text-brand-600"
+            className="text-sm font-medium text-foreground hover:text-brand-600"
           >
             {booking.client.email}
           </a>
@@ -183,7 +183,7 @@ function BookingCard({
             <button
               onClick={() => onStatusChange(booking.id, "CANCELLED")}
               disabled={isUpdating}
-              className="bg-white text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
+              className="bg-card text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
             >
               Refuser
             </button>
@@ -201,7 +201,7 @@ function BookingCard({
             <button
               onClick={() => onStatusChange(booking.id, "CANCELLED")}
               disabled={isUpdating}
-              className="bg-white text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
+              className="bg-card text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
             >
               Annuler
             </button>
@@ -331,15 +331,15 @@ export default function ProviderDashboardPage() {
   const pendingCount = counts.PENDING ?? 0;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">
+          <h1 className="text-2xl font-bold text-foreground mb-1">
             Espace prestataire
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-muted-foreground text-sm">
             Gérez les demandes de réservation pour vos services
           </p>
           {pendingCount > 0 && (
@@ -365,10 +365,10 @@ export default function ProviderDashboardPage() {
               (s) => (
                 <div
                   key={s}
-                  className="bg-white rounded-xl border border-gray-100 p-4 text-center"
+                  className="bg-card rounded-xl border border-border p-4 text-center"
                 >
-                  <p className="text-2xl font-bold text-gray-800">{counts[s] ?? 0}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{STATUS_LABEL[s]}</p>
+                  <p className="text-2xl font-bold text-foreground">{counts[s] ?? 0}</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">{STATUS_LABEL[s]}</p>
                 </div>
               )
             )}
@@ -384,7 +384,7 @@ export default function ProviderDashboardPage() {
                 className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
                   activeFilter === f.value
                     ? "bg-brand-600 text-white border-brand-600"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-brand-400"
+                    : "bg-card text-muted-foreground border-gray-200 hover:border-brand-400"
                 }`}
               >
                 {f.label}
@@ -401,7 +401,7 @@ export default function ProviderDashboardPage() {
             {Array.from({ length: 3 }).map((_, i) => (
               <div
                 key={i}
-                className="bg-white rounded-2xl border border-gray-100 p-6 animate-pulse"
+                className="bg-card rounded-2xl border border-border p-6 animate-pulse"
               >
                 <div className="h-4 bg-gray-200 rounded w-1/4 mb-3" />
                 <div className="h-5 bg-gray-200 rounded w-1/2 mb-6" />
@@ -426,8 +426,8 @@ export default function ProviderDashboardPage() {
 
         {!loading && !error && bookings.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-gray-500 text-lg mb-2">Aucune réservation pour l&apos;instant</p>
-            <p className="text-gray-400 text-sm mb-6">
+            <p className="text-muted-foreground text-lg mb-2">Aucune réservation pour l&apos;instant</p>
+            <p className="text-muted-foreground text-sm mb-6">
               Publiez un service pour recevoir des demandes de clients
             </p>
             <Link
@@ -441,7 +441,7 @@ export default function ProviderDashboardPage() {
 
         {!loading && !error && bookings.length > 0 && filtered.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-gray-400 text-sm">Aucune réservation dans cette catégorie</p>
+            <p className="text-muted-foreground text-sm">Aucune réservation dans cette catégorie</p>
           </div>
         )}
 

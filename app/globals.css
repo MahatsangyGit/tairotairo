@@ -204,3 +204,29 @@ body {
     @apply font-sans;
   }
 }
+
+/* Focus ring adapté au thème */
+.dark :focus-visible {
+  outline-color: oklch(0.56 0.096 186.391);
+}
+
+/* Surfaces brand en mode sombre */
+.dark .bg-brand-50 {
+  background-color: oklch(0.22 0.04 186.391 / 0.45);
+}
+.dark .border-brand-100 {
+  border-color: oklch(0.35 0.06 186.391 / 0.5);
+}
+.dark .text-brand-800,
+.dark .text-brand-900 {
+  color: oklch(0.82 0.08 186.391);
+}
+.dark .text-brand-700 {
+  color: oklch(0.75 0.09 186.391);
+}
+.dark .hover\:bg-brand-50:hover {
+  background-color: oklch(0.25 0.05 186.391 / 0.5);
+}
+.dark .hover\:bg-brand-100:hover {
+  background-color: oklch(0.28 0.06 186.391 / 0.55);
+}

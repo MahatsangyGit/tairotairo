@@ -188,19 +188,19 @@ export default function RequestDetailPage() {
       : null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <Link
           href="/requests"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-amber-600 mb-6"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-amber-600 mb-6"
         >
           ← Retour aux demandes
         </Link>
 
         {loading && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 animate-pulse h-64" />
+          <div className="bg-card rounded-2xl border border-border p-8 animate-pulse h-64" />
         )}
 
         {!loading && error && (
@@ -215,35 +215,35 @@ export default function RequestDetailPage() {
         {!loading && !error && request && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
                 <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-4">
                   {request.category}
                 </span>
-                <h1 className="text-2xl font-bold text-gray-800 mb-3">{request.title}</h1>
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
+                <h1 className="text-2xl font-bold text-foreground mb-3">{request.title}</h1>
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
                   <span>📍 {request.location}</span>
                   {desiredDateLabel && (
                     <span>📅 Souhaité : {desiredDateLabel}</span>
                   )}
                   <span
-                    className={`font-medium ${request.open ? "text-brand-600" : "text-gray-400"}`}
+                    className={`font-medium ${request.open ? "text-brand-600" : "text-muted-foreground"}`}
                   >
                     {request.open ? "● Ouverte" : "● Fermée"}
                   </span>
                 </div>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {request.description}
                 </p>
               </div>
 
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <h2 className="font-semibold text-gray-800 mb-4">Client</h2>
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+                <h2 className="font-semibold text-foreground mb-4">Client</h2>
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-amber-100 flex items-center justify-center text-amber-700 font-bold text-lg shrink-0">
                     {request.client.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-800">{request.client.name}</p>
+                    <p className="font-semibold text-foreground">{request.client.name}</p>
                     {request.client.phone && (
                       <a
                         href={`tel:${request.client.phone}`}
@@ -257,9 +257,9 @@ export default function RequestDetailPage() {
               </div>
 
               {isOwner && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
                   <div className="flex items-center justify-between mb-4">
-                    <h2 className="font-semibold text-gray-800">
+                    <h2 className="font-semibold text-foreground">
                       Propositions reçues ({responses.length})
                     </h2>
                     <Link
@@ -270,20 +270,20 @@ export default function RequestDetailPage() {
                     </Link>
                   </div>
                   {responses.length === 0 ? (
-                    <p className="text-gray-400 text-sm">Aucune proposition pour l&apos;instant</p>
+                    <p className="text-muted-foreground text-sm">Aucune proposition pour l&apos;instant</p>
                   ) : (
                     <div className="flex flex-col gap-3">
                       {responses.slice(0, 3).map((r) => (
-                        <div key={r.id} className="border border-gray-100 rounded-xl p-4">
+                        <div key={r.id} className="border border-border rounded-xl p-4">
                           <div className="flex justify-between items-start gap-2 mb-2">
-                            <p className="font-medium text-gray-800 text-sm">{r.provider.name}</p>
+                            <p className="font-medium text-foreground text-sm">{r.provider.name}</p>
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full border ${RESPONSE_STATUS_CLASS[r.status]}`}
                             >
                               {RESPONSE_STATUS_LABEL[r.status]}
                             </span>
                           </div>
-                          <p className="text-gray-500 text-sm line-clamp-2">{r.message}</p>
+                          <p className="text-muted-foreground text-sm line-clamp-2">{r.message}</p>
                         </div>
                       ))}
                     </div>
@@ -293,8 +293,8 @@ export default function RequestDetailPage() {
             </div>
 
             <div className="lg:col-span-1 flex flex-col gap-4">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-6">
-                <p className="text-sm text-gray-500 mb-1">Budget proposé</p>
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-6 sticky top-6">
+                <p className="text-sm text-muted-foreground mb-1">Budget proposé</p>
                 <p className="text-3xl font-bold text-amber-700 mb-6">
                   {request.budget.toLocaleString("fr-MG")} Ar
                 </p>
@@ -316,7 +316,7 @@ export default function RequestDetailPage() {
 
                 {canPropose && (
                   <div className="mb-4">
-                    <h3 className="font-semibold text-gray-800 mb-3 text-sm">
+                    <h3 className="font-semibold text-foreground mb-3 text-sm">
                       Envoyer une proposition
                     </h3>
                     <textarea
@@ -324,7 +324,7 @@ export default function RequestDetailPage() {
                       rows={4}
                       value={message}
                       onChange={(e) => setMessage(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 resize-none mb-3"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-brand-500 resize-none mb-3"
                     />
                     <input
                       type="number"
@@ -332,7 +332,7 @@ export default function RequestDetailPage() {
                       placeholder="Votre prix (Ar) — optionnel"
                       value={proposedPrice}
                       onChange={(e) => setProposedPrice(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
+                      className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
                     />
                     <button
                       onClick={handleSubmitProposal}
@@ -345,16 +345,16 @@ export default function RequestDetailPage() {
                 )}
 
                 {ownResponse && (
-                  <div className="border border-gray-100 rounded-xl p-4 mb-4">
+                  <div className="border border-border rounded-xl p-4 mb-4">
                     <div className="flex justify-between items-center mb-2">
-                      <p className="text-sm font-semibold text-gray-800">Votre proposition</p>
+                      <p className="text-sm font-semibold text-foreground">Votre proposition</p>
                       <span
                         className={`text-xs px-2 py-0.5 rounded-full border ${RESPONSE_STATUS_CLASS[ownResponse.status]}`}
                       >
                         {RESPONSE_STATUS_LABEL[ownResponse.status]}
                       </span>
                     </div>
-                    <p className="text-gray-500 text-sm mb-3">{ownResponse.message}</p>
+                    <p className="text-muted-foreground text-sm mb-3">{ownResponse.message}</p>
                     {ownResponse.proposedPrice !== null && (
                       <p className="text-brand-600 text-sm font-medium mb-3">
                         {ownResponse.proposedPrice.toLocaleString("fr-MG")} Ar
@@ -386,7 +386,7 @@ export default function RequestDetailPage() {
                 )}
 
                 {user?.role === "PROVIDER" && !canPropose && !ownResponse && !request.open && (
-                  <p className="text-gray-400 text-sm text-center mb-3">
+                  <p className="text-muted-foreground text-sm text-center mb-3">
                     Cette demande n&apos;accepte plus de propositions
                   </p>
                 )}

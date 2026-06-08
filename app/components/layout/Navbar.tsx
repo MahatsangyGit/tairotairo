@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import MessageInboxLink from "@/components/messages/MessageInboxLink";
+import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
 import { SITE_NAME } from "@/lib/site";
 
@@ -96,12 +97,12 @@ export default function Navbar() {
   const navLinkClass = (href: string) =>
     `text-sm font-medium transition-colors ${
       isActive(href)
-        ? "text-brand-600"
-        : "text-neutral-600 hover:text-neutral-900"
+        ? "text-brand-600 dark:text-brand-400"
+        : "text-muted-foreground hover:text-foreground"
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 bg-white border-b border-neutral-200" style={{ boxShadow: "0 1px 0 0 rgb(0 0 0 / 0.06)" }}>
+    <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -117,7 +118,7 @@ export default function Navbar() {
                 <path d="M4 7h6M7 4v6" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </span>
-            <span className="text-lg font-bold text-neutral-900 tracking-tight">
+            <span className="text-lg font-bold text-foreground tracking-tight">
               {SITE_NAME}
             </span>
           </Link>
@@ -170,29 +171,30 @@ export default function Navbar() {
 
           {/* Desktop right side */}
           <div className="hidden md:flex items-center gap-3">
+            <ThemeToggle />
             {!authLoading && user && (
               <>
                 <NotificationBell />
                 {messagesHref && <MessageInboxLink href={messagesHref} />}
-                <div className="flex items-center gap-2 pl-3 border-l border-neutral-200">
+                <div className="flex items-center gap-2 pl-3 border-l border-border">
                   {profileHref ? (
                     <Link href={profileHref} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                       <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                      <span className="text-sm font-medium text-neutral-800 max-w-28 truncate">
+                      <span className="text-sm font-medium text-foreground max-w-28 truncate">
                         {user.name}
                       </span>
                     </Link>
                   ) : (
                     <div className="flex items-center gap-2">
                       <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                      <span className="text-sm font-medium text-neutral-800 max-w-28 truncate">
+                      <span className="text-sm font-medium text-foreground max-w-28 truncate">
                         {user.name}
                       </span>
                     </div>
                   )}
                   <button
                     onClick={handleLogout}
-                    className="text-xs text-neutral-400 hover:text-neutral-600 transition-colors px-1"
+                    className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
                   >
                     Déconnexion
                   </button>
@@ -204,7 +206,7 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="text-sm font-medium text-neutral-600 hover:text-neutral-900 transition-colors"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Connexion
                 </Link>
@@ -221,7 +223,7 @@ export default function Navbar() {
           {/* Mobile hamburger */}
           <button
             onClick={() => setIsMenuOpen((o) => !o)}
-            className="md:hidden p-2 rounded-lg text-neutral-500 hover:bg-neutral-100 transition-colors"
+            className="md:hidden p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
             aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             aria-expanded={isMenuOpen}
           >
@@ -240,14 +242,18 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div ref={menuRef} className="md:hidden border-t border-neutral-200 bg-white">
+        <div ref={menuRef} className="md:hidden border-t border-border bg-card">
           <div className="px-4 py-4 flex flex-col gap-1">
+            <div className="flex items-center justify-between px-3 py-2 mb-1">
+              <span className="text-sm font-medium text-muted-foreground">Thème</span>
+              <ThemeToggle />
+            </div>
             <MobileNavLink href="/services" label="Services" active={isActive("/services")} onClick={close} />
             <MobileNavLink href="/requests" label="Demandes" active={isActive("/requests")} onClick={close} />
 
             {!authLoading && user && (
               <>
-                <div className="h-px bg-neutral-100 my-2" />
+                <div className="h-px bg-border my-2" />
                 {user.role === "CLIENT" && (
                   <>
                     <MobileNavLink href="/dashboard/client" label="Réservations" active={isActive("/dashboard/client")} onClick={close} />
@@ -271,27 +277,27 @@ export default function Navbar() {
                   <MobileNavLink href="/dashboard/admin" label="Administration" active={isActive("/dashboard/admin")} onClick={close} />
                 )}
 
-                <div className="h-px bg-neutral-100 my-2" />
+                <div className="h-px bg-border my-2" />
                 {profileHref ? (
                   <Link
                     href={profileHref}
                     onClick={close}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
-                      isActive(profileHref) ? "bg-brand-50" : "hover:bg-neutral-50"
+                      isActive(profileHref) ? "bg-brand-50 dark:bg-brand-900/30" : "hover:bg-muted/50"
                     }`}
                   >
                     <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
-                      <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </Link>
                 ) : (
                   <div className="flex items-center gap-3 px-3 py-2">
                     <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-neutral-900 truncate">{user.name}</p>
-                      <p className="text-xs text-neutral-400 truncate">{user.email}</p>
+                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </div>
                 )}
@@ -312,7 +318,7 @@ export default function Navbar() {
 
             {!authLoading && !user && (
               <>
-                <div className="h-px bg-neutral-100 my-2" />
+                <div className="h-px bg-border my-2" />
                 <MobileNavLink href="/auth/login" label="Connexion" active={isActive("/auth/login")} onClick={close} />
                 <Link
                   href="/auth/register"
@@ -347,8 +353,8 @@ function MobileNavLink({
       onClick={onClick}
       className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
         active
-          ? "bg-brand-50 text-brand-700"
-          : "text-neutral-700 hover:bg-neutral-50"
+          ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+          : "text-foreground hover:bg-muted/50"
       }`}
     >
       {label}

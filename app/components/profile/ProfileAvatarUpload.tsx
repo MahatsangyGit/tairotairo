@@ -97,10 +97,10 @@ export default function ProfileAvatarUpload({
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-4">
+    <div className="bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col gap-4">
       <div>
-        <h2 className="font-semibold text-gray-800">Photo de profil</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <h2 className="font-semibold text-foreground">Photo de profil</h2>
+        <p className="text-sm text-muted-foreground mt-1">
           Visible sur votre profil public et dans la barre de navigation. JPEG,
           PNG ou WebP — max 2 Mo.
         </p>

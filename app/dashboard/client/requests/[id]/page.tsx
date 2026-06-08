@@ -157,20 +157,20 @@ export default function ClientRequestProposalsPage() {
         : "";
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace client</h1>
-          <p className="text-gray-500 text-sm">Propositions reçues pour votre demande</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
+          <p className="text-muted-foreground text-sm">Propositions reçues pour votre demande</p>
         </div>
 
         <ClientNav />
 
         <Link
           href="/dashboard/client/requests"
-          className="inline-flex text-sm text-gray-500 hover:text-amber-600 mb-6"
+          className="inline-flex text-sm text-muted-foreground hover:text-amber-600 mb-6"
         >
           ← Retour à mes demandes
         </Link>
@@ -194,7 +194,7 @@ export default function ClientRequestProposalsPage() {
         )}
 
         {loading && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 animate-pulse h-40" />
+          <div className="bg-card rounded-2xl border border-border p-8 animate-pulse h-40" />
         )}
 
         {!loading && error && (
@@ -211,12 +211,12 @@ export default function ClientRequestProposalsPage() {
 
         {!loading && !error && request && (
           <>
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 mb-6">
+            <div className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6">
               <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
                 {request.category}
               </span>
-              <h2 className="font-semibold text-gray-800 text-lg">{request.title}</h2>
-              <p className="text-gray-500 text-sm mt-1">
+              <h2 className="font-semibold text-foreground text-lg">{request.title}</h2>
+              <p className="text-muted-foreground text-sm mt-1">
                 📍 {request.location} · Budget {request.budget.toLocaleString("fr-MG")} Ar
               </p>
               <p className="text-sm mt-2">
@@ -230,9 +230,9 @@ export default function ClientRequestProposalsPage() {
             </div>
 
             {responses.length === 0 && (
-              <div className="text-center py-16 bg-white rounded-2xl border border-gray-100">
-                <p className="text-gray-500 mb-2">Aucune proposition pour l&apos;instant</p>
-                <p className="text-gray-400 text-sm">
+              <div className="text-center py-16 bg-card rounded-2xl border border-border">
+                <p className="text-muted-foreground mb-2">Aucune proposition pour l&apos;instant</p>
+                <p className="text-muted-foreground text-sm">
                   Les prestataires intéressés pourront répondre depuis la fiche publique
                 </p>
                 <Link
@@ -250,7 +250,7 @@ export default function ClientRequestProposalsPage() {
                 return (
                 <div
                   key={response.id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6"
+                  className="bg-card rounded-2xl border border-border shadow-sm p-6"
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex items-start gap-3">
@@ -258,7 +258,7 @@ export default function ClientRequestProposalsPage() {
                         {response.provider.name.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="font-semibold text-gray-800">
+                        <p className="font-semibold text-foreground">
                           {response.provider.name}
                         </p>
                         {response.provider.phone && (
@@ -270,7 +270,7 @@ export default function ClientRequestProposalsPage() {
                           </a>
                         )}
                         {response.provider.bio && (
-                          <p className="text-gray-500 text-sm mt-1">{response.provider.bio}</p>
+                          <p className="text-muted-foreground text-sm mt-1">{response.provider.bio}</p>
                         )}
                       </div>
                     </div>
@@ -281,7 +281,7 @@ export default function ClientRequestProposalsPage() {
                     </span>
                   </div>
 
-                  <p className="text-gray-600 text-sm mb-4 whitespace-pre-line">
+                  <p className="text-muted-foreground text-sm mb-4 whitespace-pre-line">
                     {response.message}
                   </p>
 

@@ -13,7 +13,7 @@ export default function ClientNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="flex gap-1 mb-8 border-b border-neutral-200">
+    <nav className="flex gap-1 mb-8 border-b border-border">
       {LINKS.map((link) => {
         const isRoot = link.href === "/dashboard/client";
         const active = isRoot
@@ -25,8 +25,8 @@ export default function ClientNav() {
             href={link.href}
             className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
               active
-                ? "border-brand-600 text-brand-600"
-                : "border-transparent text-neutral-500 hover:text-neutral-800"
+                ? "border-brand-600 text-brand-600 dark:text-brand-400"
+                : "border-transparent text-muted-foreground hover:text-foreground"
             }`}
           >
             {link.label}

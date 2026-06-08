@@ -169,21 +169,21 @@ export default function ProviderPortfolioPanel() {
   };
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5">
-      <p className="text-sm text-gray-500">
+    <div className="bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col gap-5">
+      <p className="text-sm text-muted-foreground">
         Image + description — JPEG, PNG ou WebP, max{" "}
         {PORTFOLIO_MAX_FILE_BYTES / (1024 * 1024)} Mo. Les clients peuvent
         commenter chaque réalisation sur votre profil public.
       </p>
 
       {items.length < maxItems && (
-        <div className="border border-gray-100 rounded-xl p-4 flex flex-col gap-3">
+        <div className="border border-border rounded-xl p-4 flex flex-col gap-3">
           <textarea
             placeholder="Décrivez cette réalisation (visible sur le profil public)"
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-brand-500 text-sm"
+            className="w-full px-4 py-3 border border-border rounded-lg resize-none focus:outline-none focus:border-brand-500 text-sm"
           />
           <input
             ref={fileRef}
@@ -203,17 +203,17 @@ export default function ProviderPortfolioPanel() {
         </div>
       )}
 
-      {loading && <p className="text-sm text-gray-500">Chargement du portfolio…</p>}
+      {loading && <p className="text-sm text-muted-foreground">Chargement du portfolio…</p>}
 
       {!loading && items.length === 0 && (
-        <p className="text-sm text-gray-400">Aucune réalisation pour le moment.</p>
+        <p className="text-sm text-muted-foreground">Aucune réalisation pour le moment.</p>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {items.map((item) => (
           <div
             key={item.id}
-            className="border border-gray-100 rounded-xl overflow-hidden"
+            className="border border-border rounded-xl overflow-hidden"
           >
             <img
               src={item.imageUrl}
@@ -227,7 +227,7 @@ export default function ProviderPortfolioPanel() {
                     value={editDescription}
                     onChange={(e) => setEditDescription(e.target.value)}
                     rows={3}
-                    className="w-full text-sm px-3 py-2 border border-gray-200 rounded-lg resize-none"
+                    className="w-full text-sm px-3 py-2 border border-border rounded-lg resize-none"
                   />
                   <div className="flex gap-2">
                     <button
@@ -240,18 +240,18 @@ export default function ProviderPortfolioPanel() {
                     <button
                       type="button"
                       onClick={() => setEditingId(null)}
-                      className="text-xs text-gray-500 hover:underline"
+                      className="text-xs text-muted-foreground hover:underline"
                     >
                       Annuler
                     </button>
                   </div>
                 </>
               ) : (
-                <p className="text-sm text-gray-600 whitespace-pre-line line-clamp-4">
+                <p className="text-sm text-muted-foreground whitespace-pre-line line-clamp-4">
                   {item.description}
                 </p>
               )}
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-muted-foreground">
                 {item.commentCount} commentaire
                 {item.commentCount !== 1 ? "s" : ""}
               </p>
@@ -269,7 +269,7 @@ export default function ProviderPortfolioPanel() {
                     setReplaceTargetId(item.id);
                     replaceImageRef.current?.click();
                   }}
-                  className="text-xs text-gray-600 hover:underline"
+                  className="text-xs text-muted-foreground hover:underline"
                 >
                   Changer l&apos;image
                 </button>

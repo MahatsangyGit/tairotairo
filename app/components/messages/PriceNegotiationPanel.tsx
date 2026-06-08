@@ -83,9 +83,9 @@ export default function PriceNegotiationPanel({
   if (!negotiation.canNegotiate) return null;
 
   return (
-    <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-4">
-      <p className="text-sm font-medium text-amber-900 mb-1">Marchandage</p>
-      <p className="text-xs text-amber-800 mb-3">
+    <div className="bg-amber-50 border border-amber-100 dark:bg-amber-950/40 dark:border-amber-800/50 rounded-2xl p-4 mb-4">
+      <p className="text-sm font-medium text-amber-900 dark:text-amber-100 mb-1">Marchandage</p>
+      <p className="text-xs text-amber-800 dark:text-amber-200 mb-3">
         {negotiation.source === "service" ? "Annonce : " : "Demande : "}
         {title}
         {" · "}
@@ -125,12 +125,12 @@ export default function PriceNegotiationPanel({
             </>
           )}
         {negotiation.bookingId && (
-          <span className="block mt-1 text-amber-700">
+          <span className="block mt-1 text-amber-700 dark:text-amber-300">
             Réservation liée — le prix accepté sera appliqué automatiquement.
           </span>
         )}
         {negotiation.source === "service" && !negotiation.bookingId && (
-          <span className="block mt-1 text-amber-700">
+          <span className="block mt-1 text-amber-700 dark:text-amber-300">
             À l&apos;acceptation, une réservation sera créée avec ce prix (date à
             confirmer ensuite).
           </span>
@@ -141,7 +141,7 @@ export default function PriceNegotiationPanel({
         <div className="flex-1 min-w-[140px]">
           <label
             htmlFor="price-offer-input"
-            className="text-xs text-amber-800 block mb-1"
+            className="text-xs text-amber-800 dark:text-amber-200 block mb-1"
           >
             Montant (Ar)
           </label>
@@ -152,7 +152,7 @@ export default function PriceNegotiationPanel({
             step={1000}
             value={priceInput}
             onChange={(e) => setPriceInput(e.target.value)}
-            className="w-full px-3 py-2 border border-amber-200 rounded-xl text-sm bg-white focus:outline-none focus:border-amber-400"
+            className="w-full px-3 py-2 border border-amber-200 dark:border-amber-800 rounded-xl text-sm bg-card text-foreground focus:outline-none focus:border-amber-400 dark:focus:border-amber-600"
           />
         </div>
         <button

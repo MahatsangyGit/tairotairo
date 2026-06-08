@@ -11,7 +11,7 @@ export default function ProviderRatingBadge({
 }: ProviderRatingBadgeProps) {
   if (averageRating == null || reviewCount === 0) {
     return (
-      <span className={`text-xs text-gray-400 ${className}`}>
+      <span className={`text-xs text-muted-foreground ${className}`}>
         Pas encore noté
       </span>
     );

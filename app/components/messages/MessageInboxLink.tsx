@@ -43,7 +43,7 @@ export default function MessageInboxLink({
         className={`text-sm font-medium transition-colors inline-flex items-center gap-1.5 ${
           active
             ? "text-brand-600"
-            : "text-neutral-600 hover:text-neutral-900"
+            : "text-muted-foreground hover:text-foreground"
         }`}
       >
         Messages
@@ -62,7 +62,7 @@ export default function MessageInboxLink({
       className={`relative p-2 rounded-lg transition-colors ${
         active
           ? "text-brand-600 bg-brand-50"
-          : "text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100"
+          : "text-muted-foreground hover:text-foreground hover:bg-muted"
       }`}
       title="Messages"
       aria-label={

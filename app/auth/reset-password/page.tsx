@@ -61,14 +61,14 @@ function ResetPasswordContent() {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-md mx-auto px-4 py-12">
-          <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 text-center">
-            <h1 className="text-2xl font-bold text-gray-800 mb-4">
+          <div className="bg-card rounded-2xl shadow-sm p-8 border border-border text-center">
+            <h1 className="text-2xl font-bold text-foreground mb-4">
               Lien invalide
             </h1>
-            <p className="text-gray-500 mb-6">
+            <p className="text-muted-foreground mb-6">
               Ce lien de réinitialisation est incomplet ou a expiré.
             </p>
             <Link
@@ -84,14 +84,14 @@ function ResetPasswordContent() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+        <div className="bg-card rounded-2xl shadow-sm p-8 border border-border">
+          <h1 className="text-2xl font-bold text-foreground mb-2">
             Nouveau mot de passe
           </h1>
-          <p className="text-gray-500 mb-6">
+          <p className="text-muted-foreground mb-6">
             Choisissez un nouveau mot de passe pour votre compte {SITE_NAME}.
           </p>
 
@@ -101,14 +101,14 @@ function ResetPasswordContent() {
               placeholder="Nouveau mot de passe (8 caractères min.)"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+              className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
             />
             <input
               type="password"
               placeholder="Confirmer le mot de passe"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+              className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
             />
 
             {error && <p className="text-red-500 text-sm">{error}</p>}
@@ -123,7 +123,7 @@ function ResetPasswordContent() {
             </button>
           </div>
 
-          <p className="text-center text-gray-500 mt-6">
+          <p className="text-center text-muted-foreground mt-6">
             <Link
               href="/auth/login"
               className="text-brand-600 font-medium hover:underline"
@@ -141,8 +141,8 @@ export default function ResetPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <p className="text-gray-500">Chargement...</p>
+        <div className="min-h-screen bg-background flex items-center justify-center">
+          <p className="text-muted-foreground">Chargement...</p>
         </div>
       }
     >

@@ -161,7 +161,7 @@ export default function ServiceDetailPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
@@ -169,14 +169,14 @@ export default function ServiceDetailPage() {
         {/* Retour */}
         <Link
           href="/services"
-          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-brand-600 mb-6 transition-colors"
+          className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-brand-600 mb-6 transition-colors"
         >
           ← Retour aux services
         </Link>
 
         {/* ── Skeleton loading ── */}
         {loading && (
-          <div className="bg-white rounded-2xl border border-gray-100 p-8 animate-pulse">
+          <div className="bg-card rounded-2xl border border-border p-8 animate-pulse">
             <div className="h-4 bg-gray-200 rounded w-1/4 mb-4" />
             <div className="h-7 bg-gray-200 rounded w-3/4 mb-6" />
             <div className="h-4 bg-gray-200 rounded w-full mb-2" />
@@ -203,21 +203,21 @@ export default function ServiceDetailPage() {
             <div className="lg:col-span-2 flex flex-col gap-6">
 
               {/* Card service */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8">
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
                 <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-4">
                   {service.category}
                 </span>
 
-                <h1 className="text-2xl font-bold text-gray-800 mb-3">
+                <h1 className="text-2xl font-bold text-foreground mb-3">
                   {service.title}
                 </h1>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500 mb-6">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
                   <span>📍 {service.location}</span>
                   {totalReviews > 0 && (
                     <span className="flex items-center gap-1">
                       <StarRating rating={Math.round(averageRating)} />
-                      <span className="font-medium text-gray-700">{averageRating}</span>
+                      <span className="font-medium text-foreground">{averageRating}</span>
                       <span>({totalReviews} avis)</span>
                     </span>
                   )}
@@ -226,14 +226,14 @@ export default function ServiceDetailPage() {
                   </span>
                 </div>
 
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">
+                <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {service.description}
                 </p>
               </div>
 
               {/* Card prestataire */}
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <h2 className="font-semibold text-gray-800 mb-4">À propos du prestataire</h2>
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+                <h2 className="font-semibold text-foreground mb-4">À propos du prestataire</h2>
                 <div className="flex items-start gap-4">
                   <UserAvatar
                     name={service.provider.name}
@@ -243,7 +243,7 @@ export default function ServiceDetailPage() {
                   <div>
                     <Link
                       href={`/providers/${service.provider.id}`}
-                      className="font-semibold text-gray-800 hover:text-brand-600"
+                      className="font-semibold text-foreground hover:text-brand-600"
                     >
                       {service.provider.name}
                     </Link>
@@ -254,10 +254,10 @@ export default function ServiceDetailPage() {
                       Voir le profil →
                     </Link>
                     {service.provider.bio && (
-                      <p className="text-gray-500 text-sm mt-1">{service.provider.bio}</p>
+                      <p className="text-muted-foreground text-sm mt-1">{service.provider.bio}</p>
                     )}
                     {service.provider.phone && (
-                      <p className="text-gray-500 text-sm mt-1">📞 {service.provider.phone}</p>
+                      <p className="text-muted-foreground text-sm mt-1">📞 {service.provider.phone}</p>
                     )}
                     <div className="mt-3">
                       <ContactProviderButton providerId={service.provider.id} />
@@ -268,10 +268,10 @@ export default function ServiceDetailPage() {
 
               {/* Avis */}
               {reviews.length > 0 && (
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                  <h2 className="font-semibold text-gray-800 mb-4">
+                <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
+                  <h2 className="font-semibold text-foreground mb-4">
                     Avis clients
-                    <span className="ml-2 text-sm font-normal text-gray-400">
+                    <span className="ml-2 text-sm font-normal text-muted-foreground">
                       ({totalReviews})
                     </span>
                   </h2>
@@ -285,14 +285,14 @@ export default function ServiceDetailPage() {
                               avatar={review.author.avatar}
                               size="xs"
                             />
-                            <span className="text-sm font-medium text-gray-700">
+                            <span className="text-sm font-medium text-foreground">
                               {review.author.name}
                             </span>
                           </div>
                           <StarRating rating={review.rating} />
                         </div>
                         {review.comment && (
-                          <p className="text-gray-500 text-sm mt-1 ml-9">
+                          <p className="text-muted-foreground text-sm mt-1 ml-9">
                             {review.comment}
                           </p>
                         )}
@@ -305,18 +305,18 @@ export default function ServiceDetailPage() {
 
             {/* ── Colonne réservation (1/3) ── */}
             <div className="lg:col-span-1">
-              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 sticky top-6">
+              <div className="bg-card rounded-2xl border border-border shadow-sm p-6 sticky top-6">
                 <p className="text-3xl font-bold text-brand-600 mb-1">
                   {service.price.toLocaleString("fr-MG")} Ar
                 </p>
-                <p className="text-gray-400 text-sm mb-6">par prestation</p>
+                <p className="text-muted-foreground text-sm mb-6">par prestation</p>
 
                 {bookingDone ? (
                   <div className="text-center py-4">
                     <p className="text-brand-600 font-semibold mb-1">
                       ✓ Réservation envoyée !
                     </p>
-                    <p className="text-gray-500 text-sm mb-4">
+                    <p className="text-muted-foreground text-sm mb-4">
                       Le prestataire va confirmer votre demande.
                     </p>
                     <Link
@@ -327,14 +327,14 @@ export default function ServiceDetailPage() {
                     </Link>
                     <Link
                       href="/services"
-                      className="text-gray-500 text-sm hover:underline"
+                      className="text-muted-foreground text-sm hover:underline"
                     >
                       Voir d&apos;autres services
                     </Link>
                   </div>
                 ) : (
                   <>
-                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground mb-1.5">
                       Choisir une date
                     </label>
                     <input
@@ -350,7 +350,7 @@ export default function ServiceDetailPage() {
                           setSlotEnd("");
                         }
                       }}
-                      className="w-full px-4 py-3 border border-gray-200 rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
+                      className="w-full px-4 py-3 border border-border rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
                     />
                     <TimeSlotFields
                       dateSet={Boolean(date)}
@@ -379,7 +379,7 @@ export default function ServiceDetailPage() {
                     </div>
 
                     {!service.available && (
-                      <p className="text-gray-400 text-xs text-center mt-3">
+                      <p className="text-muted-foreground text-xs text-center mt-3">
                         Ce service n'est plus disponible
                       </p>
                     )}

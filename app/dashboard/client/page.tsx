@@ -149,14 +149,14 @@ export default function ClientDashboardPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-neutral-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-neutral-900 mb-1">Espace client</h1>
-          <p className="text-neutral-500 text-sm">
+          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
+          <p className="text-muted-foreground text-sm">
             Suivez l&apos;état de vos réservations de services
           </p>
         </div>
@@ -173,9 +173,9 @@ export default function ClientDashboardPage() {
         {!loading && !error && bookings.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {(["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"] as BookingStatus[]).map((s) => (
-              <div key={s} className="bg-white rounded-xl border border-neutral-200 p-4 text-center">
-                <p className="text-2xl font-bold text-neutral-900">{counts[s] ?? 0}</p>
-                <p className="text-xs text-neutral-400 mt-0.5">{STATUS_LABEL[s]}</p>
+              <div key={s} className="bg-card rounded-xl border border-border p-4 text-center">
+                <p className="text-2xl font-bold text-foreground">{counts[s] ?? 0}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{STATUS_LABEL[s]}</p>
               </div>
             ))}
           </div>
@@ -191,7 +191,7 @@ export default function ClientDashboardPage() {
                 className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                   activeFilter === f.value
                     ? "bg-brand-600 text-white border-brand-600"
-                    : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300"
+                    : "bg-card text-muted-foreground border-neutral-200 hover:border-brand-300"
                 }`}
               >
                 {f.label}
@@ -207,7 +207,7 @@ export default function ClientDashboardPage() {
         {loading && (
           <div className="flex flex-col gap-4">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-white rounded-2xl border border-neutral-200 p-6 animate-pulse">
+              <div key={i} className="bg-card rounded-2xl border border-border p-6 animate-pulse">
                 <div className="h-3 bg-neutral-100 rounded-full w-1/4 mb-3" />
                 <div className="h-5 bg-neutral-100 rounded-full w-1/2 mb-6" />
                 <div className="h-3 bg-neutral-100 rounded-full w-full mb-2" />
@@ -228,8 +228,8 @@ export default function ClientDashboardPage() {
 
         {!loading && !error && bookings.length === 0 && (
           <div className="text-center py-20">
-            <p className="text-neutral-600 text-lg mb-2">Aucune réservation pour l&apos;instant</p>
-            <p className="text-neutral-400 text-sm mb-6">
+            <p className="text-muted-foreground text-lg mb-2">Aucune réservation pour l&apos;instant</p>
+            <p className="text-muted-foreground text-sm mb-6">
               Trouvez un prestataire et réservez votre premier service
             </p>
             <Link
@@ -243,7 +243,7 @@ export default function ClientDashboardPage() {
 
         {!loading && !error && bookings.length > 0 && filtered.length === 0 && (
           <div className="text-center py-16">
-            <p className="text-neutral-400 text-sm">Aucune réservation dans cette catégorie</p>
+            <p className="text-muted-foreground text-sm">Aucune réservation dans cette catégorie</p>
           </div>
         )}
 
@@ -265,7 +265,7 @@ export default function ClientDashboardPage() {
                   />
                 )}
                 {booking.review && (
-                  <p className="text-xs text-neutral-400 mt-2 ml-1">
+                  <p className="text-xs text-muted-foreground mt-2 ml-1">
                     ✓ Avis publié ({booking.review.rating}/5)
                   </p>
                 )}

@@ -80,8 +80,8 @@ export default function EmailVerification({
 
   return (
     <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-      <h3 className="font-semibold text-gray-800 mb-1">Vérification par email</h3>
-      <p className="text-sm text-gray-600 mb-4">
+      <h3 className="font-semibold text-foreground mb-1">Vérification par email</h3>
+      <p className="text-sm text-muted-foreground mb-4">
         Un code à 6 chiffres sera envoyé à <strong>{email}</strong>
       </p>
 
@@ -105,7 +105,7 @@ export default function EmailVerification({
             placeholder="000000"
             value={code}
             onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-            className="flex-1 px-4 py-2 border border-gray-200 rounded-lg text-center tracking-widest font-mono"
+            className="flex-1 px-4 py-2 border border-border rounded-lg text-center tracking-widest font-mono"
           />
           <button
             onClick={handleVerify}

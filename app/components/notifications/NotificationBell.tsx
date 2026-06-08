@@ -92,7 +92,7 @@ export default function NotificationBell() {
     <div className="relative" ref={panelRef}>
       <button
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg text-gray-600 hover:bg-gray-100"
+        className="relative p-2 rounded-lg text-muted-foreground hover:bg-muted"
         aria-label="Notifications"
       >
         <svg
@@ -116,9 +116,9 @@ export default function NotificationBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white rounded-xl shadow-lg border border-gray-200 z-50 overflow-hidden">
-          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-gray-100">
-            <h3 className="font-semibold text-gray-800 shrink-0">Notifications</h3>
+        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-xl shadow-lg border border-border z-50 overflow-hidden">
+          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border">
+            <h3 className="font-semibold text-foreground shrink-0">Notifications</h3>
             {notifications.length > 0 && (
               <div className="flex items-center gap-2 shrink-0">
                 {unreadCount > 0 && (
@@ -145,7 +145,7 @@ export default function NotificationBell() {
 
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-gray-400 text-sm text-center py-8">
+              <p className="text-muted-foreground text-sm text-center py-8">
                 Aucune notification
               </p>
             ) : (
@@ -153,15 +153,15 @@ export default function NotificationBell() {
                 <button
                   key={n.id}
                   onClick={() => markAsRead(n.id, n.link)}
-                  className={`w-full text-left px-4 py-3 border-b border-gray-50 hover:bg-gray-50 transition-colors ${
-                    !n.read ? "bg-brand-50/50" : ""
+                  className={`w-full text-left px-4 py-3 border-b border-border/50 hover:bg-muted/50 transition-colors ${
+                    !n.read ? "bg-brand-50/50 dark:bg-brand-900/20" : ""
                   }`}
                 >
-                  <p className="font-medium text-gray-800 text-sm">{n.title}</p>
-                  <p className="text-gray-500 text-xs mt-0.5 line-clamp-2">
+                  <p className="font-medium text-foreground text-sm">{n.title}</p>
+                  <p className="text-muted-foreground text-xs mt-0.5 line-clamp-2">
                     {n.body}
                   </p>
-                  <p className="text-gray-400 text-[10px] mt-1">
+                  <p className="text-muted-foreground text-[10px] mt-1">
                     {new Date(n.createdAt).toLocaleString("fr-MG", {
                       day: "numeric",
                       month: "short",

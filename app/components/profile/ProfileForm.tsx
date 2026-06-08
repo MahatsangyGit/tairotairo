@@ -76,28 +76,28 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
         onVerified={() => setUser((u) => ({ ...u, emailVerified: true }))}
       />
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-4">
-        <h2 className="font-semibold text-gray-800">Informations personnelles</h2>
+      <div className="bg-card rounded-2xl border border-border shadow-sm p-6 flex flex-col gap-4">
+        <h2 className="font-semibold text-foreground">Informations personnelles</h2>
 
         <input
           type="text"
           placeholder="Nom complet"
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+          className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
         />
         <input
           type="email"
           value={user.email}
           disabled
-          className="w-full px-4 py-3 border border-gray-100 rounded-lg bg-gray-50 text-gray-500"
+          className="w-full px-4 py-3 border border-border rounded-lg bg-muted/40 text-muted-foreground"
         />
         <input
           type="tel"
           placeholder="Téléphone"
           value={phone}
           onChange={(e) => setPhone(e.target.value)}
-          className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:border-brand-500"
+          className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
         />
         {showBio && (
           <textarea
@@ -105,7 +105,7 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
             rows={4}
             value={bio}
             onChange={(e) => setBio(e.target.value)}
-            className="w-full px-4 py-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:border-brand-500"
+            className="w-full px-4 py-3 border border-border rounded-lg resize-none focus:outline-none focus:border-brand-500"
           />
         )}
 

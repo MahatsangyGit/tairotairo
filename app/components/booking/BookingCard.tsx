@@ -86,7 +86,7 @@ export default function BookingCard({
       : "bg-brand-50 text-brand-700";
 
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 p-5">
+    <div className="bg-card rounded-2xl border border-border p-5">
       <div className="flex items-start justify-between gap-4 mb-4">
         <div>
           <div className="flex flex-wrap items-center gap-2 mb-2">
@@ -96,13 +96,13 @@ export default function BookingCard({
               {display.category}
             </span>
             {display.source === "request" && (
-              <span className="text-xs text-neutral-500 font-medium">
+              <span className="text-xs text-muted-foreground font-medium">
                 {display.archived ? "Demande supprimée" : "Via demande"}
               </span>
             )}
           </div>
-          <h3 className="font-semibold text-neutral-900">{display.title}</h3>
-          <p className="text-neutral-500 text-sm mt-0.5">📍 {display.location}</p>
+          <h3 className="font-semibold text-foreground">{display.title}</h3>
+          <p className="text-muted-foreground text-sm mt-0.5">📍 {display.location}</p>
         </div>
         <span
           className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${STATUS_CLASS[booking.status]}`}
@@ -111,13 +111,13 @@ export default function BookingCard({
         </span>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-neutral-100 mb-4">
+      <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-border mb-4">
         <div>
-          <p className="text-xs text-neutral-400 mb-0.5">Date prévue</p>
-          <p className="text-sm font-medium text-neutral-700">{date}</p>
+          <p className="text-xs text-muted-foreground mb-0.5">Date prévue</p>
+          <p className="text-sm font-medium text-foreground">{date}</p>
         </div>
         <div>
-          <p className="text-xs text-neutral-400 mb-0.5">Prix</p>
+          <p className="text-xs text-muted-foreground mb-0.5">Prix</p>
           <p className="text-sm font-semibold text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
@@ -125,12 +125,12 @@ export default function BookingCard({
         {counterparty && (
           <>
             <div>
-              <p className="text-xs text-neutral-400 mb-0.5">{counterpartyLabel}</p>
-              <p className="text-sm font-medium text-neutral-700">{counterparty.name}</p>
+              <p className="text-xs text-muted-foreground mb-0.5">{counterpartyLabel}</p>
+              <p className="text-sm font-medium text-foreground">{counterparty.name}</p>
             </div>
             {counterparty.phone && (
               <div>
-                <p className="text-xs text-neutral-400 mb-0.5">Contact</p>
+                <p className="text-xs text-muted-foreground mb-0.5">Contact</p>
                 <a
                   href={`tel:${counterparty.phone}`}
                   className="text-sm font-medium text-brand-600 hover:underline"

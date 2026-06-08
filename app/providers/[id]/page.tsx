@@ -97,7 +97,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-background">
         <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
           <p className="text-red-500 mb-4">Prestataire introuvable</p>
@@ -119,11 +119,11 @@ export default async function ProviderProfilePage({ params }: PageProps) {
   } = data;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 mb-6">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-8 mb-6">
           <div className="flex items-start gap-4">
             <UserAvatar
               name={provider.name}
@@ -131,7 +131,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
               size="lg"
             />
             <div>
-              <h1 className="text-2xl font-bold text-gray-800">{provider.name}</h1>
+              <h1 className="text-2xl font-bold text-foreground">{provider.name}</h1>
               <div className="flex flex-wrap gap-2 mt-1">
                 {provider.emailVerified && (
                   <span className="text-xs text-brand-600 font-medium">
@@ -145,12 +145,12 @@ export default async function ProviderProfilePage({ params }: PageProps) {
                 )}
               </div>
               {totalReviews > 0 && (
-                <p className="text-sm text-gray-600 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   ★ {averageRating} ({totalReviews} avis)
                 </p>
               )}
               {provider.bio && (
-                <p className="text-gray-600 mt-3 leading-relaxed">{provider.bio}</p>
+                <p className="text-muted-foreground mt-3 leading-relaxed">{provider.bio}</p>
               )}
               <div className="mt-4">
                 <ContactProviderButton providerId={provider.id} />
@@ -165,27 +165,27 @@ export default async function ProviderProfilePage({ params }: PageProps) {
         />
 
         <section className="mb-8">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
+          <h2 className="text-lg font-semibold text-foreground mb-4">
             Services proposés ({provider.services.length})
           </h2>
           {provider.services.length === 0 ? (
-            <p className="text-gray-400 text-sm">Aucun service en ligne</p>
+            <p className="text-muted-foreground text-sm">Aucun service en ligne</p>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {provider.services.map((service) => (
                 <Link
                   key={service.id}
                   href={`/services/${service.id}`}
-                  className="bg-white rounded-xl border border-gray-100 p-5 hover:border-brand-200 transition-colors"
+                  className="bg-card rounded-xl border border-border p-5 hover:border-brand-200 transition-colors"
                 >
                   <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full">
                     {service.category}
                   </span>
-                  <h3 className="font-semibold text-gray-800 mt-2">{service.title}</h3>
+                  <h3 className="font-semibold text-foreground mt-2">{service.title}</h3>
                   <p className="text-brand-600 font-bold text-sm mt-2">
                     {service.price.toLocaleString("fr-MG")} Ar
                   </p>
-                  <p className="text-gray-400 text-xs mt-1">📍 {service.location}</p>
+                  <p className="text-muted-foreground text-xs mt-1">📍 {service.location}</p>
                 </Link>
               ))}
             </div>
@@ -194,15 +194,15 @@ export default async function ProviderProfilePage({ params }: PageProps) {
 
         {reviews.length > 0 && (
           <section>
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">Avis clients</h2>
+            <h2 className="text-lg font-semibold text-foreground mb-4">Avis clients</h2>
             <div className="flex flex-col gap-3">
               {reviews.map((review) => (
                 <div
                   key={review.id}
-                  className="bg-white rounded-xl border border-gray-100 p-4"
+                  className="bg-card rounded-xl border border-border p-4"
                 >
                   <div className="flex justify-between items-center mb-1">
-                    <span className="font-medium text-gray-800 text-sm">
+                    <span className="font-medium text-foreground text-sm">
                       {review.author.name}
                     </span>
                     <span className="text-yellow-400 text-sm">
@@ -210,7 +210,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
                     </span>
                   </div>
                   {review.comment && (
-                    <p className="text-gray-500 text-sm">{review.comment}</p>
+                    <p className="text-muted-foreground text-sm">{review.comment}</p>
                   )}
                 </div>
               ))}

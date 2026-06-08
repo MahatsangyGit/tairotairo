@@ -33,14 +33,14 @@ export default function AdminDashboardPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-bold text-neutral-800 mb-1">Administration</h1>
-        <p className="text-neutral-500 text-sm mb-8">
+        <h1 className="text-2xl font-bold text-foreground mb-1">Administration</h1>
+        <p className="text-muted-foreground text-sm mb-8">
           Statistiques, utilisateurs, KYC, abonnements et exports CSV
         </p>
-        {loading && <p className="text-neutral-500">Vérification des droits…</p>}
+        {loading && <p className="text-muted-foreground">Vérification des droits…</p>}
         {allowed && <AdminDashboard />}
       </div>
     </div>

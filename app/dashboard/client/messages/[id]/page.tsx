@@ -17,12 +17,12 @@ export default function ClientMessageThreadPage({
   const serviceId = searchParams.get("service");
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className="max-w-3xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Espace client</h1>
-          <p className="text-gray-500 text-sm">Conversation</p>
+          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
+          <p className="text-muted-foreground text-sm">Conversation</p>
         </div>
         <ClientNav />
         <MessageThreadView

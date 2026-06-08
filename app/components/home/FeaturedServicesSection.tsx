@@ -29,7 +29,7 @@ export default function FeaturedServicesSection({
     <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
-          <h2 className="text-2xl font-bold text-neutral-900">Annonces du moment</h2>
+          <h2 className="text-2xl font-bold text-foreground">Annonces du moment</h2>
         </div>
         <Link
           href="/services"
@@ -43,27 +43,27 @@ export default function FeaturedServicesSection({
           <Link
             key={service.id}
             href={`/services/${service.id}`}
-            className="group bg-white rounded-2xl border border-neutral-200 shadow-sm hover:shadow-md hover:border-brand-200 transition-all overflow-hidden"
+            className="group bg-card rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-brand-200 transition-all overflow-hidden"
           >
             <div className="p-4">
               <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
                 {service.category}
               </span>
-              <h3 className="font-semibold text-neutral-900 mt-2 line-clamp-2 group-hover:text-brand-700 transition-colors">
+              <h3 className="font-semibold text-foreground mt-2 line-clamp-2 group-hover:text-brand-700 transition-colors">
                 {service.title}
               </h3>
               <p className="text-brand-600 font-bold text-sm mt-2">
                 {service.price.toLocaleString("fr-MG")} Ar
               </p>
-              <p className="text-neutral-400 text-xs mt-1">📍 {service.location}</p>
-              <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-neutral-100">
+              <p className="text-muted-foreground text-xs mt-1">📍 {service.location}</p>
+              <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-border">
                 <div className="flex items-center gap-2 min-w-0">
                   <UserAvatar
                     name={service.provider.name}
                     avatar={service.provider.avatar}
                     size="xs"
                   />
-                  <span className="text-xs text-neutral-600 truncate">
+                  <span className="text-xs text-muted-foreground truncate">
                     {service.provider.name}
                   </span>
                 </div>
