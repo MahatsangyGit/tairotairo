@@ -49,9 +49,9 @@ export default function NotificationPreferences() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
         <h2 className="font-semibold text-gray-800 mb-2">Canaux de notification</h2>
         <p className="text-sm text-gray-500 mb-4">
-          Les alertes (réservations, propositions, etc.) apparaissent dans la cloche
-          et peuvent être envoyées en push. Les emails ne sont envoyés que lorsque vous
-          recevez un message in-app.
+          Les alertes (réservations, propositions, KYC, etc.) apparaissent dans la
+          cloche et peuvent être envoyées en push. Les emails sont envoyés pour les
+          messages in-app et les mises à jour de vérification d&apos;identité (KYC).
         </p>
 
         <label className="flex items-center gap-3 mb-3 cursor-pointer">
@@ -62,7 +62,7 @@ export default function NotificationPreferences() {
             className="w-4 h-4 rounded border-gray-300 text-brand-600"
           />
           <span className="text-sm text-gray-700">
-            Email lors de la réception d&apos;un message in-app
+            Email (messages in-app et statut KYC)
           </span>
         </label>
 

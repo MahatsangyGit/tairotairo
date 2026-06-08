@@ -5,8 +5,10 @@ export const NOTIFICATION_TYPES = {
   BOOKING_CANCELLED: "BOOKING_CANCELLED",
   REQUEST_NEW_RESPONSE: "REQUEST_NEW_RESPONSE",
   REQUEST_RESPONSE_ACCEPTED: "REQUEST_RESPONSE_ACCEPTED",
-  /** Réception d'un message in-app — seul type déclenchant un email */
   MESSAGE_RECEIVED: "MESSAGE_RECEIVED",
+  KYC_PENDING: "KYC_PENDING",
+  KYC_APPROVED: "KYC_APPROVED",
+  KYC_REJECTED: "KYC_REJECTED",
 } as const;
 
 export type NotificationType =
@@ -14,6 +16,9 @@ export type NotificationType =
 
 const EMAIL_NOTIFICATION_TYPES = new Set<NotificationType>([
   NOTIFICATION_TYPES.MESSAGE_RECEIVED,
+  NOTIFICATION_TYPES.KYC_PENDING,
+  NOTIFICATION_TYPES.KYC_APPROVED,
+  NOTIFICATION_TYPES.KYC_REJECTED,
 ]);
 
 export function sendsNotificationEmail(type: NotificationType): boolean {

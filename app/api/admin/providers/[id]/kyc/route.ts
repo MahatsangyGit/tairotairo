@@ -6,6 +6,7 @@ import {
   disableProviderHomepageSpotlight,
   syncProviderHomepageSpotlight,
 } from "@/lib/provider-spotlight";
+import { notifyKycApproved, notifyKycRejected } from "@/lib/notify-kyc";
 
 export const dynamic = "force-dynamic";
 
@@ -64,6 +65,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       });
 
       await syncProviderHomepageSpotlight(id);
+      await notifyKycApproved(id);
 
       return NextResponse.json({
         message: "Identité du prestataire approuvée",
@@ -82,6 +84,8 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (provider.kycStatus === "APPROVED") {
       await disableProviderHomepageSpotlight(id);
     }
+
+    await notifyKycRejected(id);
 
     return NextResponse.json({
       message: "Dossier KYC refusé. Le prestataire peut soumettre à nouveau.",
