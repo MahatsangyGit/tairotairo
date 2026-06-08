@@ -3,6 +3,7 @@
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminSpotlightPanel from "@/components/admin/AdminSpotlightPanel";
 import AdminKycPanel from "@/components/admin/AdminKycPanel";
+import AdminUsersPanel from "@/components/admin/AdminUsersPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
@@ -12,6 +13,7 @@ export default function AdminDashboard() {
         <TabsTrigger value="stats">Statistiques</TabsTrigger>
         <TabsTrigger value="kyc">Vérification KYC</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+        <TabsTrigger value="users">Utilisateurs</TabsTrigger>
       </TabsList>
 
       <TabsContent value="stats">
@@ -22,6 +24,9 @@ export default function AdminDashboard() {
       </TabsContent>
       <TabsContent value="subscriptions">
         <AdminSpotlightPanel />
+      </TabsContent>
+      <TabsContent value="users">
+        <AdminUsersPanel />
       </TabsContent>
     </Tabs>
   );

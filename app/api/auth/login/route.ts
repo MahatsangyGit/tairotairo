@@ -23,6 +23,7 @@ export async function POST(req: NextRequest) {
         password: true,
         role: true,
         phone: true,
+        suspendedAt: true,
       },
     });
 
@@ -39,6 +40,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Email ou mot de passe incorrect" },
         { status: 401 }
+      );
+    }
+
+    if (user.suspendedAt) {
+      return NextResponse.json(
+        { error: "Ce compte a été suspendu. Contactez le support." },
+        { status: 403 }
       );
     }
 

@@ -25,6 +25,7 @@ model User {
   kycSubmittedAt  DateTime?
   featuredOnHomepage   Boolean   @default(false)
   featuredOnHomepageAt DateTime?
+  suspendedAt          DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

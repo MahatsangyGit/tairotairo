@@ -39,6 +39,7 @@ function LoginPageContent() {
   const searchParams = useSearchParams();
   const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
   const resetSuccess = searchParams.get("reset") === "success";
+  const suspended = searchParams.get("suspended") === "1";
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
@@ -109,6 +110,12 @@ function LoginPageContent() {
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
+              {suspended && (
+                <StatusAlert variant="error">
+                  Ce compte a été suspendu. Contactez le support pour plus d&apos;informations.
+                </StatusAlert>
+              )}
+
               {resetSuccess && (
                 <StatusAlert variant="success">
                   Mot de passe mis à jour. Connectez-vous avec votre nouveau mot de passe.
