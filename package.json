@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "cron:expire-subscriptions": "curl -s -H \"Authorization: Bearer ${CRON_SECRET}\" ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}/api/cron/expire-subscriptions",
     "postinstall": "prisma generate"
   },
   "dependencies": {

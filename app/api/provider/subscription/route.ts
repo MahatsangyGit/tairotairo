@@ -7,6 +7,7 @@ import {
   SUBSCRIPTION_BENEFITS,
   SUBSCRIPTION_MONTHLY_PRICE_MGA,
 } from "@/lib/subscription-plans";
+import { syncProviderHomepageSpotlight } from "@/lib/provider-spotlight";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +53,10 @@ export async function GET(req: NextRequest) {
     ]);
 
     const sub = serializeSubscription(subscription);
+
+    if (!sub?.isActive) {
+      await syncProviderHomepageSpotlight(auth.userId);
+    }
 
     return NextResponse.json({
       subscription: sub,
