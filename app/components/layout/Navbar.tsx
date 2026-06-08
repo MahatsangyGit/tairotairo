@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import NotificationBell from "@/components/notifications/NotificationBell";
+import MessageInboxLink from "@/components/messages/MessageInboxLink";
 import UserAvatar from "@/components/profile/UserAvatar";
 import { SITE_NAME } from "@/lib/site";
 
@@ -140,6 +141,9 @@ export default function Navbar() {
                     <Link href="/dashboard/client/requests" className={navLinkClass("/dashboard/client/requests")}>
                       Mes demandes
                     </Link>
+                    {messagesHref && (
+                      <MessageInboxLink href={messagesHref} variant="nav" />
+                    )}
                   </>
                 )}
                 {user.role === "PROVIDER" && (
@@ -150,6 +154,9 @@ export default function Navbar() {
                     <Link href="/dashboard/provider/services" className={navLinkClass("/dashboard/provider/services")}>
                       Mes annonces
                     </Link>
+                    {messagesHref && (
+                      <MessageInboxLink href={messagesHref} variant="nav" />
+                    )}
                   </>
                 )}
                 {user.role === "ADMIN" && (
@@ -166,17 +173,7 @@ export default function Navbar() {
             {!authLoading && user && (
               <>
                 <NotificationBell />
-                {messagesHref && (
-                  <Link
-                    href={messagesHref}
-                    className="p-2 text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 rounded-lg transition-colors"
-                    title="Messages"
-                  >
-                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none" aria-hidden>
-                      <path d="M2 5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6l-4 3V5Z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
-                    </svg>
-                  </Link>
-                )}
+                {messagesHref && <MessageInboxLink href={messagesHref} />}
                 <div className="flex items-center gap-2 pl-3 border-l border-neutral-200">
                   {profileHref ? (
                     <Link href={profileHref} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -255,6 +252,9 @@ export default function Navbar() {
                   <>
                     <MobileNavLink href="/dashboard/client" label="Réservations" active={isActive("/dashboard/client")} onClick={close} />
                     <MobileNavLink href="/dashboard/client/requests" label="Mes demandes" active={isActive("/dashboard/client/requests")} onClick={close} />
+                    {messagesHref && (
+                      <MobileNavLink href={messagesHref} label="Messages" active={isActive(messagesHref)} onClick={close} />
+                    )}
                   </>
                 )}
                 {user.role === "PROVIDER" && (
@@ -262,13 +262,13 @@ export default function Navbar() {
                     <MobileNavLink href="/dashboard/provider" label="Tableau de bord" active={isActive("/dashboard/provider")} onClick={close} />
                     <MobileNavLink href="/dashboard/provider/services" label="Mes annonces" active={isActive("/dashboard/provider/services")} onClick={close} />
                     <MobileNavLink href="/dashboard/provider/proposals" label="Mes propositions" active={isActive("/dashboard/provider/proposals")} onClick={close} />
+                    {messagesHref && (
+                      <MobileNavLink href={messagesHref} label="Messages" active={isActive(messagesHref)} onClick={close} />
+                    )}
                   </>
                 )}
                 {user.role === "ADMIN" && (
                   <MobileNavLink href="/dashboard/admin" label="Administration" active={isActive("/dashboard/admin")} onClick={close} />
-                )}
-                {messagesHref && (
-                  <MobileNavLink href={messagesHref} label="Messages" active={isActive(messagesHref)} onClick={close} />
                 )}
 
                 <div className="h-px bg-neutral-100 my-2" />
