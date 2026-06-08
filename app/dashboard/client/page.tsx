@@ -7,6 +7,7 @@ import Navbar from "@/components/layout/Navbar";
 import ClientNav from "@/components/layout/ClientNav";
 import BookingCard, { type BookingCardData } from "@/components/booking/BookingCard";
 import ReviewForm from "@/components/reviews/ReviewForm";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -44,6 +45,7 @@ export default function ClientDashboardPage() {
   const [actionError,   setActionError]   = useState("");
   const [activeFilter,  setActiveFilter]  = useState<BookingStatus | "ALL">("ALL");
   const [cancellingId,  setCancellingId]  = useState<string | null>(null);
+  const [cancelTarget,    setCancelTarget]    = useState<string | null>(null);
 
   const fetchBookings = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -91,9 +93,11 @@ export default function ClientDashboardPage() {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [fetchBookings]);
 
-  const handleCancel = async (id: string) => {
-    if (!confirm("Annuler cette réservation ?")) return;
+  const handleCancel = (id: string) => {
+    setCancelTarget(id);
+  };
 
+  const runCancel = async (id: string) => {
     setCancellingId(id);
     setActionError("");
 
@@ -121,6 +125,7 @@ export default function ClientDashboardPage() {
           b.id === id ? { ...b, status: updated.status ?? "CANCELLED" } : b
         )
       );
+      setCancelTarget(null);
     } catch {
       setActionError("Une erreur est survenue");
     } finally {
@@ -270,6 +275,21 @@ export default function ClientDashboardPage() {
         )}
 
       </div>
+
+      <ConfirmDialog
+        open={cancelTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setCancelTarget(null);
+        }}
+        title="Annuler la réservation"
+        description="Annuler cette réservation ?"
+        confirmLabel="Annuler la réservation"
+        destructive
+        loading={cancellingId != null}
+        onConfirm={() => {
+          if (cancelTarget) runCancel(cancelTarget);
+        }}
+      />
     </div>
   );
 }

@@ -8,6 +8,7 @@ import ProviderNav from "@/components/layout/ProviderNav";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Service {
   id: string;
@@ -62,6 +63,7 @@ export default function ProviderServicesPage() {
   const [subscription, setSubscription] = useState<SubscriptionState>(null);
   const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
   const [spotlightBusyId, setSpotlightBusyId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -264,9 +266,7 @@ export default function ProviderServicesPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer cette annonce ?")) return;
-
+  const runDelete = async (id: string) => {
     setActionError("");
 
     try {
@@ -280,6 +280,7 @@ export default function ProviderServicesPage() {
 
       setServices((prev) => prev.filter((s) => s.id !== id));
       if (editingId === id) resetForm();
+      setDeleteTarget(null);
     } catch {
       setActionError("Une erreur est survenue");
     }
@@ -539,7 +540,7 @@ export default function ProviderServicesPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => handleDelete(service.id)}
+                    onClick={() => setDeleteTarget(service.id)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50"
                   >
                     Supprimer
@@ -550,6 +551,20 @@ export default function ProviderServicesPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Supprimer l'annonce"
+        description="Supprimer cette annonce ?"
+        confirmLabel="Supprimer"
+        destructive
+        onConfirm={() => {
+          if (deleteTarget) runDelete(deleteTarget);
+        }}
+      />
     </div>
   );
 }

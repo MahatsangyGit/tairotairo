@@ -5,6 +5,18 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import { SITE_NAME } from "@/lib/site";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { FormField } from "@/components/ui/form-field";
+import { Input } from "@/components/ui/input";
+import { StatusAlert } from "@/components/ui/status-alert";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Role = "CLIENT" | "PROVIDER";
 
@@ -70,85 +82,88 @@ export default function RegisterPage() {
             <p className="text-neutral-500 text-sm mt-1">Rejoignez {SITE_NAME} gratuitement</p>
           </div>
 
-          <div className="bg-white rounded-2xl border border-neutral-200 p-6 shadow-sm">
-            {/* Role toggle */}
-            <div className="flex gap-2 mb-5 p-1 bg-neutral-100 rounded-xl">
-              {(["CLIENT", "PROVIDER"] as Role[]).map((role) => (
-                <button
-                  key={role}
-                  onClick={() => setFormData({ ...formData, role })}
-                  className={`flex-1 py-2 rounded-lg text-sm font-medium transition-all ${
-                    formData.role === role
-                      ? "bg-white text-brand-700 shadow-sm"
-                      : "text-neutral-500 hover:text-neutral-700"
-                  }`}
-                >
-                  {role === "CLIENT" ? "Je cherche" : "Je propose"}
-                </button>
-              ))}
-            </div>
+          <Card>
+            <CardHeader>
+              <CardTitle className="sr-only">Inscription</CardTitle>
+              <CardDescription className="sr-only">
+                Créez votre compte {SITE_NAME}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col gap-4">
+              <Tabs
+                value={formData.role}
+                onValueChange={(value) =>
+                  setFormData({ ...formData, role: value as Role })
+                }
+              >
+                <TabsList className="w-full">
+                  <TabsTrigger value="CLIENT" className="flex-1">
+                    Je cherche
+                  </TabsTrigger>
+                  <TabsTrigger value="PROVIDER" className="flex-1">
+                    Je propose
+                  </TabsTrigger>
+                </TabsList>
+                <TabsContent value="CLIENT" className="sr-only" />
+                <TabsContent value="PROVIDER" className="sr-only" />
+              </Tabs>
 
-            <div className="flex flex-col gap-4">
-              <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Nom complet</label>
-                <input
+              <FormField label="Nom complet" htmlFor="name">
+                <Input
+                  id="name"
                   type="text"
                   placeholder="Jean Dupont"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Adresse email</label>
-                <input
+              </FormField>
+
+              <FormField label="Adresse email" htmlFor="email">
+                <Input
+                  id="email"
                   type="email"
                   placeholder="vous@exemple.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Mot de passe</label>
-                <input
+              </FormField>
+
+              <FormField label="Mot de passe" htmlFor="password">
+                <Input
+                  id="password"
                   type="password"
                   placeholder="••••••••"
                   value={formData.password}
-                  onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
+                  onChange={(e) =>
+                    setFormData({ ...formData, password: e.target.value })
+                  }
                 />
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-neutral-600 mb-1.5">Téléphone</label>
-                <input
+              </FormField>
+
+              <FormField label="Téléphone" htmlFor="phone">
+                <Input
+                  id="phone"
                   type="tel"
                   placeholder="034 00 000 00"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2.5 border border-neutral-200 rounded-xl text-sm focus:outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 bg-neutral-50 transition-all"
                 />
-              </div>
+              </FormField>
 
-              {error && (
-                <div className="bg-error-50 border border-red-100 rounded-xl px-4 py-3">
-                  <p className="text-error-700 text-sm">{error}</p>
-                </div>
-              )}
+              {error && <StatusAlert variant="error">{error}</StatusAlert>}
 
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="w-full bg-brand-600 text-white py-2.5 rounded-xl text-sm font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-1"
-              >
+              <Button onClick={handleSubmit} disabled={loading} className="w-full">
                 {loading ? "Création..." : "Créer mon compte"}
-              </button>
-            </div>
-          </div>
+              </Button>
+            </CardContent>
+          </Card>
 
           <p className="text-center text-neutral-500 text-sm mt-5">
             Déjà un compte ?{" "}
-            <Link href="/auth/login" className="text-brand-600 font-semibold hover:text-brand-700 transition-colors">
+            <Link
+              href="/auth/login"
+              className="text-brand-600 font-semibold hover:text-brand-700 transition-colors"
+            >
               Se connecter
             </Link>
           </p>

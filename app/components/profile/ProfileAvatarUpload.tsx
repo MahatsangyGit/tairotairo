@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import UserAvatar from "@/components/profile/UserAvatar";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
 
@@ -22,6 +23,7 @@ export default function ProfileAvatarUpload({
   const [removing, setRemoving] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [showRemoveDialog, setShowRemoveDialog] = useState(false);
 
   const uploadFile = async (file: File) => {
     setUploading(true);
@@ -66,7 +68,6 @@ export default function ProfileAvatarUpload({
 
   const handleRemove = async () => {
     if (!avatar) return;
-    if (!confirm("Supprimer votre photo de profil ?")) return;
 
     setRemoving(true);
     setError("");
@@ -87,6 +88,7 @@ export default function ProfileAvatarUpload({
         new CustomEvent("profile-avatar-updated", { detail: { avatar: null } })
       );
       setSuccess("Photo supprimée");
+      setShowRemoveDialog(false);
     } catch {
       setError("Une erreur est survenue");
     } finally {
@@ -131,7 +133,7 @@ export default function ProfileAvatarUpload({
             <button
               type="button"
               disabled={uploading || removing}
-              onClick={handleRemove}
+              onClick={() => setShowRemoveDialog(true)}
               className="text-sm text-red-600 hover:underline disabled:opacity-50 w-fit text-left"
             >
               {removing ? "Suppression…" : "Supprimer la photo"}
@@ -142,6 +144,17 @@ export default function ProfileAvatarUpload({
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
       {success && <p className="text-brand-600 text-sm">{success}</p>}
+
+      <ConfirmDialog
+        open={showRemoveDialog}
+        onOpenChange={setShowRemoveDialog}
+        title="Supprimer la photo"
+        description="Supprimer votre photo de profil ?"
+        confirmLabel="Supprimer"
+        destructive
+        loading={removing}
+        onConfirm={handleRemove}
+      />
     </div>
   );
 }

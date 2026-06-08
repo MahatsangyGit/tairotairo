@@ -2,6 +2,19 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { StatusAlert } from "@/components/ui/status-alert";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface ProviderRow {
   id: string;
@@ -27,6 +40,20 @@ interface ServiceRow {
   providerSubscriptionActive: boolean;
 }
 
+function KycLabel({ status }: { status: string }) {
+  if (status === "APPROVED") {
+    return <Badge variant="default">Approuvé</Badge>;
+  }
+  if (status === "PENDING") {
+    return (
+      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+        En attente
+      </Badge>
+    );
+  }
+  return <Badge variant="secondary">Non validé</Badge>;
+}
+
 export default function AdminSpotlightPanel() {
   const [providers, setProviders] = useState<ProviderRow[]>([]);
   const [services, setServices] = useState<ServiceRow[]>([]);
@@ -34,6 +61,7 @@ export default function AdminSpotlightPanel() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [revokeTarget, setRevokeTarget] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -83,10 +111,8 @@ export default function AdminSpotlightPanel() {
   };
 
   const revokeSubscription = async (providerId: string) => {
-    if (!confirm("Retirer l'abonnement et toutes les mises en avant de ce prestataire ?")) {
-      return;
-    }
     setBusyId(`revoke-${providerId}`);
+    setError("");
     try {
       const res = await fetch(`/api/admin/providers/${providerId}/subscription`, {
         method: "DELETE",
@@ -97,6 +123,7 @@ export default function AdminSpotlightPanel() {
         return;
       }
       setSuccess(data.message);
+      setRevokeTarget(null);
       await load();
     } catch {
       setError("Une erreur est survenue");
@@ -106,158 +133,169 @@ export default function AdminSpotlightPanel() {
   };
 
   if (loading) {
-    return <p className="text-gray-500">Chargement…</p>;
+    return <p className="text-muted-foreground">Chargement…</p>;
   }
 
   return (
     <div className="flex flex-col gap-8">
-      <p className="text-sm text-gray-600 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
+      <StatusAlert variant="info">
         L&apos;<strong>abonnement mensuel actif</strong> ({SUBSCRIPTION_PERIOD_DAYS}{" "}
         jours par période) met automatiquement le prestataire en avant sur
         l&apos;accueil (si KYC approuvé), dans{" "}
         <strong>« Nos suggestions »</strong> sur la recherche, et lui permet de
         choisir une annonce à mettre en avant depuis son espace prestataire.
-      </p>
+      </StatusAlert>
 
-      <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Prestataires & abonnements</h2>
-        <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left text-gray-600">
-              <tr>
-                <th className="px-4 py-3 font-medium">Prestataire</th>
-                <th className="px-4 py-3 font-medium">KYC</th>
-                <th className="px-4 py-3 font-medium">Abonnement</th>
-                <th className="px-4 py-3 font-medium">En avant</th>
-                <th className="px-4 py-3 font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+      <Card>
+        <CardHeader>
+          <CardTitle>Prestataires & abonnements</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 pb-6">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Prestataire</TableHead>
+                <TableHead>KYC</TableHead>
+                <TableHead>Abonnement</TableHead>
+                <TableHead>En avant</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {providers.map((p) => (
-                <tr key={p.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-800">{p.name}</p>
-                    <p className="text-xs text-gray-400">{p.email}</p>
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={
-                        p.kycStatus === "APPROVED"
-                          ? "text-brand-600 text-xs"
-                          : p.kycStatus === "PENDING"
-                            ? "text-amber-700 text-xs font-medium"
-                            : "text-amber-600 text-xs"
-                      }
-                    >
-                      {p.kycStatus === "APPROVED"
-                        ? "Approuvé"
-                        : p.kycStatus === "PENDING"
-                          ? "En attente"
-                          : "Non validé"}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-xs">
+                <TableRow key={p.id}>
+                  <TableCell>
+                    <p className="font-medium">{p.name}</p>
+                    <p className="text-xs text-muted-foreground">{p.email}</p>
+                  </TableCell>
+                  <TableCell>
+                    <KycLabel status={p.kycStatus} />
+                  </TableCell>
+                  <TableCell className="text-xs">
                     {p.subscription?.isActive ? (
                       <>
-                        <span className="text-brand-700 font-medium">Actif</span>
+                        <span className="text-primary font-medium">Actif</span>
                         <br />
                         jusqu&apos;au{" "}
                         {new Date(p.subscription.expiresAt).toLocaleDateString("fr-MG")}
                       </>
                     ) : (
-                      <span className="text-gray-400">Aucun / expiré</span>
+                      <span className="text-muted-foreground">Aucun / expiré</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     {p.featuredOnHomepage ? (
-                      <span className="text-amber-700 text-xs font-medium">★ Oui</span>
+                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                        ★ Oui
+                      </Badge>
                     ) : (
-                      <span className="text-gray-400 text-xs">Non</span>
+                      <span className="text-muted-foreground text-xs">Non</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     <div className="flex flex-wrap gap-2">
-                      <button
+                      <Button
                         type="button"
+                        size="xs"
+                        variant="outline"
                         disabled={busyId != null}
                         onClick={() => grantSubscription(p.id, 1)}
-                        className="text-xs border border-brand-200 text-brand-700 px-2 py-1 rounded hover:bg-brand-50 disabled:opacity-50"
                       >
                         +1 mois
-                      </button>
+                      </Button>
                       {p.subscription?.isActive && (
-                        <button
+                        <Button
                           type="button"
+                          size="xs"
+                          variant="destructive"
                           disabled={busyId != null}
-                          onClick={() => revokeSubscription(p.id)}
-                          className="text-xs text-red-600 hover:underline disabled:opacity-50"
+                          onClick={() => setRevokeTarget(p.id)}
                         >
                           Retirer abo.
-                        </button>
+                        </Button>
                       )}
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      <section>
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Annonces</h2>
-        <div className="overflow-x-auto rounded-xl border border-gray-100 bg-white max-h-[420px] overflow-y-auto">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 text-left text-gray-600 sticky top-0">
-              <tr>
-                <th className="px-4 py-3 font-medium">Annonce</th>
-                <th className="px-4 py-3 font-medium">Prestataire</th>
-                <th className="px-4 py-3 font-medium">Abo.</th>
-                <th className="px-4 py-3 font-medium">En avant</th>
-                <th className="px-4 py-3 font-medium">Statut</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100">
+      <Card>
+        <CardHeader>
+          <CardTitle>Annonces</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 pb-6 max-h-[420px] overflow-y-auto">
+          <Table>
+            <TableHeader className="sticky top-0 bg-card z-10">
+              <TableRow>
+                <TableHead>Annonce</TableHead>
+                <TableHead>Prestataire</TableHead>
+                <TableHead>Abo.</TableHead>
+                <TableHead>En avant</TableHead>
+                <TableHead>Statut</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {services.map((s) => (
-                <tr key={s.id}>
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-gray-800 line-clamp-1">{s.title}</p>
-                    <p className="text-xs text-gray-400">
+                <TableRow key={s.id}>
+                  <TableCell>
+                    <p className="font-medium line-clamp-1">{s.title}</p>
+                    <p className="text-xs text-muted-foreground">
                       {s.category}
                       {!s.available && " · indisponible"}
                     </p>
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{s.providerName}</td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell className="text-muted-foreground">{s.providerName}</TableCell>
+                  <TableCell>
                     {s.providerSubscriptionActive ? (
-                      <span className="text-brand-600 text-xs">Actif</span>
+                      <Badge variant="default">Actif</Badge>
                     ) : (
-                      <span className="text-gray-400 text-xs">—</span>
+                      <span className="text-muted-foreground text-xs">—</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3">
+                  </TableCell>
+                  <TableCell>
                     {s.featuredOnHomepage ? (
-                      <span className="text-amber-700 text-xs font-medium">★ Oui</span>
+                      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+                        ★ Oui
+                      </Badge>
                     ) : (
-                      <span className="text-gray-400 text-xs">Non</span>
+                      <span className="text-muted-foreground text-xs">Non</span>
                     )}
-                  </td>
-                  <td className="px-4 py-3 text-xs text-gray-500">
+                  </TableCell>
+                  <TableCell className="text-xs text-muted-foreground">
                     {s.featuredOnHomepage
                       ? "Choix du prestataire"
                       : s.providerSubscriptionActive
                         ? "Non sélectionnée"
                         : "—"}
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-        </div>
-      </section>
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-brand-600 text-sm">{success}</p>}
+      {error && <StatusAlert variant="error">{error}</StatusAlert>}
+      {success && <StatusAlert variant="success">{success}</StatusAlert>}
+
+      <ConfirmDialog
+        open={revokeTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setRevokeTarget(null);
+        }}
+        title="Retirer l'abonnement"
+        description="Retirer l'abonnement et toutes les mises en avant de ce prestataire ?"
+        confirmLabel="Retirer"
+        destructive
+        loading={busyId != null}
+        onConfirm={() => {
+          if (revokeTarget) revokeSubscription(revokeTarget);
+        }}
+      />
     </div>
   );
 }

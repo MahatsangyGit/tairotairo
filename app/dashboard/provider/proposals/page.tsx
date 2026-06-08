@@ -13,6 +13,7 @@ import {
   effectiveResponseStatus,
   RequestResponseStatus,
 } from "@/lib/request-response-status";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface RequestSummary {
   id: string;
@@ -42,6 +43,10 @@ export default function ProviderProposalsPage() {
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
   const [withdrawingId, setWithdrawingId] = useState<string | null>(null);
+  const [withdrawTarget, setWithdrawTarget] = useState<{
+    requestId: string;
+    responseId: string;
+  } | null>(null);
 
   const fetchResponses = useCallback(async () => {
     setLoading(true);
@@ -76,9 +81,7 @@ export default function ProviderProposalsPage() {
     fetchResponses();
   }, [fetchResponses]);
 
-  const handleWithdraw = async (requestId: string, responseId: string) => {
-    if (!confirm("Retirer cette proposition ?")) return;
-
+  const runWithdraw = async (requestId: string, responseId: string) => {
     setWithdrawingId(responseId);
     setActionError("");
 
@@ -104,6 +107,7 @@ export default function ProviderProposalsPage() {
           r.id === responseId ? { ...r, status: "WITHDRAWN" as const } : r
         )
       );
+      setWithdrawTarget(null);
     } catch {
       setActionError("Une erreur est survenue");
     } finally {
@@ -245,7 +249,12 @@ export default function ProviderProposalsPage() {
                   </Link>
                   {response.status === "PENDING" && (
                     <button
-                      onClick={() => handleWithdraw(response.request.id, response.id)}
+                      onClick={() =>
+                        setWithdrawTarget({
+                          requestId: response.request.id,
+                          responseId: response.id,
+                        })
+                      }
                       disabled={withdrawingId === response.id}
                       className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 ml-auto"
                     >
@@ -259,6 +268,23 @@ export default function ProviderProposalsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={withdrawTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setWithdrawTarget(null);
+        }}
+        title="Retirer la proposition"
+        description="Retirer cette proposition ?"
+        confirmLabel="Retirer"
+        destructive
+        loading={withdrawingId != null}
+        onConfirm={() => {
+          if (withdrawTarget) {
+            runWithdraw(withdrawTarget.requestId, withdrawTarget.responseId);
+          }
+        }}
+      />
     </div>
   );
 }

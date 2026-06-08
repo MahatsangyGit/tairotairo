@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Notification {
   id: string;
@@ -20,6 +21,7 @@ export default function NotificationBell() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [showClearDialog, setShowClearDialog] = useState(false);
   const panelRef = useRef<HTMLDivElement>(null);
 
   const fetchNotifications = useCallback(async () => {
@@ -71,8 +73,6 @@ export default function NotificationBell() {
   };
 
   const clearAll = async () => {
-    if (!confirm("Effacer toutes les notifications ?")) return;
-
     setLoading(true);
     try {
       const res = await fetch("/api/notifications/clear-all", {
@@ -81,6 +81,7 @@ export default function NotificationBell() {
       if (res.ok) {
         setNotifications([]);
         setUnreadCount(0);
+        setShowClearDialog(false);
       }
     } finally {
       setLoading(false);
@@ -132,7 +133,7 @@ export default function NotificationBell() {
                 )}
                 <button
                   type="button"
-                  onClick={clearAll}
+                  onClick={() => setShowClearDialog(true)}
                   disabled={loading}
                   className="text-xs text-red-600 hover:underline disabled:opacity-50"
                 >
@@ -174,6 +175,17 @@ export default function NotificationBell() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        open={showClearDialog}
+        onOpenChange={setShowClearDialog}
+        title="Effacer les notifications"
+        description="Effacer toutes les notifications ?"
+        confirmLabel="Effacer"
+        destructive
+        loading={loading}
+        onConfirm={clearAll}
+      />
     </div>
   );
 }

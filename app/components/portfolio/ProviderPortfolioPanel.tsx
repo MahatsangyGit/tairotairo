@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PortfolioItemPayload } from "@/lib/portfolio";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
 
@@ -19,6 +20,7 @@ export default function ProviderPortfolioPanel() {
   const fileRef = useRef<HTMLInputElement>(null);
   const replaceImageRef = useRef<HTMLInputElement>(null);
   const [replaceTargetId, setReplaceTargetId] = useState<string | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -86,9 +88,7 @@ export default function ProviderPortfolioPanel() {
     void handleAdd(file);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer cette réalisation du portfolio ?")) return;
-
+  const runDelete = async (id: string) => {
     try {
       const res = await fetch(`/api/provider/portfolio/${id}`, {
         method: "DELETE",
@@ -100,6 +100,7 @@ export default function ProviderPortfolioPanel() {
       }
       setItems((prev) => prev.filter((i) => i.id !== id));
       setSuccess("Réalisation supprimée");
+      setDeleteTarget(null);
     } catch {
       setError("Une erreur est survenue");
     }
@@ -274,7 +275,7 @@ export default function ProviderPortfolioPanel() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleDelete(item.id)}
+                  onClick={() => setDeleteTarget(item.id)}
                   className="text-xs text-red-600 hover:underline"
                 >
                   Supprimer
@@ -297,6 +298,20 @@ export default function ProviderPortfolioPanel() {
 
       {error && <p className="text-red-500 text-sm">{error}</p>}
       {success && <p className="text-brand-600 text-sm">{success}</p>}
+
+      <ConfirmDialog
+        open={deleteTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Supprimer la réalisation"
+        description="Supprimer cette réalisation du portfolio ?"
+        confirmLabel="Supprimer"
+        destructive
+        onConfirm={() => {
+          if (deleteTarget) runDelete(deleteTarget);
+        }}
+      />
     </div>
   );
 }

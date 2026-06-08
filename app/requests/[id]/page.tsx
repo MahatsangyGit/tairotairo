@@ -11,6 +11,7 @@ import {
   RESPONSE_STATUS_LABEL,
   RequestResponseStatus,
 } from "@/lib/request-response-status";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Client {
   id: string;
@@ -70,6 +71,7 @@ export default function RequestDetailPage() {
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState("");
   const [proposedPrice, setProposedPrice] = useState("");
+  const [withdrawTarget, setWithdrawTarget] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -148,9 +150,7 @@ export default function RequestDetailPage() {
     }
   };
 
-  const handleWithdraw = async (responseId: string) => {
-    if (!confirm("Retirer votre proposition ?")) return;
-
+  const runWithdraw = async (responseId: string) => {
     setActionError("");
 
     try {
@@ -167,6 +167,7 @@ export default function RequestDetailPage() {
         return;
       }
 
+      setWithdrawTarget(null);
       await fetchData();
     } catch {
       setActionError("Une erreur est survenue");
@@ -369,7 +370,7 @@ export default function RequestDetailPage() {
                     </div>
                     {ownResponse.status === "PENDING" && (
                       <button
-                        onClick={() => handleWithdraw(ownResponse.id)}
+                        onClick={() => setWithdrawTarget(ownResponse.id)}
                         className="text-sm text-red-600 hover:underline"
                       >
                         Retirer ma proposition
@@ -403,6 +404,20 @@ export default function RequestDetailPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={withdrawTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setWithdrawTarget(null);
+        }}
+        title="Retirer la proposition"
+        description="Retirer votre proposition ?"
+        confirmLabel="Retirer"
+        destructive
+        onConfirm={() => {
+          if (withdrawTarget) runWithdraw(withdrawTarget);
+        }}
+      />
     </div>
   );
 }

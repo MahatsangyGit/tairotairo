@@ -7,6 +7,17 @@ import {
   kycStatusLabel,
   type KycDocumentType,
 } from "@/lib/kyc";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { StatusAlert } from "@/components/ui/status-alert";
 
 type Filter = "pending" | "all" | "approved";
 
@@ -38,15 +49,23 @@ const FILTERS: { id: Filter; label: string }[] = [
   { id: "approved", label: "Approuvés" },
 ];
 
-function statusBadgeClass(status: string): string {
-  switch (status) {
-    case "APPROVED":
-      return "bg-brand-50 text-brand-700 border-brand-200";
-    case "PENDING":
-      return "bg-amber-50 text-amber-800 border-amber-200";
-    default:
-      return "bg-neutral-50 text-neutral-600 border-neutral-200";
+type PendingAction = {
+  providerId: string;
+  action: "approve" | "reject";
+};
+
+function KycStatusBadge({ status }: { status: string }) {
+  if (status === "APPROVED") {
+    return <Badge variant="default">{kycStatusLabel(status)}</Badge>;
   }
+  if (status === "PENDING") {
+    return (
+      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
+        {kycStatusLabel(status)}
+      </Badge>
+    );
+  }
+  return <Badge variant="secondary">{kycStatusLabel(status)}</Badge>;
 }
 
 export default function AdminKycPanel() {
@@ -57,6 +76,7 @@ export default function AdminKycPanel() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -81,18 +101,8 @@ export default function AdminKycPanel() {
     load();
   }, [load]);
 
-  const handleAction = async (providerId: string, action: "approve" | "reject") => {
+  const runAction = async (providerId: string, action: "approve" | "reject") => {
     const label = action === "approve" ? "approuver" : "refuser";
-    if (
-      !confirm(
-        action === "approve"
-          ? "Approuver l'identité de ce prestataire ?"
-          : "Refuser ce dossier KYC ? Le prestataire devra soumettre à nouveau."
-      )
-    ) {
-      return;
-    }
-
     setBusyId(`${action}-${providerId}`);
     setError("");
     setSuccess("");
@@ -109,6 +119,7 @@ export default function AdminKycPanel() {
         return;
       }
       setSuccess(data.message);
+      setPendingAction(null);
       await load();
     } catch {
       setError("Une erreur est survenue");
@@ -117,73 +128,79 @@ export default function AdminKycPanel() {
     }
   };
 
+  const confirmTitle =
+    pendingAction?.action === "approve"
+      ? "Approuver l'identité"
+      : pendingAction?.action === "reject"
+        ? "Refuser le dossier KYC"
+        : "";
+
+  const confirmDescription =
+    pendingAction?.action === "approve"
+      ? "Approuver l'identité de ce prestataire ?"
+      : pendingAction?.action === "reject"
+        ? "Refuser ce dossier KYC ? Le prestataire devra soumettre à nouveau."
+        : "";
+
   return (
     <div className="flex flex-col gap-6">
-      <p className="text-sm text-neutral-600 bg-brand-50 border border-brand-100 rounded-xl px-4 py-3">
+      <StatusAlert variant="info">
         Vérifiez les documents CIN des prestataires et validez ou refusez leur
         identité. Un prestataire approuvé peut publier des annonces et répondre aux
         demandes.
-      </p>
+      </StatusAlert>
 
       <div className="flex flex-wrap items-center gap-2">
         {FILTERS.map((f) => (
-          <button
+          <Button
             key={f.id}
             type="button"
+            size="sm"
+            variant={filter === f.id ? "default" : "outline"}
             onClick={() => setFilter(f.id)}
-            className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-colors ${
-              filter === f.id
-                ? "bg-brand-600 text-white border-brand-600"
-                : "bg-white text-neutral-600 border-neutral-200 hover:border-brand-300"
-            }`}
           >
             {f.label}
             {f.id === "pending" && counts.pending > 0 && (
-              <span className="ml-1.5 bg-amber-400 text-amber-900 text-xs px-1.5 py-0.5 rounded-full">
+              <Badge variant="secondary" className="ml-1.5 bg-amber-400 text-amber-900">
                 {counts.pending}
-              </span>
+              </Badge>
             )}
-          </button>
+          </Button>
         ))}
       </div>
 
-      <div className="flex flex-wrap gap-4 text-xs text-neutral-500">
+      <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
         <span>{counts.pending} en attente</span>
         <span>{counts.approved} approuvés</span>
         <span>{counts.incomplete} dossiers incomplets</span>
       </div>
 
-      {loading && <p className="text-neutral-500 text-sm">Chargement…</p>}
+      {loading && <p className="text-muted-foreground text-sm">Chargement…</p>}
 
       {!loading && providers.length === 0 && (
-        <div className="text-center py-16 bg-white rounded-2xl border border-neutral-100">
-          <p className="text-neutral-500">Aucun dossier dans cette catégorie</p>
-        </div>
+        <Card>
+          <CardContent className="py-16 text-center">
+            <p className="text-muted-foreground">Aucun dossier dans cette catégorie</p>
+          </CardContent>
+        </Card>
       )}
 
       {!loading && providers.length > 0 && (
         <div className="flex flex-col gap-4">
           {providers.map((p) => (
-            <article
-              key={p.id}
-              className="bg-white rounded-2xl border border-neutral-200 shadow-sm overflow-hidden"
-            >
-              <div className="px-5 py-4 border-b border-neutral-100 flex flex-wrap items-start justify-between gap-4">
+            <Card key={p.id}>
+              <CardHeader className="border-b flex-row flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h3 className="font-semibold text-neutral-900">{p.name}</h3>
-                  <p className="text-sm text-neutral-500">{p.email}</p>
+                  <CardTitle>{p.name}</CardTitle>
+                  <p className="text-sm text-muted-foreground">{p.email}</p>
                   {p.phone && (
-                    <p className="text-xs text-neutral-400 mt-0.5">{p.phone}</p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{p.phone}</p>
                   )}
                 </div>
                 <div className="flex flex-col items-end gap-1">
-                  <span
-                    className={`text-xs font-medium px-2.5 py-1 rounded-full border ${statusBadgeClass(p.kycStatus)}`}
-                  >
-                    {kycStatusLabel(p.kycStatus)}
-                  </span>
+                  <KycStatusBadge status={p.kycStatus} />
                   {p.kycSubmittedAt && (
-                    <span className="text-xs text-neutral-400">
+                    <span className="text-xs text-muted-foreground">
                       Soumis le{" "}
                       {new Date(p.kycSubmittedAt).toLocaleDateString("fr-MG", {
                         day: "numeric",
@@ -195,34 +212,35 @@ export default function AdminKycPanel() {
                     </span>
                   )}
                 </div>
-              </div>
+              </CardHeader>
 
-              <div className="px-5 py-4">
+              <CardContent className="pt-6">
                 {p.documents.length === 0 ? (
-                  <p className="text-sm text-neutral-400">Aucun document</p>
+                  <p className="text-sm text-muted-foreground">Aucun document</p>
                 ) : (
                   <ul className="space-y-2">
                     {p.documents.map((doc) => (
                       <li
                         key={doc.id}
-                        className="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-neutral-50 last:border-0"
+                        className="flex flex-wrap items-center justify-between gap-3 py-2 border-b border-border/50 last:border-0"
                       >
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-neutral-800">
+                          <p className="text-sm font-medium">
                             {documentTypeLabel(doc.type, doc.cinSlot)}
                           </p>
-                          <p className="text-xs text-neutral-500 truncate">
+                          <p className="text-xs text-muted-foreground truncate">
                             {doc.originalName} · {formatFileSize(doc.sizeBytes)}
                           </p>
                         </div>
-                        <a
-                          href={`/api/provider/kyc/documents/${doc.id}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-sm text-brand-600 font-medium hover:underline shrink-0"
-                        >
-                          Voir le document →
-                        </a>
+                        <Button variant="link" size="sm" asChild className="shrink-0 px-0">
+                          <a
+                            href={`/api/provider/kyc/documents/${doc.id}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            Voir le document →
+                          </a>
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -233,57 +251,84 @@ export default function AdminKycPanel() {
                     Dossier incomplet (CIN manquante ou invalide)
                   </p>
                 )}
-              </div>
+              </CardContent>
 
-              <div className="px-5 py-3 bg-neutral-50 border-t border-neutral-100 flex flex-wrap gap-2">
+              <CardFooter className="border-t bg-muted/30 flex flex-wrap gap-2">
                 {p.kycStatus === "PENDING" && (
                   <>
-                    <button
+                    <Button
                       type="button"
+                      size="sm"
                       disabled={busyId != null || !p.isComplete}
-                      onClick={() => handleAction(p.id, "approve")}
-                      className="text-sm bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50"
+                      onClick={() =>
+                        setPendingAction({ providerId: p.id, action: "approve" })
+                      }
                     >
                       {busyId === `approve-${p.id}` ? "…" : "Approuver"}
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="button"
+                      size="sm"
+                      variant="destructive"
                       disabled={busyId != null}
-                      onClick={() => handleAction(p.id, "reject")}
-                      className="text-sm border border-red-200 text-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50"
+                      onClick={() =>
+                        setPendingAction({ providerId: p.id, action: "reject" })
+                      }
                     >
                       {busyId === `reject-${p.id}` ? "…" : "Refuser"}
-                    </button>
+                    </Button>
                   </>
                 )}
                 {p.kycStatus === "APPROVED" && (
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
+                    variant="destructive"
                     disabled={busyId != null}
-                    onClick={() => handleAction(p.id, "reject")}
-                    className="text-sm border border-red-200 text-red-600 px-4 py-2 rounded-lg font-medium hover:bg-red-50 disabled:opacity-50"
+                    onClick={() =>
+                      setPendingAction({ providerId: p.id, action: "reject" })
+                    }
                   >
                     {busyId === `reject-${p.id}` ? "…" : "Révoquer la vérification"}
-                  </button>
+                  </Button>
                 )}
                 {p.kycStatus === "NOT_STARTED" && p.isComplete && (
-                  <button
+                  <Button
                     type="button"
+                    size="sm"
                     disabled={busyId != null}
-                    onClick={() => handleAction(p.id, "approve")}
-                    className="text-sm bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50"
+                    onClick={() =>
+                      setPendingAction({ providerId: p.id, action: "approve" })
+                    }
                   >
                     {busyId === `approve-${p.id}` ? "…" : "Approuver manuellement"}
-                  </button>
+                  </Button>
                 )}
-              </div>
-            </article>
+              </CardFooter>
+            </Card>
           ))}
         </div>
       )}
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-brand-600 text-sm">{success}</p>}
+      {error && <StatusAlert variant="error">{error}</StatusAlert>}
+      {success && <StatusAlert variant="success">{success}</StatusAlert>}
+
+      <ConfirmDialog
+        open={pendingAction != null}
+        onOpenChange={(open) => {
+          if (!open) setPendingAction(null);
+        }}
+        title={confirmTitle}
+        description={confirmDescription}
+        confirmLabel={pendingAction?.action === "approve" ? "Approuver" : "Refuser"}
+        destructive={pendingAction?.action === "reject"}
+        loading={busyId != null}
+        onConfirm={() => {
+          if (pendingAction) {
+            runAction(pendingAction.providerId, pendingAction.action);
+          }
+        }}
+      />
     </div>
   );
 }

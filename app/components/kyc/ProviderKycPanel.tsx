@@ -7,6 +7,16 @@ import {
   documentTypeLabel,
   type KycStatusPayload,
 } from "@/lib/kyc";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { StatusAlert } from "@/components/ui/status-alert";
 
 const ACCEPT = ".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf";
 
@@ -17,6 +27,7 @@ export default function ProviderKycPanel() {
   const [success, setSuccess] = useState("");
   const [uploading, setUploading] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<KycDocumentMeta | null>(null);
 
   const cin1Ref = useRef<HTMLInputElement>(null);
   const cin2Ref = useRef<HTMLInputElement>(null);
@@ -86,7 +97,6 @@ export default function ProviderKycPanel() {
   };
 
   const deleteDocument = async (doc: KycDocumentMeta) => {
-    if (!confirm(`Supprimer « ${doc.originalName} » ?`)) return;
     setError("");
     setSuccess("");
 
@@ -101,6 +111,7 @@ export default function ProviderKycPanel() {
       }
       setKyc(data.kyc);
       setSuccess("Document supprimé");
+      setDeleteTarget(null);
     } catch {
       setError("Une erreur est survenue");
     }
@@ -130,158 +141,180 @@ export default function ProviderKycPanel() {
   const renderDocRow = (doc: KycDocumentMeta) => (
     <li
       key={doc.id}
-      className="flex items-center justify-between gap-3 py-2 border-b border-gray-100 last:border-0"
+      className="flex items-center justify-between gap-3 py-2 border-b border-border/50 last:border-0"
     >
       <div className="min-w-0">
-        <p className="text-sm font-medium text-gray-800 truncate">
+        <p className="text-sm font-medium truncate">
           {documentTypeLabel(doc.type, doc.cinSlot)}
         </p>
-        <p className="text-xs text-gray-500 truncate">
+        <p className="text-xs text-muted-foreground truncate">
           {doc.originalName} · {formatFileSize(doc.sizeBytes)}
         </p>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <a
-          href={`/api/provider/kyc/documents/${doc.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-xs text-brand-600 hover:underline"
-        >
-          Voir
-        </a>
-        <button
+        <Button variant="link" size="xs" asChild className="px-0">
+          <a
+            href={`/api/provider/kyc/documents/${doc.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Voir
+          </a>
+        </Button>
+        <Button
           type="button"
-          onClick={() => deleteDocument(doc)}
-          className="text-xs text-red-600 hover:underline"
+          variant="destructive"
+          size="xs"
+          onClick={() => setDeleteTarget(doc)}
         >
           Supprimer
-        </button>
+        </Button>
       </div>
     </li>
   );
 
   if (loading) {
     return (
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-        <p className="text-gray-500 text-sm">Chargement de la vérification…</p>
-      </div>
+      <Card>
+        <CardContent>
+          <p className="text-muted-foreground text-sm">Chargement de la vérification…</p>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex flex-col gap-5">
-      <div>
-        <h2 className="font-semibold text-gray-800">Vérification d&apos;identité (KYC)</h2>
-        <p className="text-sm text-gray-500 mt-1">
+    <Card>
+      <CardHeader>
+        <CardTitle>Vérification d&apos;identité (KYC)</CardTitle>
+        <CardDescription>
           Obligatoire pour publier des annonces et répondre aux demandes. Formats :
           JPEG, PNG, PDF — max 2 Mo par fichier.
-        </p>
-      </div>
+        </CardDescription>
+      </CardHeader>
 
-      {kyc?.status === "PENDING" && (
-        <div className="bg-amber-50 border border-amber-100 text-amber-900 text-sm rounded-lg px-4 py-3">
-          Dossier en cours de vérification par notre équipe.
-          {kyc.submittedAt && (
-            <span className="text-amber-700 block text-xs mt-1">
-              Envoyé le{" "}
-              {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          )}
-        </div>
-      )}
-
-      {kyc?.status === "APPROVED" && (
-        <div className="bg-brand-50 border border-brand-100 text-brand-800 text-sm rounded-lg px-4 py-3">
-          Identité vérifiée
-          {kyc.submittedAt && (
-            <span className="text-brand-600 block text-xs mt-1">
-              Validée le{" "}
-              {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
-                day: "numeric",
-                month: "long",
-                year: "numeric",
-              })}
-            </span>
-          )}
-        </div>
-      )}
-
-      <div className="border border-gray-100 rounded-xl p-4 max-w-lg">
-        <h3 className="text-sm font-medium text-gray-800 mb-1">
-          Carte d&apos;identité (CIN) *
-        </h3>
-        <p className="text-xs text-gray-500 mb-3">
-          1 fichier minimum, 2 maximum (recto / verso).
-        </p>
-        <div className="flex flex-col gap-2">
-          <input
-            ref={cin1Ref}
-            type="file"
-            accept={ACCEPT}
-            className="hidden"
-            onChange={(e) => handleFileChange(1, e)}
-          />
-          <input
-            ref={cin2Ref}
-            type="file"
-            accept={ACCEPT}
-            className="hidden"
-            onChange={(e) => handleFileChange(2, e)}
-          />
-          <button
-            type="button"
-            disabled={uploading != null || cinDocs.length >= 2}
-            onClick={() => cin1Ref.current?.click()}
-            className="text-sm border border-brand-200 text-brand-700 px-3 py-2 rounded-lg hover:bg-brand-50 disabled:opacity-50"
-          >
-            {uploading === "CIN-1"
-              ? "Envoi…"
-              : cinDocs.some((d) => d.cinSlot === 1)
-                ? "Remplacer CIN (fichier 1)"
-                : "Ajouter CIN (fichier 1)"}
-          </button>
-          <button
-            type="button"
-            disabled={uploading != null || cinDocs.length >= 2}
-            onClick={() => cin2Ref.current?.click()}
-            className="text-sm border border-gray-200 text-gray-700 px-3 py-2 rounded-lg hover:bg-gray-50 disabled:opacity-50"
-          >
-            {uploading === "CIN-2"
-              ? "Envoi…"
-              : cinDocs.some((d) => d.cinSlot === 2)
-                ? "Remplacer CIN (fichier 2)"
-                : "Ajouter CIN (fichier 2 — optionnel)"}
-          </button>
-        </div>
-        {cinDocs.length > 0 && (
-          <ul className="mt-3">{cinDocs.map(renderDocRow)}</ul>
+      <CardContent className="flex flex-col gap-5">
+        {kyc?.status === "PENDING" && (
+          <StatusAlert variant="info" className="border-amber-100 bg-amber-50 text-amber-900">
+            Dossier en cours de vérification par notre équipe.
+            {kyc.submittedAt && (
+              <span className="text-amber-700 block text-xs mt-1">
+                Envoyé le{" "}
+                {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+          </StatusAlert>
         )}
-      </div>
 
-      {kyc?.status !== "APPROVED" && kyc?.status !== "PENDING" && (
-        <button
-          type="button"
-          onClick={handleSubmit}
-          disabled={!kyc?.isComplete || submitting}
-          className="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50 w-fit"
-        >
-          {submitting ? "Envoi…" : "Envoyer pour vérification"}
-        </button>
-      )}
+        {kyc?.status === "APPROVED" && (
+          <StatusAlert variant="success">
+            Identité vérifiée
+            {kyc.submittedAt && (
+              <span className="block text-xs mt-1 opacity-80">
+                Validée le{" "}
+                {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </span>
+            )}
+          </StatusAlert>
+        )}
 
-      {kyc?.status === "APPROVED" && (
-        <p className="text-xs text-gray-500">
-          Tout nouvel envoi ou remplacement de document réinitialise la
-          vérification : validez à nouveau pour réactiver vos annonces.
-        </p>
-      )}
+        <div className="border border-border rounded-xl p-4 max-w-lg">
+          <h3 className="text-sm font-medium mb-1">Carte d&apos;identité (CIN) *</h3>
+          <p className="text-xs text-muted-foreground mb-3">
+            1 fichier minimum, 2 maximum (recto / verso).
+          </p>
+          <div className="flex flex-col gap-2">
+            <input
+              ref={cin1Ref}
+              type="file"
+              accept={ACCEPT}
+              className="hidden"
+              onChange={(e) => handleFileChange(1, e)}
+            />
+            <input
+              ref={cin2Ref}
+              type="file"
+              accept={ACCEPT}
+              className="hidden"
+              onChange={(e) => handleFileChange(2, e)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploading != null || cinDocs.length >= 2}
+              onClick={() => cin1Ref.current?.click()}
+            >
+              {uploading === "CIN-1"
+                ? "Envoi…"
+                : cinDocs.some((d) => d.cinSlot === 1)
+                  ? "Remplacer CIN (fichier 1)"
+                  : "Ajouter CIN (fichier 1)"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={uploading != null || cinDocs.length >= 2}
+              onClick={() => cin2Ref.current?.click()}
+            >
+              {uploading === "CIN-2"
+                ? "Envoi…"
+                : cinDocs.some((d) => d.cinSlot === 2)
+                  ? "Remplacer CIN (fichier 2)"
+                  : "Ajouter CIN (fichier 2 — optionnel)"}
+            </Button>
+          </div>
+          {cinDocs.length > 0 && (
+            <ul className="mt-3">{cinDocs.map(renderDocRow)}</ul>
+          )}
+        </div>
 
-      {error && <p className="text-red-500 text-sm">{error}</p>}
-      {success && <p className="text-brand-700 text-sm">{success}</p>}
-    </div>
+        {kyc?.status !== "APPROVED" && kyc?.status !== "PENDING" && (
+          <Button
+            type="button"
+            onClick={handleSubmit}
+            disabled={!kyc?.isComplete || submitting}
+            className="w-fit"
+          >
+            {submitting ? "Envoi…" : "Envoyer pour vérification"}
+          </Button>
+        )}
+
+        {kyc?.status === "APPROVED" && (
+          <p className="text-xs text-muted-foreground">
+            Tout nouvel envoi ou remplacement de document réinitialise la
+            vérification : validez à nouveau pour réactiver vos annonces.
+          </p>
+        )}
+
+        {error && <StatusAlert variant="error">{error}</StatusAlert>}
+        {success && <StatusAlert variant="success">{success}</StatusAlert>}
+      </CardContent>
+
+      <ConfirmDialog
+        open={deleteTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Supprimer le document"
+        description={
+          deleteTarget
+            ? `Supprimer « ${deleteTarget.originalName} » ?`
+            : ""
+        }
+        confirmLabel="Supprimer"
+        destructive
+        onConfirm={() => {
+          if (deleteTarget) deleteDocument(deleteTarget);
+        }}
+      />
+    </Card>
   );
 }

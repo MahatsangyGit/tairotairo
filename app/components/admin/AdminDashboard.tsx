@@ -1,43 +1,28 @@
 "use client";
 
-import { useState } from "react";
 import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminSpotlightPanel from "@/components/admin/AdminSpotlightPanel";
 import AdminKycPanel from "@/components/admin/AdminKycPanel";
-
-const TABS = [
-  { id: "stats", label: "Statistiques" },
-  { id: "kyc", label: "Vérification KYC" },
-  { id: "subscriptions", label: "Abonnements" },
-] as const;
-
-type TabId = (typeof TABS)[number]["id"];
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
-  const [tab, setTab] = useState<TabId>("stats");
-
   return (
-    <div>
-      <nav className="flex gap-1 mb-8 border-b border-neutral-200">
-        {TABS.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            onClick={() => setTab(t.id)}
-            className={`px-4 py-2.5 text-sm font-medium border-b-2 -mb-px transition-colors ${
-              tab === t.id
-                ? "border-brand-600 text-brand-600"
-                : "border-transparent text-neutral-500 hover:text-neutral-800"
-            }`}
-          >
-            {t.label}
-          </button>
-        ))}
-      </nav>
+    <Tabs defaultValue="stats" className="gap-8">
+      <TabsList variant="line" className="w-full justify-start border-b border-border rounded-none pb-0">
+        <TabsTrigger value="stats">Statistiques</TabsTrigger>
+        <TabsTrigger value="kyc">Vérification KYC</TabsTrigger>
+        <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
+      </TabsList>
 
-      {tab === "stats" && <AdminStatsPanel />}
-      {tab === "kyc" && <AdminKycPanel />}
-      {tab === "subscriptions" && <AdminSpotlightPanel />}
-    </div>
+      <TabsContent value="stats">
+        <AdminStatsPanel />
+      </TabsContent>
+      <TabsContent value="kyc">
+        <AdminKycPanel />
+      </TabsContent>
+      <TabsContent value="subscriptions">
+        <AdminSpotlightPanel />
+      </TabsContent>
+    </Tabs>
   );
 }

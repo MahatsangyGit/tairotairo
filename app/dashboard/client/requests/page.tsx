@@ -8,6 +8,7 @@ import ClientNav from "@/components/layout/ClientNav";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import { formatSchedule } from "@/lib/datetime-slot";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface ServiceRequest {
   id: string;
@@ -59,6 +60,7 @@ export default function ClientRequestsPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RequestForm>(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
@@ -217,9 +219,7 @@ export default function ClientRequestsPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Supprimer cette demande ?")) return;
-
+  const runDelete = async (id: string) => {
     setActionError("");
 
     try {
@@ -233,6 +233,7 @@ export default function ClientRequestsPage() {
 
       setRequests((prev) => prev.filter((r) => r.id !== id));
       if (editingId === id) resetForm();
+      setDeleteTarget(null);
     } catch {
       setActionError("Une erreur est survenue");
     }
@@ -489,7 +490,7 @@ export default function ClientRequestsPage() {
                     {request.open ? "Fermer" : "Rouvrir"}
                   </button>
                   <button
-                    onClick={() => handleDelete(request.id)}
+                    onClick={() => setDeleteTarget(request.id)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50"
                   >
                     Supprimer
@@ -500,6 +501,20 @@ export default function ClientRequestsPage() {
           </div>
         )}
       </div>
+
+      <ConfirmDialog
+        open={deleteTarget != null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteTarget(null);
+        }}
+        title="Supprimer la demande"
+        description="Supprimer cette demande ?"
+        confirmLabel="Supprimer"
+        destructive
+        onConfirm={() => {
+          if (deleteTarget) runDelete(deleteTarget);
+        }}
+      />
     </div>
   );
 }

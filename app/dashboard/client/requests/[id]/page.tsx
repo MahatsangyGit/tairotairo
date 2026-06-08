@@ -12,6 +12,7 @@ import {
   effectiveResponseStatus,
   RequestResponseStatus,
 } from "@/lib/request-response-status";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 
 interface Provider {
   id: string;
@@ -51,6 +52,10 @@ export default function ClientRequestProposalsPage() {
   const [actionError, setActionError] = useState("");
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState("");
+  const [pendingAction, setPendingAction] = useState<{
+    responseId: string;
+    status: RequestResponseStatus;
+  } | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -98,17 +103,10 @@ export default function ClientRequestProposalsPage() {
     fetchData();
   }, [fetchData]);
 
-  const handleStatusChange = async (
+  const runStatusChange = async (
     responseId: string,
     status: RequestResponseStatus
   ) => {
-    const confirmMsg =
-      status === "ACCEPTED"
-        ? "Accepter cette proposition ? La demande sera fermée et les autres propositions refusées."
-        : "Refuser cette proposition ?";
-
-    if (!confirm(confirmMsg)) return;
-
     setUpdatingId(responseId);
     setActionError("");
     setSuccessMessage("");
@@ -133,6 +131,7 @@ export default function ClientRequestProposalsPage() {
         );
       }
 
+      setPendingAction(null);
       await fetchData();
     } catch {
       setActionError("Une erreur est survenue");
@@ -142,6 +141,20 @@ export default function ClientRequestProposalsPage() {
   };
 
   const pendingCount = responses.filter((r) => r.status === "PENDING").length;
+
+  const dialogTitle =
+    pendingAction?.status === "ACCEPTED"
+      ? "Accepter la proposition"
+      : pendingAction?.status === "REJECTED"
+        ? "Refuser la proposition"
+        : "";
+
+  const dialogDescription =
+    pendingAction?.status === "ACCEPTED"
+      ? "Accepter cette proposition ? La demande sera fermée et les autres propositions refusées."
+      : pendingAction?.status === "REJECTED"
+        ? "Refuser cette proposition ?"
+        : "";
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -289,14 +302,18 @@ export default function ClientRequestProposalsPage() {
                   {displayStatus === "PENDING" && request.open && (
                     <div className="flex gap-2 pt-4 border-t border-gray-100">
                       <button
-                        onClick={() => handleStatusChange(response.id, "ACCEPTED")}
+                        onClick={() =>
+                          setPendingAction({ responseId: response.id, status: "ACCEPTED" })
+                        }
                         disabled={updatingId === response.id}
                         className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50"
                       >
                         {updatingId === response.id ? "..." : "Accepter"}
                       </button>
                       <button
-                        onClick={() => handleStatusChange(response.id, "REJECTED")}
+                        onClick={() =>
+                          setPendingAction({ responseId: response.id, status: "REJECTED" })
+                        }
                         disabled={updatingId === response.id}
                         className="border border-red-200 text-red-600 px-4 py-2 rounded-lg text-sm font-medium hover:bg-red-50 disabled:opacity-50"
                       >
@@ -322,6 +339,25 @@ export default function ClientRequestProposalsPage() {
           </>
         )}
       </div>
+
+      <ConfirmDialog
+        open={pendingAction != null}
+        onOpenChange={(open) => {
+          if (!open) setPendingAction(null);
+        }}
+        title={dialogTitle}
+        description={dialogDescription}
+        confirmLabel={
+          pendingAction?.status === "ACCEPTED" ? "Accepter" : "Refuser"
+        }
+        destructive={pendingAction?.status === "REJECTED"}
+        loading={updatingId != null}
+        onConfirm={() => {
+          if (pendingAction) {
+            runStatusChange(pendingAction.responseId, pendingAction.status);
+          }
+        }}
+      />
     </div>
   );
 }
