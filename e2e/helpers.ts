@@ -1,0 +1,125 @@
+import type { APIRequestContext } from "@playwright/test";
+import pg from "pg";
+
+const PASSWORD = "E2eTest!2026";
+
+function getPool() {
+  return new pg.Pool({ connectionString: process.env.DATABASE_URL! });
+}
+
+export const E2E_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==",
+  "base64"
+);
+
+export interface TestUsers {
+  runId: string;
+  provider: { email: string; password: string; id: string };
+  client: { email: string; password: string; id: string };
+  admin: { email: string; password: string; id: string };
+}
+
+export async function createTestUsers(runId: string): Promise<TestUsers> {
+  const providerEmail = `e2e-provider-${runId}@test.local`;
+  const clientEmail = `e2e-client-${runId}@test.local`;
+  const adminEmail = `e2e-admin-${runId}@test.local`;
+
+  const pool = getPool();
+  try {
+    await pool.query(`DELETE FROM "User" WHERE email = ANY($1)`, [
+      [providerEmail, clientEmail, adminEmail],
+    ]);
+  } finally {
+    await pool.end();
+  }
+
+  return {
+    runId,
+    provider: { email: providerEmail, password: PASSWORD, id: "" },
+    client: { email: clientEmail, password: PASSWORD, id: "" },
+    admin: { email: adminEmail, password: PASSWORD, id: "" },
+  };
+}
+
+export async function registerUser(
+  request: APIRequestContext,
+  data: {
+    name: string;
+    email: string;
+    password: string;
+    role: "CLIENT" | "PROVIDER";
+    phone?: string;
+  }
+) {
+  const res = await request.post("/api/auth/register", { data });
+  const body = await res.json();
+  if (!res.ok()) {
+    throw new Error(`Register failed (${res.status()}): ${body.error ?? JSON.stringify(body)}`);
+  }
+  return body;
+}
+
+export async function login(
+  request: APIRequestContext,
+  email: string,
+  password: string
+) {
+  const res = await request.post("/api/auth/login", {
+    data: { email, password },
+  });
+  const body = await res.json();
+  if (!res.ok()) {
+    throw new Error(`Login failed (${res.status()}): ${body.error ?? JSON.stringify(body)}`);
+  }
+  return body.user as { id: string; role: string };
+}
+
+export async function promoteToAdmin(email: string) {
+  const pool = getPool();
+  try {
+    await pool.query(`UPDATE "User" SET role = 'ADMIN' WHERE email = $1`, [email]);
+  } finally {
+    await pool.end();
+  }
+}
+
+export async function cleanupTestUsers(emails: string[]) {
+  const pool = getPool();
+  try {
+    const { rows } = await pool.query<{ id: string }>(
+      `SELECT id FROM "User" WHERE email = ANY($1)`,
+      [emails]
+    );
+    const ids = rows.map((r) => r.id);
+    if (ids.length === 0) return;
+
+    await pool.query(
+      `DELETE FROM "Booking" WHERE "clientId" = ANY($1) OR "providerId" = ANY($1)`,
+      [ids]
+    );
+    await pool.query(
+      `DELETE FROM "ProviderKycDocument" WHERE "userId" = ANY($1)`,
+      [ids]
+    );
+    await pool.query(
+      `DELETE FROM "ProviderSubscriptionPayment" WHERE "providerId" = ANY($1)`,
+      [ids]
+    );
+    await pool.query(
+      `DELETE FROM "ProviderSubscription" WHERE "providerId" = ANY($1)`,
+      [ids]
+    );
+    await pool.query(`DELETE FROM "Service" WHERE "providerId" = ANY($1)`, [ids]);
+    await pool.query(`DELETE FROM "User" WHERE id = ANY($1)`, [ids]);
+  } finally {
+    await pool.end();
+  }
+}
+
+export async function futureBookingDate() {
+  const d = new Date();
+  d.setDate(d.getDate() + 14);
+  return d.toISOString().slice(0, 10);
+}
+
+export { PASSWORD };
