@@ -507,50 +507,68 @@ export default function ProviderServicesPage() {
             {services.map((service) => (
               <div
                 key={service.id}
-                className="bg-card rounded-2xl border border-border shadow-sm p-6"
+                className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden"
               >
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <div>
-                    <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
-                      {service.category}
-                    </span>
-                    <h3 className="font-semibold text-foreground">{service.title}</h3>
-                    <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
-                      {service.description}
-                    </p>
-                  </div>
-                  <div className="flex flex-col items-end gap-1 shrink-0">
-                    <span
-                      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
-                        service.available
-                          ? "bg-brand-50 text-brand-700 border-brand-200"
-                          : "bg-muted/40 text-muted-foreground border-gray-200"
-                      }`}
-                    >
-                      {service.available ? "En ligne" : "Hors ligne"}
-                    </span>
-                    {service.featuredOnHomepage && (
-                      <span className="text-xs font-medium text-amber-700">
-                        En avant sur l&apos;accueil
+                <div className="flex flex-col sm:flex-row gap-4 p-6">
+                  {service.coverImageUrl ? (
+                    <img
+                      src={service.coverImageUrl}
+                      alt={service.title}
+                      className="w-full sm:w-32 sm:h-32 h-40 object-cover rounded-xl bg-muted shrink-0"
+                    />
+                  ) : (
+                    <div className="w-full sm:w-32 sm:h-32 h-40 rounded-xl bg-muted/60 border border-dashed border-border flex items-center justify-center shrink-0">
+                      <span className="text-xs text-muted-foreground text-center px-2">
+                        Aucune photo
                       </span>
-                    )}
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <div className="min-w-0">
+                        <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-2">
+                          {service.category}
+                        </span>
+                        <h3 className="font-semibold text-foreground">{service.title}</h3>
+                        <p className="text-muted-foreground text-sm mt-1 line-clamp-2">
+                          {service.description}
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        <span
+                          className={`text-xs font-medium px-2.5 py-1 rounded-full border ${
+                            service.available
+                              ? "bg-brand-50 text-brand-700 border-brand-200"
+                              : "bg-muted/40 text-muted-foreground border-border"
+                          }`}
+                        >
+                          {service.available ? "En ligne" : "Hors ligne"}
+                        </span>
+                        {service.featuredOnHomepage && (
+                          <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                            En avant sur l&apos;accueil
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+                      <span className="text-brand-600 font-bold">
+                        {service.price.toLocaleString("fr-MG")} Ar
+                      </span>
+                      <span>📍 {service.location}</span>
+                      <Link
+                        href={`/services/${service.id}`}
+                        className="text-brand-600 hover:underline"
+                      >
+                        Voir la fiche publique →
+                      </Link>
+                    </div>
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="text-brand-600 font-bold">
-                    {service.price.toLocaleString("fr-MG")} Ar
-                  </span>
-                  <span>📍 {service.location}</span>
-                  <Link
-                    href={`/services/${service.id}`}
-                    className="text-brand-600 hover:underline"
-                  >
-                    Voir la fiche publique →
-                  </Link>
-                </div>
-
-                <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
+                <div className="flex flex-wrap gap-2 px-6 pb-6 pt-4 border-t border-border">
                   <button
                     onClick={() => startEdit(service)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-brand-400"
