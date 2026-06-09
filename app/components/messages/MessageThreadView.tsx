@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import PriceNegotiationPanel from "@/components/messages/PriceNegotiationPanel";
+import UserAvatar from "@/components/profile/UserAvatar";
 import type { SerializedMessage } from "@/lib/message-serialize";
 import type { NegotiationContext } from "@/lib/price-negotiation-types";
 
@@ -209,7 +210,14 @@ export default function MessageThreadView({
         >
           ← Retour aux messages
         </Link>
-        <div className="bg-card rounded-2xl border border-border shadow-sm p-4">
+        <div className="bg-card rounded-2xl border border-border shadow-sm p-4 flex items-start gap-3">
+          <UserAvatar
+            name={conversation.counterparty.name}
+            avatar={conversation.counterparty.avatar}
+            userId={conversation.counterparty.id}
+            size="md"
+          />
+          <div className="min-w-0">
           <p className="font-semibold text-foreground">
             {conversation.counterparty.name}
           </p>
@@ -224,6 +232,7 @@ export default function MessageThreadView({
           {conversation.isDirect && !negotiation && (
             <p className="text-xs text-muted-foreground mt-1">Discussion directe</p>
           )}
+          </div>
         </div>
       </div>
 

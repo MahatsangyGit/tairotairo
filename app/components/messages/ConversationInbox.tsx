@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
+import UserAvatar from "@/components/profile/UserAvatar";
 
 interface ConversationItem {
   id: string;
@@ -93,9 +94,13 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
             href={c.href}
             className="flex items-start gap-4 bg-card rounded-2xl border border-border shadow-sm p-4 hover:border-brand-200 transition-colors"
           >
-            <div className="w-11 h-11 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center font-semibold shrink-0">
-              {c.counterparty.name.charAt(0).toUpperCase()}
-            </div>
+            <UserAvatar
+              name={c.counterparty.name}
+              avatar={c.counterparty.avatar}
+              userId={c.counterparty.id}
+              size="md"
+              className="w-11 h-11"
+            />
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2">
                 <p className="font-semibold text-foreground truncate">{c.counterparty.name}</p>

@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { buildAvatarApiPath } from "@/lib/avatar";
+
 const sizeClasses = {
   xs: "w-7 h-7 text-xs",
   sm: "w-8 h-8 text-sm",
@@ -11,6 +14,7 @@ const sizeClasses = {
 interface UserAvatarProps {
   name: string;
   avatar: string | null | undefined;
+  userId?: string;
   size?: keyof typeof sizeClasses;
   className?: string;
 }
@@ -18,17 +22,21 @@ interface UserAvatarProps {
 export default function UserAvatar({
   name,
   avatar,
+  userId,
   size = "md",
   className = "",
 }: UserAvatarProps) {
+  const [imageFailed, setImageFailed] = useState(false);
   const initial = name.trim().charAt(0).toUpperCase() || "?";
   const dim = sizeClasses[size];
+  const imageSrc = avatar ?? (userId ? buildAvatarApiPath(userId) : null);
 
-  if (avatar) {
+  if (imageSrc && !imageFailed) {
     return (
       <img
-        src={avatar}
+        src={imageSrc}
         alt={name}
+        onError={() => setImageFailed(true)}
         className={`${dim} rounded-full object-cover shrink-0 bg-gray-100 ${className}`}
       />
     );
