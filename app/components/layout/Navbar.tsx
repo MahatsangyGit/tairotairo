@@ -7,6 +7,7 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import MessageInboxLink from "@/components/messages/MessageInboxLink";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
+import { isNavLinkActive } from "@/lib/nav-active";
 import { SITE_NAME } from "@/lib/site";
 
 interface AuthUser {
@@ -91,8 +92,7 @@ export default function Navbar() {
         ? "/dashboard/provider/messages"
         : null;
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (href: string) => isNavLinkActive(pathname, href);
 
   const navLinkClass = (href: string) =>
     `text-sm font-medium transition-colors ${

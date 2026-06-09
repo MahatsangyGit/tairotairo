@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isNavLinkActive } from "@/lib/nav-active";
 
 const LINKS = [
   { href: "/dashboard/client", label: "Mes réservations" },
@@ -15,10 +16,7 @@ export default function ClientNav() {
   return (
     <nav className="flex gap-1 mb-8 border-b border-border">
       {LINKS.map((link) => {
-        const isRoot = link.href === "/dashboard/client";
-        const active = isRoot
-          ? pathname === link.href
-          : pathname === link.href || pathname.startsWith(`${link.href}/`);
+        const active = isNavLinkActive(pathname, link.href);
         return (
           <Link
             key={link.href}

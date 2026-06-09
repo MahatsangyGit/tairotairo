@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { isNavLinkActive } from "@/lib/nav-active";
 
 interface MessageInboxLinkProps {
   href: string;
@@ -15,7 +16,7 @@ export default function MessageInboxLink({
 }: MessageInboxLinkProps) {
   const pathname = usePathname();
   const [unreadTotal, setUnreadTotal] = useState(0);
-  const active = pathname === href || pathname.startsWith(`${href}/`);
+  const active = isNavLinkActive(pathname, href);
 
   const fetchUnread = useCallback(async () => {
     try {
