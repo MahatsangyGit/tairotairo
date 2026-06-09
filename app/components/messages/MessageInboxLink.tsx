@@ -3,7 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MessageCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { isNavLinkActive } from "@/lib/nav-active";
+import { cn } from "@/lib/utils";
 
 interface MessageInboxLinkProps {
   href: string;
@@ -58,33 +61,31 @@ export default function MessageInboxLink({
   }
 
   return (
-    <Link
-      href={href}
-      className={`relative p-2 rounded-lg transition-colors ${
-        active
-          ? "text-brand-600 bg-brand-50"
-          : "text-muted-foreground hover:text-foreground hover:bg-muted"
-      }`}
-      title="Messages"
-      aria-label={
-        unreadTotal > 0
-          ? `Messages (${unreadTotal} non lu${unreadTotal > 1 ? "s" : ""})`
-          : "Messages"
-      }
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" aria-hidden>
-        <path
-          d="M21 12c0 4.418-4.03 8-9 8a9.86 9.86 0 0 1-4-.8L3 21l1.8-4.2A7.96 7.96 0 0 1 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8Z"
-          stroke="currentColor"
-          strokeWidth="1.75"
-          strokeLinejoin="round"
-        />
-      </svg>
-      {unreadTotal > 0 && (
-        <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-brand-600 text-white text-[10px] font-bold rounded-full px-1 ring-2 ring-white">
-          {unreadTotal > 9 ? "9+" : unreadTotal}
-        </span>
+    <Button
+      variant="ghost"
+      size="icon"
+      className={cn(
+        "relative size-9 text-muted-foreground hover:text-foreground",
+        active && "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
       )}
-    </Link>
+      asChild
+    >
+      <Link
+        href={href}
+        title="Messages"
+        aria-label={
+          unreadTotal > 0
+            ? `Messages (${unreadTotal} non lu${unreadTotal > 1 ? "s" : ""})`
+            : "Messages"
+        }
+      >
+        <MessageCircle className="size-4" />
+        {unreadTotal > 0 && (
+          <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-brand-600 text-white text-[10px] font-bold rounded-full px-1 ring-2 ring-background">
+            {unreadTotal > 9 ? "9+" : unreadTotal}
+          </span>
+        )}
+      </Link>
+    </Button>
   );
 }

@@ -2,7 +2,17 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
+import { Bell } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { cn } from "@/lib/utils";
 
 interface Notification {
   id: string;
@@ -90,90 +100,104 @@ export default function NotificationBell() {
 
   return (
     <div className="relative" ref={panelRef}>
-      <button
-        onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg text-muted-foreground hover:bg-muted"
-        aria-label="Notifications"
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon"
+        className={cn(
+          "relative size-9 text-muted-foreground hover:text-foreground",
+          open && "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+        )}
+        onClick={() => setOpen((prev) => !prev)}
+        aria-label={
+          unreadCount > 0
+            ? `Notifications (${unreadCount} non lue${unreadCount > 1 ? "s" : ""})`
+            : "Notifications"
+        }
+        aria-expanded={open}
       >
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6 6 0 00-9.33-5.03M9 17v1a3 3 0 106 0v-1m-6 0h6"
-          />
-        </svg>
+        <Bell className="size-4" />
         {unreadCount > 0 && (
-          <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-red-500 text-white text-[10px] font-bold rounded-full px-1">
+          <span className="absolute top-0.5 right-0.5 min-w-[18px] h-[18px] flex items-center justify-center bg-brand-600 text-white text-[10px] font-bold rounded-full px-1 ring-2 ring-background">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
-      </button>
+      </Button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-card rounded-xl shadow-lg border border-border z-50 overflow-hidden">
-          <div className="flex items-center justify-between gap-2 px-4 py-3 border-b border-border">
-            <h3 className="font-semibold text-foreground shrink-0">Notifications</h3>
+        <Card
+          size="sm"
+          className="absolute right-0 mt-2 w-80 sm:w-96 z-50 gap-0 py-0 shadow-lg"
+        >
+          <CardHeader className="border-b border-border py-3">
+            <CardTitle>Notifications</CardTitle>
             {notifications.length > 0 && (
-              <div className="flex items-center gap-2 shrink-0">
-                {unreadCount > 0 && (
-                  <button
+              <CardAction>
+                <div className="flex items-center gap-1">
+                  {unreadCount > 0 && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      size="xs"
+                      disabled={loading}
+                      onClick={markAllRead}
+                    >
+                      Tout marquer lu
+                    </Button>
+                  )}
+                  <Button
                     type="button"
-                    onClick={markAllRead}
+                    variant="link"
+                    size="xs"
                     disabled={loading}
-                    className="text-xs text-brand-600 hover:underline disabled:opacity-50"
+                    className="text-destructive hover:text-destructive"
+                    onClick={() => setShowClearDialog(true)}
                   >
-                    Tout marquer lu
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setShowClearDialog(true)}
-                  disabled={loading}
-                  className="text-xs text-red-600 hover:underline disabled:opacity-50"
-                >
-                  Effacer les notifications
-                </button>
-              </div>
+                    Effacer
+                  </Button>
+                </div>
+              </CardAction>
             )}
-          </div>
+          </CardHeader>
 
-          <div className="max-h-80 overflow-y-auto">
+          <CardContent className="p-0 max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
-              <p className="text-muted-foreground text-sm text-center py-8">
+              <p className="text-muted-foreground text-sm text-center py-10 px-4">
                 Aucune notification
               </p>
             ) : (
-              notifications.map((n) => (
-                <button
-                  key={n.id}
-                  onClick={() => markAsRead(n.id, n.link)}
-                  className={`w-full text-left px-4 py-3 border-b border-border/50 hover:bg-muted/50 transition-colors ${
-                    !n.read ? "bg-brand-50/50 dark:bg-brand-900/20" : ""
-                  }`}
-                >
-                  <p className="font-medium text-foreground text-sm">{n.title}</p>
-                  <p className="text-muted-foreground text-xs mt-0.5 line-clamp-2">
-                    {n.body}
-                  </p>
-                  <p className="text-muted-foreground text-[10px] mt-1">
-                    {new Date(n.createdAt).toLocaleString("fr-MG", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
-                </button>
-              ))
+              <ul className="flex flex-col">
+                {notifications.map((n) => (
+                  <li key={n.id}>
+                    <button
+                      type="button"
+                      onClick={() => markAsRead(n.id, n.link)}
+                      className={cn(
+                        "w-full text-left px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
+                        !n.read && "bg-brand-50/50 dark:bg-brand-900/20"
+                      )}
+                    >
+                      <p className="font-medium text-foreground text-sm">
+                        {n.title}
+                      </p>
+                      <p className="text-muted-foreground text-xs mt-0.5 line-clamp-2">
+                        {n.body}
+                      </p>
+                      <p className="text-muted-foreground text-[10px] mt-1">
+                        {new Date(n.createdAt).toLocaleString("fr-MG", {
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })}
+                      </p>
+                    </button>
+                  </li>
+                ))}
+              </ul>
             )}
-          </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
 
       <ConfirmDialog
