@@ -5,6 +5,7 @@ import {
   requestOrderBy,
   type ParsedListSearch,
 } from "@/lib/advanced-search";
+import { withCoverImageUrl } from "@/lib/listing-cover";
 
 export async function searchPublicRequests(params: ParsedListSearch) {
   const where = buildRequestWhere(params);
@@ -21,7 +22,10 @@ export async function searchPublicRequests(params: ParsedListSearch) {
     });
 
     const { items, pagination } = paginate(rows, params.page, params.limit);
-    return { requests: items, pagination };
+    return {
+      requests: items.map((r) => withCoverImageUrl("request", r)),
+      pagination,
+    };
   }
 
   const [requests, total] = await Promise.all([
@@ -38,7 +42,7 @@ export async function searchPublicRequests(params: ParsedListSearch) {
   ]);
 
   return {
-    requests,
+    requests: requests.map((r) => withCoverImageUrl("request", r)),
     pagination: {
       total,
       page: params.page,

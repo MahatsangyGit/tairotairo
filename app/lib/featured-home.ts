@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { averageRating } from "@/lib/advanced-search";
 import { isSubscriptionActive } from "@/lib/subscription";
+import { withCoverImageUrl } from "@/lib/listing-cover";
 
 export const MAX_FEATURED_PROVIDERS = 8;
 export const MAX_FEATURED_SERVICES = 8;
@@ -85,14 +86,15 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
   return rows.map((s) => {
     const { reviewsReceived, ...provider } = s.provider;
     const rating = averageRating(reviewsReceived);
-    return {
+    return withCoverImageUrl("service", {
       id: s.id,
       title: s.title,
       description: s.description,
       price: s.price,
       category: s.category,
       location: s.location,
+      coverImageMime: s.coverImageMime,
       provider: { ...provider, ...rating },
-    };
+    });
   });
 }

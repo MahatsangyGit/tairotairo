@@ -9,6 +9,7 @@ export interface FeaturedServiceCard {
   price: number;
   category: string;
   location: string;
+  coverImageUrl: string | null;
   provider: {
     id: string;
     name: string;
@@ -45,6 +46,13 @@ export default function FeaturedServicesSection({
             href={`/services/${service.id}`}
             className="group bg-card rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-brand-200 transition-all overflow-hidden"
           >
+            {service.coverImageUrl && (
+              <img
+                src={service.coverImageUrl}
+                alt=""
+                className="w-full h-28 object-cover bg-muted"
+              />
+            )}
             <div className="p-4">
               <span className="text-xs bg-brand-50 text-brand-700 px-2 py-0.5 rounded-full font-medium">
                 {service.category}

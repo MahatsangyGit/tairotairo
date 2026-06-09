@@ -30,6 +30,7 @@ interface ServiceRequest {
   budget: number;
   category: string;
   location: string;
+  coverImageUrl: string | null;
   desiredDate: string | null;
   desiredSlotStart: string | null;
   desiredSlotEnd: string | null;
@@ -299,8 +300,16 @@ export default function PublicRequestsExplorer({
                 <Link
                   key={request.id}
                   href={`/requests/${request.id}`}
-                  className="group bg-card rounded-2xl border border-border p-5 hover:shadow-md hover:border-neutral-300 transition-all"
+                  className="group bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md hover:border-neutral-300 transition-all"
                 >
+                  {request.coverImageUrl && (
+                    <img
+                      src={request.coverImageUrl}
+                      alt=""
+                      className="w-full h-36 object-cover bg-muted"
+                    />
+                  )}
+                  <div className="p-5">
                   <span className="inline-block bg-neutral-100 text-foreground text-xs font-medium px-2.5 py-1 rounded-full mb-3">
                     {request.category}
                   </span>
@@ -337,6 +346,7 @@ export default function PublicRequestsExplorer({
                     <span className="text-muted-foreground text-xs truncate">
                       {request.client.name}
                     </span>
+                  </div>
                   </div>
                 </Link>
               ))}

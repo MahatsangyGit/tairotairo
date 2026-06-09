@@ -26,6 +26,7 @@ interface Service {
   price:       number;
   category:    string;
   location:    string;
+  coverImageUrl: string | null;
   available:   boolean;
   provider:    Provider;
 }
@@ -203,7 +204,15 @@ export default function ServiceDetailPage() {
             <div className="lg:col-span-2 flex flex-col gap-6">
 
               {/* Card service */}
-              <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
+              <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                {service.coverImageUrl && (
+                  <img
+                    src={service.coverImageUrl}
+                    alt={service.title}
+                    className="w-full max-h-80 object-cover bg-muted"
+                  />
+                )}
+                <div className="p-8">
                 <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-4">
                   {service.category}
                 </span>
@@ -229,6 +238,7 @@ export default function ServiceDetailPage() {
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {service.description}
                 </p>
+                </div>
               </div>
 
               {/* Card prestataire */}

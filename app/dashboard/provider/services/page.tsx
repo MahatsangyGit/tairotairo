@@ -9,6 +9,8 @@ import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import ListingCoverField from "@/components/listings/ListingCoverField";
+import { syncListingCover } from "@/lib/listing-cover-sync";
 
 interface Service {
   id: string;
@@ -17,6 +19,8 @@ interface Service {
   price: number;
   category: string;
   location: string;
+  coverImageMime: string | null;
+  coverImageUrl: string | null;
   available: boolean;
   featuredOnHomepage: boolean;
   createdAt: string;
@@ -64,6 +68,9 @@ export default function ProviderServicesPage() {
   const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
   const [spotlightBusyId, setSpotlightBusyId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [removeCover, setRemoveCover] = useState(false);
+  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
 
   const fetchServices = useCallback(async () => {
     setLoading(true);
@@ -116,6 +123,9 @@ export default function ProviderServicesPage() {
     setEditingId(null);
     setShowForm(false);
     setActionError("");
+    setCoverFile(null);
+    setRemoveCover(false);
+    setCurrentCoverUrl(null);
   };
 
   const startEdit = (service: Service) => {
@@ -127,6 +137,9 @@ export default function ProviderServicesPage() {
       category: service.category,
       location: service.location,
     });
+    setCoverFile(null);
+    setRemoveCover(false);
+    setCurrentCoverUrl(service.coverImageUrl);
     setShowForm(true);
     setActionError("");
   };
@@ -173,7 +186,25 @@ export default function ProviderServicesPage() {
         return;
       }
 
-      if (editingId) {
+      const savedId = editingId ?? data.service.id;
+      const coverSync = await syncListingCover("service", savedId, {
+        file: coverFile,
+        removeExisting: removeCover,
+      });
+
+      if (!coverSync.ok) {
+        setActionError(
+          editingId
+            ? `Annonce enregistrée, mais photo : ${coverSync.error}`
+            : coverSync.error
+        );
+      }
+
+      const refreshRes = await fetch("/api/services?mine=true");
+      const refreshData = await refreshRes.json();
+      if (refreshRes.ok) {
+        setServices(refreshData.services);
+      } else if (editingId) {
         setServices((prev) =>
           prev.map((s) => (s.id === editingId ? data.service : s))
         );
@@ -181,7 +212,7 @@ export default function ProviderServicesPage() {
         setServices((prev) => [data.service, ...prev]);
       }
 
-      resetForm();
+      if (coverSync.ok) resetForm();
     } catch {
       setActionError("Une erreur est survenue");
     } finally {
@@ -349,6 +380,9 @@ export default function ProviderServicesPage() {
               setShowForm(true);
               setEditingId(null);
               setForm(EMPTY_FORM);
+              setCoverFile(null);
+              setRemoveCover(false);
+              setCurrentCoverUrl(null);
             }}
             className="mb-6 bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 transition-colors"
           >
@@ -401,6 +435,13 @@ export default function ProviderServicesPage() {
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
                 className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
+              />
+              <ListingCoverField
+                currentImageUrl={currentCoverUrl}
+                file={coverFile}
+                onFileChange={setCoverFile}
+                removeExisting={removeCover}
+                onRemoveExistingChange={setRemoveCover}
               />
               <div className="flex gap-2 pt-1">
                 <button

@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { parseListSearchParams } from "@/lib/advanced-search";
 import { searchPublicServices } from "@/lib/service-list-search";
+import { withCoverImageUrl } from "@/lib/listing-cover";
 
 // GET - Lister et rechercher les services (?mine=true pour le prestataire connecté)
 export async function GET(req: NextRequest) {
@@ -35,13 +36,16 @@ export async function GET(req: NextRequest) {
           price: true,
           category: true,
           location: true,
+          coverImageMime: true,
           available: true,
           featuredOnHomepage: true,
           createdAt: true,
         },
       });
 
-      return NextResponse.json({ services });
+      return NextResponse.json({
+        services: services.map((s) => withCoverImageUrl("service", s)),
+      });
     }
 
     const params = parseListSearchParams(searchParams);

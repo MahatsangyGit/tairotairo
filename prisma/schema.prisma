@@ -183,6 +183,7 @@ model Service {
   price       Float
   category    String
   location    String
+  coverImageMime String?
   available   Boolean   @default(true)
   featuredOnHomepage   Boolean   @default(false)
   featuredOnHomepageAt DateTime?
@@ -202,6 +203,7 @@ model ServiceRequest {
   budget      Float
   category    String
   location    String
+  coverImageMime String?
   desiredDate        DateTime?
   desiredSlotStart   String?
   desiredSlotEnd     String?

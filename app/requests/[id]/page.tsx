@@ -43,6 +43,7 @@ interface ServiceRequest {
   budget: number;
   category: string;
   location: string;
+  coverImageUrl: string | null;
   desiredDate: string | null;
   desiredSlotStart: string | null;
   desiredSlotEnd: string | null;
@@ -215,7 +216,15 @@ export default function RequestDetailPage() {
         {!loading && !error && request && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 flex flex-col gap-6">
-              <div className="bg-card rounded-2xl border border-border shadow-sm p-8">
+              <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
+                {request.coverImageUrl && (
+                  <img
+                    src={request.coverImageUrl}
+                    alt={request.title}
+                    className="w-full max-h-80 object-cover bg-muted"
+                  />
+                )}
+                <div className="p-8">
                 <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-4">
                   {request.category}
                 </span>
@@ -234,6 +243,7 @@ export default function RequestDetailPage() {
                 <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
                   {request.description}
                 </p>
+                </div>
               </div>
 
               <div className="bg-card rounded-2xl border border-border shadow-sm p-6">

@@ -9,6 +9,8 @@ import { SERVICE_CATEGORIES } from "@/lib/categories";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import ListingCoverField from "@/components/listings/ListingCoverField";
+import { syncListingCover } from "@/lib/listing-cover-sync";
 
 interface ServiceRequest {
   id: string;
@@ -17,6 +19,8 @@ interface ServiceRequest {
   budget: number;
   category: string;
   location: string;
+  coverImageMime: string | null;
+  coverImageUrl: string | null;
   desiredDate: string | null;
   desiredSlotStart: string | null;
   desiredSlotEnd: string | null;
@@ -61,6 +65,9 @@ export default function ClientRequestsPage() {
   const [form, setForm] = useState<RequestForm>(EMPTY_FORM);
   const [showForm, setShowForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [removeCover, setRemoveCover] = useState(false);
+  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
@@ -104,6 +111,9 @@ export default function ClientRequestsPage() {
     setEditingId(null);
     setShowForm(false);
     setActionError("");
+    setCoverFile(null);
+    setRemoveCover(false);
+    setCurrentCoverUrl(null);
   };
 
   const startEdit = (request: ServiceRequest) => {
@@ -123,6 +133,9 @@ export default function ClientRequestsPage() {
       slotStart: request.desiredSlotStart ?? "",
       slotEnd: request.desiredSlotEnd ?? "",
     });
+    setCoverFile(null);
+    setRemoveCover(false);
+    setCurrentCoverUrl(request.coverImageUrl);
     setShowForm(true);
     setActionError("");
   };
@@ -178,7 +191,25 @@ export default function ClientRequestsPage() {
         return;
       }
 
-      if (editingId) {
+      const savedId = editingId ?? data.request.id;
+      const coverSync = await syncListingCover("request", savedId, {
+        file: coverFile,
+        removeExisting: removeCover,
+      });
+
+      if (!coverSync.ok) {
+        setActionError(
+          editingId
+            ? `Demande enregistrée, mais photo : ${coverSync.error}`
+            : coverSync.error
+        );
+      }
+
+      const refreshRes = await fetch("/api/requests?mine=true");
+      const refreshData = await refreshRes.json();
+      if (refreshRes.ok) {
+        setRequests(refreshData.requests);
+      } else if (editingId) {
         setRequests((prev) =>
           prev.map((r) => (r.id === editingId ? data.request : r))
         );
@@ -186,7 +217,7 @@ export default function ClientRequestsPage() {
         setRequests((prev) => [data.request, ...prev]);
       }
 
-      resetForm();
+      if (coverSync.ok) resetForm();
     } catch {
       setActionError("Une erreur est survenue");
     } finally {
@@ -265,6 +296,9 @@ export default function ClientRequestsPage() {
               setShowForm(true);
               setEditingId(null);
               setForm(EMPTY_FORM);
+              setCoverFile(null);
+              setRemoveCover(false);
+              setCurrentCoverUrl(null);
             }}
             className="mb-6 bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-amber-700 transition-colors"
           >
@@ -317,6 +351,13 @@ export default function ClientRequestsPage() {
                 value={form.location}
                 onChange={(e) => setForm({ ...form, location: e.target.value })}
                 className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
+              />
+              <ListingCoverField
+                currentImageUrl={currentCoverUrl}
+                file={coverFile}
+                onFileChange={setCoverFile}
+                removeExisting={removeCover}
+                onRemoveExistingChange={setRemoveCover}
               />
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">

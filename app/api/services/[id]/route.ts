@@ -5,6 +5,8 @@ import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { isKycApproved } from "@/lib/kyc";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { clearServiceFeaturedIfNeeded } from "@/lib/provider-spotlight";
+import { withCoverImageUrl } from "@/lib/listing-cover";
+import { deleteListingCoverFiles } from "@/lib/listing-cover-storage";
 
 // ─── GET /api/services/[id] ───────────────────────────────────────────────────
 
@@ -71,7 +73,7 @@ export async function GET(
         : 0;
 
     return NextResponse.json({
-      service,
+      service: withCoverImageUrl("service", service),
       reviews,
       averageRating,
       totalReviews: reviews.length,
@@ -147,7 +149,7 @@ export async function PATCH(
 
     return NextResponse.json({
       message: "Service mis à jour",
-      service: updated,
+      service: withCoverImageUrl("service", updated),
     });
   } catch (error) {
     console.error("[PATCH /api/services/[id]]", error);
@@ -197,6 +199,7 @@ export async function DELETE(
       );
     }
 
+    await deleteListingCoverFiles("service", id);
     await prisma.service.delete({ where: { id } });
 
     return NextResponse.json({ message: "Service supprimé" });

@@ -3,6 +3,8 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
+import { withCoverImageUrl } from "@/lib/listing-cover";
+import { deleteListingCoverFiles } from "@/lib/listing-cover-storage";
 import {
   parseScheduleInput,
   scheduleFieldsForDb,
@@ -34,7 +36,9 @@ export async function GET(
       return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
     }
 
-    return NextResponse.json({ request });
+    return NextResponse.json({
+      request: withCoverImageUrl("request", request),
+    });
   } catch (error) {
     console.error("[GET /api/requests/[id]]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
@@ -130,7 +134,7 @@ export async function PATCH(
 
     return NextResponse.json({
       message: "Demande mise à jour",
-      request: updated,
+      request: withCoverImageUrl("request", updated),
     });
   } catch (error) {
     console.error("[PATCH /api/requests/[id]]", error);
@@ -163,6 +167,7 @@ export async function DELETE(
     }
 
     await snapshotBookingsForRequest(id);
+    await deleteListingCoverFiles("request", id);
     await prisma.serviceRequest.delete({ where: { id } });
 
     return NextResponse.json({ message: "Demande supprimée" });

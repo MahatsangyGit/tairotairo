@@ -7,6 +7,7 @@ import {
   parseScheduleInput,
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
+import { withCoverImageUrl } from "@/lib/listing-cover";
 
 // GET - Lister les demandes (?mine=true pour le client connecté)
 export async function GET(req: NextRequest) {
@@ -36,7 +37,9 @@ export async function GET(req: NextRequest) {
         },
       });
 
-      return NextResponse.json({ requests });
+      return NextResponse.json({
+        requests: requests.map((r) => withCoverImageUrl("request", r)),
+      });
     }
 
     const params = parseListSearchParams(searchParams);

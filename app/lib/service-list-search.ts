@@ -7,6 +7,7 @@ import {
   type ParsedListSearch,
 } from "@/lib/advanced-search";
 import { getSubscribedProviderSuggestions } from "@/lib/provider-list-search";
+import { withCoverImageUrl } from "@/lib/listing-cover";
 
 const providerSelect = {
   id: true,
@@ -23,6 +24,7 @@ function serializeService(
     price: number;
     category: string;
     location: string;
+    coverImageMime: string | null;
     createdAt: Date;
     provider: {
       id: string;
@@ -34,17 +36,18 @@ function serializeService(
 ) {
   const { reviewsReceived, ...provider } = service.provider;
   const rating = averageRating(reviewsReceived);
-  return {
+  return withCoverImageUrl("service", {
     id: service.id,
     title: service.title,
     description: service.description,
     price: service.price,
     category: service.category,
     location: service.location,
+    coverImageMime: service.coverImageMime,
     createdAt: service.createdAt,
     provider,
     ...rating,
-  };
+  });
 }
 
 export async function searchPublicServices(params: ParsedListSearch) {
