@@ -20,6 +20,11 @@
 # production
 /build
 
+# local tooling / docs
+/design-systems
+/skills
+.cursorrules
+
 # misc
 .DS_Store
 *.pem
