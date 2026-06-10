@@ -9,7 +9,7 @@ import {
   getFeaturedServicesForHome,
 } from "@/lib/featured-home";
 import { CATEGORY_META, servicesCategoryPath } from "@/lib/categories";
-import { PARENT_COMPANY, SITE_NAME } from "@/lib/site";
+import { BRAND_PRIMARY, BRAND_TERTIARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
 import {
   homeMetadata,
   jsonLdOrganization,
@@ -39,8 +39,7 @@ export default async function HomePage() {
         <div
           className="absolute inset-0 opacity-20"
           style={{
-            backgroundImage:
-              "radial-gradient(circle at 30% 50%, #069494 0%, transparent 60%), radial-gradient(circle at 80% 20%, #057676 0%, transparent 50%)",
+            backgroundImage: `radial-gradient(circle at 30% 50%, ${BRAND_PRIMARY} 0%, transparent 60%), radial-gradient(circle at 75% 15%, ${BRAND_TERTIARY} 0%, transparent 45%), radial-gradient(circle at 80% 20%, #057676 0%, transparent 50%)`,
           }}
           aria-hidden="true"
         />
@@ -79,7 +78,7 @@ export default async function HomePage() {
       </section>
 
       {/* Stats strip */}
-      <section className="border-b border-border bg-muted/40">
+      <section className="border-b border-border bg-tertiary-50/60 dark:bg-muted/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex flex-wrap gap-6 sm:gap-12 justify-center text-center">
             {[
@@ -128,7 +127,7 @@ export default async function HomePage() {
             <Link
               key={cat.slug}
               href={servicesCategoryPath(cat.slug)}
-              className="group flex flex-col items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-brand-300 hover:bg-brand-50 dark:hover:bg-brand-900/30 transition-all"
+              className="group flex flex-col items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-tertiary-400 hover:bg-tertiary-50 dark:hover:bg-tertiary-50 transition-all"
             >
               <span className="text-2xl" role="img" aria-label={cat.name}>
                 {cat.icon}
@@ -171,7 +170,7 @@ export default async function HomePage() {
               </Link>
             </div>
 
-            <div className="bg-brand-50 border border-brand-100 rounded-2xl p-8 flex flex-col gap-4">
+            <div className="bg-tertiary-50 border border-tertiary-200 rounded-2xl p-8 flex flex-col gap-4">
               <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shrink-0">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <rect x="2" y="8" width="16" height="10" rx="2" stroke="white" strokeWidth="1.5" />
@@ -196,7 +195,7 @@ export default async function HomePage() {
                 </Link>
                 <Link
                   href="/requests"
-                  className="inline-flex items-center text-brand-700 px-5 py-3 rounded-xl text-sm font-medium border border-brand-200 hover:bg-brand-100 transition-colors w-fit"
+                  className="inline-flex items-center text-brand-700 px-5 py-3 rounded-xl text-sm font-medium border border-tertiary-300 hover:bg-tertiary-100 transition-colors w-fit"
                 >
                   Voir les demandes
                 </Link>
@@ -207,7 +206,7 @@ export default async function HomePage() {
       </section>
 
       {/* How it works */}
-      <section className="border-t border-border bg-muted/40">
+      <section className="border-t border-border bg-tertiary-50/40 dark:bg-muted/40">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center mb-12">
             <p className="text-brand-600 text-xs font-semibold uppercase tracking-widest mb-2">
@@ -224,7 +223,7 @@ export default async function HomePage() {
               { step: "03", title: "Réservez", desc: "Confirmez et échangez directement via la messagerie." },
             ].map((item) => (
               <div key={item.step} className="flex flex-col items-center text-center gap-3">
-                <span className="text-4xl font-bold text-brand-200">{item.step}</span>
+                <span className="text-4xl font-bold text-tertiary-400 dark:text-tertiary-600">{item.step}</span>
                 <h3 className="font-semibold text-foreground">{item.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>

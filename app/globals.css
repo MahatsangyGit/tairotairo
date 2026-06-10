@@ -17,6 +17,18 @@
   --color-brand-800: #045c5c;
   --color-brand-900: #033f3f;
 
+  /* Tertiary — pêche accueillant (#FAD0C9) */
+  --color-tertiary-50: #fff9f8;
+  --color-tertiary-100: #fef4f2;
+  --color-tertiary-200: #fce9e5;
+  --color-tertiary-300: #fadcd6;
+  --color-tertiary-400: #fad0c9;
+  --color-tertiary-500: #fad0c9;
+  --color-tertiary-600: #e8b5ac;
+  --color-tertiary-700: #d49589;
+  --color-tertiary-800: #b07368;
+  --color-tertiary-900: #8a564d;
+
   /* Neutral */
   --color-neutral-50: #f8f9fa;
   --color-neutral-100: #f1f3f5;
@@ -229,4 +241,27 @@ body {
 }
 .dark .hover\:bg-brand-100:hover {
   background-color: oklch(0.28 0.06 186.391 / 0.55);
+}
+
+/* Surfaces tertiaires en mode sombre */
+.dark .bg-tertiary-50 {
+  background-color: oklch(0.28 0.04 35 / 0.35);
+}
+.dark .bg-tertiary-100 {
+  background-color: oklch(0.3 0.05 35 / 0.4);
+}
+.dark .border-tertiary-200,
+.dark .border-tertiary-300 {
+  border-color: oklch(0.45 0.06 35 / 0.45);
+}
+.dark .text-tertiary-600,
+.dark .text-tertiary-700 {
+  color: oklch(0.82 0.06 35);
+}
+.dark .hover\:bg-tertiary-50:hover {
+  background-color: oklch(0.32 0.05 35 / 0.45);
+}
+.dark .hover\:border-tertiary-300:hover,
+.dark .hover\:border-tertiary-400:hover {
+  border-color: oklch(0.55 0.07 35 / 0.55);
 }

@@ -174,7 +174,7 @@ export default function NotificationBell() {
                       onClick={() => markAsRead(n.id, n.link)}
                       className={cn(
                         "w-full text-left px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                        !n.read && "bg-brand-50/50 dark:bg-brand-900/20"
+                        !n.read && "bg-tertiary-50/80 dark:bg-tertiary-50"
                       )}
                     >
                       <p className="font-medium text-foreground text-sm">
