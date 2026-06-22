@@ -23,19 +23,21 @@ export default function Navbar() {
   const pathname = usePathname();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [authLoading, setAuthLoading] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+
     const fetchUser = async () => {
       try {
-        const res = await fetch("/api/auth/me");
+        const res = await fetch("/api/auth/me", { signal: controller.signal });
         const data = await res.json();
         setUser(data.user ?? null);
       } catch {
         setUser(null);
       } finally {
-        setAuthLoading(false);
+        clearTimeout(timeout);
       }
     };
 
@@ -50,6 +52,8 @@ export default function Navbar() {
 
     window.addEventListener("profile-avatar-updated", onAvatarUpdated);
     return () => {
+      controller.abort();
+      clearTimeout(timeout);
       window.removeEventListener("profile-avatar-updated", onAvatarUpdated);
     };
   }, [pathname]);
@@ -132,7 +136,7 @@ export default function Navbar() {
               Demandes
             </Link>
 
-            {!authLoading && user && (
+            {user && (
               <>
                 {user.role === "CLIENT" && (
                   <>
@@ -172,7 +176,7 @@ export default function Navbar() {
           {/* Desktop right side */}
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
-            {!authLoading && user && (
+            {user && (
               <>
                 <NotificationBell />
                 {messagesHref && <MessageInboxLink href={messagesHref} />}
@@ -202,7 +206,7 @@ export default function Navbar() {
               </>
             )}
 
-            {!authLoading && !user && (
+            {!user && (
               <>
                 <Link
                   href="/auth/login"
@@ -251,7 +255,7 @@ export default function Navbar() {
             <MobileNavLink href="/services" label="Services" active={isActive("/services")} onClick={close} />
             <MobileNavLink href="/requests" label="Demandes" active={isActive("/requests")} onClick={close} />
 
-            {!authLoading && user && (
+            {user && (
               <>
                 <div className="h-px bg-border my-2" />
                 {user.role === "CLIENT" && (
@@ -316,7 +320,7 @@ export default function Navbar() {
               </>
             )}
 
-            {!authLoading && !user && (
+            {!user && (
               <>
                 <div className="h-px bg-border my-2" />
                 <MobileNavLink href="/auth/login" label="Connexion" active={isActive("/auth/login")} onClick={close} />

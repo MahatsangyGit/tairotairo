@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useMessagingRealtime } from "@/components/messages/MessagingRealtimeProvider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { MessageCircle } from "lucide-react";
@@ -36,9 +37,13 @@ export default function MessageInboxLink({
 
   useEffect(() => {
     fetchUnread();
-    const interval = setInterval(fetchUnread, 30000);
-    return () => clearInterval(interval);
   }, [fetchUnread, pathname]);
+
+  useMessagingRealtime((event) => {
+    if (event.type === "inbox.changed") {
+      fetchUnread();
+    }
+  });
 
   if (variant === "nav") {
     return (

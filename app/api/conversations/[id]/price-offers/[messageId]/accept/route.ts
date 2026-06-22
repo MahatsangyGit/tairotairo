@@ -9,6 +9,7 @@ import {
 import { acceptPriceOffer } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
 import { notifyMessageReceived } from "@/lib/notify-messages";
+import { publishThreadRefresh } from "@/lib/realtime/publish";
 
 // POST — Accepter une proposition de prix
 export async function POST(
@@ -59,6 +60,14 @@ export async function POST(
       preview: result.confirmation.body,
       conversationLink: conversationPath(recipientRole, id),
     }).catch(console.error);
+
+    publishThreadRefresh(
+      {
+        clientId: conversation.clientId,
+        providerId: conversation.providerId,
+      },
+      id
+    );
 
     return NextResponse.json({
       message: serializeMessage(result.confirmation, auth.userId),

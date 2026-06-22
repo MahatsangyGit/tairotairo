@@ -8,6 +8,7 @@ import {
 } from "@/lib/conversations";
 import { notifyMessageReceived } from "@/lib/notify-messages";
 import { serializeMessage } from "@/lib/message-serialize";
+import { publishMessageCreated } from "@/lib/realtime/publish";
 
 const MAX_BODY_LENGTH = 2000;
 
@@ -88,6 +89,15 @@ export async function POST(
       preview: text,
       conversationLink: conversationPath(recipientRole, id),
     }).catch(console.error);
+
+    publishMessageCreated(
+      {
+        clientId: conversation.clientId,
+        providerId: conversation.providerId,
+      },
+      id,
+      message
+    );
 
     return NextResponse.json({
       message: serializeMessage(message, auth.userId),

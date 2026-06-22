@@ -8,6 +8,7 @@ import {
 } from "@/lib/conversations";
 import { resolveNegotiationForConversation } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
+import { publishInboxChanged } from "@/lib/realtime/publish";
 
 // GET — Détail d'une conversation et ses messages
 export async function GET(
@@ -34,7 +35,7 @@ export async function GET(
       );
     }
 
-    await prisma.message.updateMany({
+    const markedRead = await prisma.message.updateMany({
       where: {
         conversationId: id,
         senderId: { not: auth.userId },
@@ -42,6 +43,10 @@ export async function GET(
       },
       data: { readAt: new Date() },
     });
+
+    if (markedRead.count > 0) {
+      publishInboxChanged(auth.userId);
+    }
 
     const messages = await prisma.message.findMany({
       where: { conversationId: id },

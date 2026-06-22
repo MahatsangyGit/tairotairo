@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import UserAvatar from "@/components/profile/UserAvatar";
+import { useMessagingRealtime } from "@/components/messages/MessagingRealtimeProvider";
 
 interface ConversationItem {
   id: string;
@@ -65,6 +66,12 @@ export default function ConversationInbox({ emptyHint }: ConversationInboxProps)
   useEffect(() => {
     load();
   }, [load]);
+
+  useMessagingRealtime((event) => {
+    if (event.type === "inbox.changed") {
+      load();
+    }
+  });
 
   if (loading) {
     return <p className="text-muted-foreground">Chargement des conversations...</p>;

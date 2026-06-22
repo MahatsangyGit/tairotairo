@@ -9,6 +9,7 @@ import {
 import { createPriceOffer } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
 import { notifyMessageReceived } from "@/lib/notify-messages";
+import { publishThreadRefresh } from "@/lib/realtime/publish";
 
 // POST — Proposer un prix dans la conversation
 export async function POST(
@@ -84,6 +85,14 @@ export async function POST(
         result.negotiation
       ),
     }).catch(console.error);
+
+    publishThreadRefresh(
+      {
+        clientId: conversation.clientId,
+        providerId: conversation.providerId,
+      },
+      id
+    );
 
     return NextResponse.json(responseBody);
   } catch (error) {

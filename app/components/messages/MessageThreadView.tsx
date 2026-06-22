@@ -5,6 +5,11 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import PriceNegotiationPanel from "@/components/messages/PriceNegotiationPanel";
 import UserAvatar from "@/components/profile/UserAvatar";
+import {
+  useMessagingRealtime,
+  useMessagingRealtimeContext,
+} from "@/components/messages/MessagingRealtimeProvider";
+import { wireToSerializedMessage } from "@/lib/realtime/client";
 import type { SerializedMessage } from "@/lib/message-serialize";
 import type { NegotiationContext } from "@/lib/price-negotiation-types";
 
@@ -51,6 +56,7 @@ export default function MessageThreadView({
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const { userId } = useMessagingRealtimeContext() ?? { userId: null };
 
   const apiUrl = (() => {
     const base = `/api/conversations/${conversationId}`;
@@ -90,9 +96,24 @@ export default function MessageThreadView({
 
   useEffect(() => {
     load();
-    const interval = setInterval(load, 15000);
-    return () => clearInterval(interval);
   }, [load]);
+
+  useMessagingRealtime((event) => {
+    if (event.type === "message.created" && event.conversationId === conversationId) {
+      setMessages((prev) => {
+        if (prev.some((m) => m.id === event.message.id)) return prev;
+        return [
+          ...prev,
+          wireToSerializedMessage(event.message, userId),
+        ];
+      });
+      return;
+    }
+
+    if (event.type === "thread.refresh" && event.conversationId === conversationId) {
+      load();
+    }
+  });
 
   useEffect(() => {
     if (!conversation?.negotiation) return;
