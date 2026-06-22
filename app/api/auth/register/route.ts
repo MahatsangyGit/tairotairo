@@ -3,6 +3,11 @@ import bcrypt from "bcryptjs";
 import prisma from "../../../lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
 import { parsePublicRegistrationRole } from "@/lib/roles";
+import { PostHogEvents } from "@/lib/posthog";
+import {
+  captureServerEvent,
+  identifyServerUser,
+} from "@/lib/posthog-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -40,6 +45,15 @@ export async function POST(req: NextRequest) {
     });
 
     sendWelcomeEmail(user.email, user.name).catch(console.error);
+
+    void identifyServerUser(user.id, {
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    }).catch(console.error);
+    void captureServerEvent(user.id, PostHogEvents.USER_SIGNED_UP, {
+      role: user.role,
+    }).catch(console.error);
 
     return NextResponse.json(
       { message: "Compte créé avec succès", userId: user.id },

@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { signToken } from "@/lib/jwt";
+import { PostHogEvents } from "@/lib/posthog";
+import { captureServerEvent } from "@/lib/posthog-server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -69,6 +71,10 @@ export async function POST(req: NextRequest) {
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7,
     });
+
+    void captureServerEvent(user.id, PostHogEvents.USER_LOGGED_IN, {
+      role: user.role,
+    }).catch(console.error);
 
     return response;
   } catch (error) {

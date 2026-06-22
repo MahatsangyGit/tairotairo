@@ -4,6 +4,7 @@ import "./globals.css";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
 import { MessagingRealtimeProvider } from "@/components/messages/MessagingRealtimeProvider";
+import PostHogProvider from "@/components/analytics/PostHogProvider";
 import { BRAND_PRIMARY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -61,7 +62,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
           <AuthProvider>
-            <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
+            <PostHogProvider>
+              <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
+            </PostHogProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

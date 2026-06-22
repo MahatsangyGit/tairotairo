@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
 import { CATEGORY_META } from "./app/lib/categories";
+import {
+  getPostHogAssetsHost,
+  POSTHOG_API_HOST,
+} from "./app/lib/posthog";
 
 const categoryRedirects = CATEGORY_META.flatMap((cat) => [
   {
@@ -16,9 +20,24 @@ const categoryRedirects = CATEGORY_META.flatMap((cat) => [
   },
 ]);
 
+const posthogAssetsHost = getPostHogAssetsHost(POSTHOG_API_HOST);
+
 const nextConfig: NextConfig = {
+  skipTrailingSlashRedirect: true,
   async redirects() {
     return categoryRedirects;
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: `${posthogAssetsHost}/static/:path*`,
+      },
+      {
+        source: "/ingest/:path*",
+        destination: `${POSTHOG_API_HOST}/:path*`,
+      },
+    ];
   },
 };
 
