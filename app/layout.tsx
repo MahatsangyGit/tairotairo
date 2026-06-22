@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import "./globals.css";
 import ThemeProvider from "@/components/theme/ThemeProvider";
+import { AuthProvider } from "@/components/auth/AuthProvider";
 import { MessagingRealtimeProvider } from "@/components/messages/MessagingRealtimeProvider";
 import { BRAND_PRIMARY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { cn } from "@/lib/utils";
@@ -59,7 +60,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
-          <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
+          <AuthProvider>
+            <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

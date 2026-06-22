@@ -310,7 +310,7 @@ export default function PublicRequestsExplorer({
                     />
                   )}
                   <div className="p-5">
-                  <span className="inline-block bg-neutral-100 text-foreground text-xs font-medium px-2.5 py-1 rounded-full mb-3">
+                  <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">
                     {request.category}
                   </span>
                   <h3 className="font-semibold text-foreground mb-2 line-clamp-1 group-hover:text-brand-700 transition-colors">

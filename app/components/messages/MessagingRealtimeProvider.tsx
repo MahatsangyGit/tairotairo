@@ -10,6 +10,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { getMessagingWebSocketUrl } from "@/lib/realtime/client";
 import type { RealtimeServerEvent } from "@/lib/realtime/types";
 
@@ -37,8 +38,9 @@ function parseServerEvent(raw: string): RealtimeServerEvent | null {
 }
 
 export function MessagingRealtimeProvider({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [connected, setConnected] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const listenersRef = useRef(new Set<Listener>());
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptRef = useRef(0);
@@ -55,31 +57,6 @@ export function MessagingRealtimeProvider({ children }: { children: ReactNode })
     listenersRef.current.add(listener);
     return () => {
       listenersRef.current.delete(listener);
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    const loadUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me");
-        if (!res.ok) {
-          if (!cancelled) setUserId(null);
-          return;
-        }
-        const data = await res.json();
-        if (!cancelled) {
-          setUserId(data.user?.id ?? null);
-        }
-      } catch {
-        if (!cancelled) setUserId(null);
-      }
-    };
-
-    loadUser();
-    return () => {
-      cancelled = true;
     };
   }, []);
 

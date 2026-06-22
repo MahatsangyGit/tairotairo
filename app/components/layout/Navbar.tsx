@@ -7,56 +7,18 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import MessageInboxLink from "@/components/messages/MessageInboxLink";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
+import { useAuth } from "@/components/auth/AuthProvider";
 import { isNavLinkActive } from "@/lib/nav-active";
 import { SITE_NAME } from "@/lib/site";
-
-interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: "CLIENT" | "PROVIDER" | "ADMIN";
-  avatar: string | null;
-}
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
+  const { user, authChecked, setUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [user, setUser] = useState<AuthUser | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10_000);
-
-    const fetchUser = async () => {
-      try {
-        const res = await fetch("/api/auth/me", { signal: controller.signal });
-        const data = await res.json();
-        setUser(data.user ?? null);
-      } catch {
-        setUser(null);
-      } finally {
-        clearTimeout(timeout);
-      }
-    };
-
-    fetchUser();
-
-    const onAvatarUpdated = (event: Event) => {
-      const detail = (event as CustomEvent<{ avatar: string | null }>).detail;
-      setUser((current) =>
-        current ? { ...current, avatar: detail.avatar } : current
-      );
-    };
-
-    window.addEventListener("profile-avatar-updated", onAvatarUpdated);
-    return () => {
-      controller.abort();
-      clearTimeout(timeout);
-      window.removeEventListener("profile-avatar-updated", onAvatarUpdated);
-    };
-  }, [pathname]);
+  const showGuestAuth = !user && authChecked;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -206,7 +168,7 @@ export default function Navbar() {
               </>
             )}
 
-            {!user && (
+            {showGuestAuth && (
               <>
                 <Link
                   href="/auth/login"
@@ -320,7 +282,7 @@ export default function Navbar() {
               </>
             )}
 
-            {!user && (
+            {showGuestAuth && (
               <>
                 <div className="h-px bg-border my-2" />
                 <MobileNavLink href="/auth/login" label="Connexion" active={isActive("/auth/login")} onClick={close} />
