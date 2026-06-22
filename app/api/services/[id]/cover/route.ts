@@ -9,6 +9,10 @@ import {
   validateListingCoverFile,
 } from "@/lib/listing-cover-storage";
 import { buildListingCoverUrl } from "@/lib/listing-cover";
+import {
+  createImageResponse,
+  isVersionedImageRequest,
+} from "@/lib/image-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -26,7 +30,7 @@ async function loadOwnedService(id: string, userId: string, role: string) {
   return { service };
 }
 
-export async function GET(_req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const service = await prisma.service.findUnique({
@@ -43,11 +47,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Image introuvable" }, { status: 404 });
     }
 
-    return new NextResponse(new Uint8Array(file.buffer), {
-      headers: {
-        "Content-Type": file.mime,
-        "Cache-Control": "public, max-age=86400",
-      },
+    return createImageResponse(req, file.buffer, file.mime, {
+      versioned: isVersionedImageRequest(req),
     });
   } catch (error) {
     console.error("[GET /api/services/[id]/cover]", error);

@@ -5,6 +5,7 @@ import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { parseListSearchParams } from "@/lib/advanced-search";
 import { searchPublicServices } from "@/lib/service-list-search";
 import { withCoverImageUrl } from "@/lib/listing-cover";
+import { jsonWithPublicCache } from "@/lib/cache";
 
 // GET - Lister et rechercher les services (?mine=true pour le prestataire connecté)
 export async function GET(req: NextRequest) {
@@ -40,6 +41,7 @@ export async function GET(req: NextRequest) {
           available: true,
           featuredOnHomepage: true,
           createdAt: true,
+          updatedAt: true,
         },
       });
 
@@ -51,7 +53,7 @@ export async function GET(req: NextRequest) {
     const params = parseListSearchParams(searchParams);
     const result = await searchPublicServices(params);
 
-    return NextResponse.json(result);
+    return jsonWithPublicCache(result);
   } catch (error) {
     return NextResponse.json(
       { error: "Erreur serveur" },

@@ -9,6 +9,7 @@ import SuggestedProvidersSection, {
   type SuggestedProvider,
 } from "@/components/search/SuggestedProvidersSection";
 import UserAvatar from "@/components/profile/UserAvatar";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import {
   CATEGORY_META,
   servicesCategoryPath,
@@ -331,11 +332,13 @@ export default function PublicServicesExplorer({
                   className="group bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md hover:border-brand-200 transition-all"
                 >
                   {service.coverImageUrl && (
-                    <img
-                      src={service.coverImageUrl}
-                      alt=""
-                      className="w-full h-36 object-cover bg-muted"
-                    />
+                    <div className="relative w-full h-36 bg-muted">
+                      <OptimizedImage
+                        src={service.coverImageUrl}
+                        alt=""
+                        fill
+                      />
+                    </div>
                   )}
                   <div className="p-5">
                   <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">

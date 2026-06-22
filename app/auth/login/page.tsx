@@ -4,6 +4,8 @@ import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
+import { useAuth } from "@/components/auth/AuthProvider";
+import { notifyAuthChanged } from "@/lib/auth-client";
 import { SITE_NAME } from "@/lib/site";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +38,7 @@ interface UserResponse {
 
 function LoginPageContent() {
   const router = useRouter();
+  const { refreshUser } = useAuth();
   const searchParams = useSearchParams();
   const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
   const resetSuccess = searchParams.get("reset") === "success";
@@ -67,6 +70,9 @@ function LoginPageContent() {
       }
 
       const user: UserResponse = data.user;
+
+      await refreshUser();
+      notifyAuthChanged();
 
       if (callbackUrl) {
         router.push(callbackUrl);

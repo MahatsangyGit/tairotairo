@@ -10,10 +10,11 @@ import {
   jsonLdItemList,
   providersListMetadata,
 } from "@/lib/seo";
+import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export const metadata: Metadata = providersListMetadata();
 
-export const dynamic = "force-dynamic";
+export const revalidate = PAGE_REVALIDATE_SECONDS.PROVIDERS;
 
 async function loadProviders() {
   const rows = await prisma.user.findMany({

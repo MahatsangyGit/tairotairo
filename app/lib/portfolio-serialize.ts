@@ -47,7 +47,7 @@ export function serializePortfolioItem(row: PortfolioRow): PortfolioItemPayload 
   return {
     id: row.id,
     description: row.description,
-    imageUrl: buildPortfolioImageUrl(row.id),
+    imageUrl: buildPortfolioImageUrl(row.id, row.updatedAt.getTime()),
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
     comments,

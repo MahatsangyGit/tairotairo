@@ -10,6 +10,7 @@ import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import ListingCoverField from "@/components/listings/ListingCoverField";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 
 interface Service {
@@ -511,9 +512,12 @@ export default function ProviderServicesPage() {
               >
                 <div className="flex flex-col sm:flex-row gap-4 p-6">
                   {service.coverImageUrl ? (
-                    <img
+                    <OptimizedImage
                       src={service.coverImageUrl}
                       alt={service.title}
+                      width={128}
+                      height={128}
+                      sizes="128px"
                       className="w-full sm:w-32 sm:h-32 h-40 object-cover rounded-xl bg-muted shrink-0"
                     />
                   ) : (

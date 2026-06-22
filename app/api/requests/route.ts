@@ -8,6 +8,7 @@ import {
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
 import { withCoverImageUrl } from "@/lib/listing-cover";
+import { jsonWithPublicCache } from "@/lib/cache";
 
 // GET - Lister les demandes (?mine=true pour le client connecté)
 export async function GET(req: NextRequest) {
@@ -45,7 +46,7 @@ export async function GET(req: NextRequest) {
     const params = parseListSearchParams(searchParams);
     const result = await searchPublicRequests(params);
 
-    return NextResponse.json(result);
+    return jsonWithPublicCache(result);
   } catch (error) {
     console.error("[GET /api/requests]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });

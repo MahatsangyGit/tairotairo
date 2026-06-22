@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { readAvatarFile } from "@/lib/avatar-storage";
+import {
+  createImageResponse,
+  isVersionedImageRequest,
+} from "@/lib/image-response";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -8,7 +12,7 @@ interface RouteParams {
   params: Promise<{ id: string }>;
 }
 
-export async function GET(_req: NextRequest, { params }: RouteParams) {
+export async function GET(req: NextRequest, { params }: RouteParams) {
   try {
     const { id } = await params;
     const file = await readAvatarFile(id);
@@ -17,11 +21,8 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Photo introuvable" }, { status: 404 });
     }
 
-    return new NextResponse(new Uint8Array(file.buffer), {
-      headers: {
-        "Content-Type": file.mime,
-        "Cache-Control": "public, max-age=3600",
-      },
+    return createImageResponse(req, file.buffer, file.mime, {
+      versioned: isVersionedImageRequest(req),
     });
   } catch (error) {
     console.error("[GET /api/users/[id]/avatar]", error);

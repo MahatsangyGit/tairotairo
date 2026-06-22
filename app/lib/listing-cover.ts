@@ -1,3 +1,5 @@
+import { cdnPath } from "@/lib/cdn";
+
 export const LISTING_COVER_MAX_FILE_BYTES = 3 * 1024 * 1024;
 
 export type ListingCoverKind = "service" | "request";
@@ -11,16 +13,25 @@ export function buildListingCoverUrl(
     kind === "service"
       ? `/api/services/${id}/cover`
       : `/api/requests/${id}/cover`;
-  return cacheBust ? `${base}?v=${cacheBust}` : base;
+  const path = cacheBust ? `${base}?v=${cacheBust}` : base;
+  return cdnPath(path);
 }
 
 export function withCoverImageUrl<
-  T extends { id: string; coverImageMime: string | null },
+  T extends {
+    id: string;
+    coverImageMime: string | null;
+    updatedAt?: Date | string;
+  },
 >(kind: ListingCoverKind, item: T) {
+  const version = item.updatedAt
+    ? new Date(item.updatedAt).getTime()
+    : undefined;
+
   return {
     ...item,
     coverImageUrl: item.coverImageMime
-      ? buildListingCoverUrl(kind, item.id)
+      ? buildListingCoverUrl(kind, item.id, version)
       : null,
   };
 }

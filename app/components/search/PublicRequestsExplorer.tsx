@@ -9,6 +9,7 @@ import {
   requestsCategoryPath,
   type ServiceCategory,
 } from "@/lib/categories";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 import {
   listSearchToParams,
   parseSearchSort,
@@ -303,11 +304,13 @@ export default function PublicRequestsExplorer({
                   className="group bg-card rounded-2xl border border-border overflow-hidden hover:shadow-md hover:border-neutral-300 transition-all"
                 >
                   {request.coverImageUrl && (
-                    <img
-                      src={request.coverImageUrl}
-                      alt=""
-                      className="w-full h-36 object-cover bg-muted"
-                    />
+                    <div className="relative w-full h-36 bg-muted">
+                      <OptimizedImage
+                        src={request.coverImageUrl}
+                        alt=""
+                        fill
+                      />
+                    </div>
                   )}
                   <div className="p-5">
                   <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-3">

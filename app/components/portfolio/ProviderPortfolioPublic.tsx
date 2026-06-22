@@ -5,6 +5,7 @@ import Link from "next/link";
 import type { PortfolioItemPayload } from "@/lib/portfolio";
 import { PORTFOLIO_MAX_COMMENT_LENGTH } from "@/lib/portfolio";
 import UserAvatar from "@/components/profile/UserAvatar";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 interface ProviderPortfolioPublicProps {
   providerId: string;
@@ -86,11 +87,9 @@ export default function ProviderPortfolioPublic({
             key={item.id}
             className="bg-card rounded-xl border border-border overflow-hidden shadow-sm"
           >
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="w-full h-48 object-cover bg-gray-100"
-            />
+            <div className="relative w-full h-48 bg-gray-100">
+              <OptimizedImage src={item.imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, 50vw" />
+            </div>
             <div className="p-4">
               <p className="text-muted-foreground text-sm whitespace-pre-line leading-relaxed">
                 {item.description}

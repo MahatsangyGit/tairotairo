@@ -25,6 +25,7 @@ function serializeService(
     category: string;
     location: string;
     coverImageMime: string | null;
+    updatedAt: Date;
     createdAt: Date;
     provider: {
       id: string;
@@ -44,6 +45,7 @@ function serializeService(
     category: service.category,
     location: service.location,
     coverImageMime: service.coverImageMime,
+    updatedAt: service.updatedAt,
     createdAt: service.createdAt,
     provider,
     ...rating,

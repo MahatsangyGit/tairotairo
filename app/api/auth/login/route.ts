@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
         password: true,
         role: true,
         phone: true,
+        avatar: true,
         suspendedAt: true,
       },
     });

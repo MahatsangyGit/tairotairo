@@ -15,8 +15,9 @@ import {
   jsonLdOrganization,
   jsonLdWebSite,
 } from "@/lib/seo";
+import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
 
-export const dynamic = "force-dynamic";
+export const revalidate = PAGE_REVALIDATE_SECONDS.HOME;
 
 export const metadata: Metadata = homeMetadata();
 

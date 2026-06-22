@@ -1,10 +1,17 @@
+import { cdnPath } from "@/lib/cdn";
+
 export const PORTFOLIO_MAX_ITEMS = 24;
 export const PORTFOLIO_MAX_FILE_BYTES = 5 * 1024 * 1024;
 export const PORTFOLIO_MAX_DESCRIPTION_LENGTH = 2000;
 export const PORTFOLIO_MAX_COMMENT_LENGTH = 1000;
 
-export function buildPortfolioImageUrl(itemId: string): string {
-  return `/api/provider/portfolio/${itemId}/image`;
+export function buildPortfolioImageUrl(
+  itemId: string,
+  cacheBust?: number
+): string {
+  const base = `/api/provider/portfolio/${itemId}/image`;
+  const path = cacheBust ? `${base}?v=${cacheBust}` : base;
+  return cdnPath(path);
 }
 
 export interface PortfolioCommentPayload {

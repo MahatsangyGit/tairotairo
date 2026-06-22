@@ -9,6 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { usePathname } from "next/navigation";
 
 export interface AuthUser {
   id: string;
@@ -28,6 +29,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -36,11 +38,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const timeout = setTimeout(() => controller.abort(), 10_000);
 
     try {
-      const res = await fetch("/api/auth/me", { signal: controller.signal });
+      const res = await fetch("/api/auth/me", {
+        signal: controller.signal,
+        credentials: "include",
+        cache: "no-store",
+      });
       const data = await res.json();
-      setUser(data.user ?? null);
+
+      if (res.ok) {
+        setUser(data.user ?? null);
+      } else if (res.status === 401 || res.status === 403) {
+        setUser(null);
+      }
     } catch {
-      setUser(null);
+      /* erreur réseau : conserver l'état courant */
     } finally {
       clearTimeout(timeout);
       setAuthChecked(true);
@@ -48,7 +59,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshUser();
+    void refreshUser();
+  }, [pathname, refreshUser]);
+
+  useEffect(() => {
+    const onAuthChanged = () => {
+      void refreshUser();
+    };
+
+    window.addEventListener("auth-changed", onAuthChanged);
+    return () => {
+      window.removeEventListener("auth-changed", onAuthChanged);
+    };
   }, [refreshUser]);
 
   useEffect(() => {

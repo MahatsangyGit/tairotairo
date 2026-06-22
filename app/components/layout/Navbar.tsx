@@ -8,6 +8,7 @@ import MessageInboxLink from "@/components/messages/MessageInboxLink";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { notifyAuthChanged } from "@/lib/auth-client";
 import { isNavLinkActive } from "@/lib/nav-active";
 import { SITE_NAME } from "@/lib/site";
 
@@ -33,8 +34,9 @@ export default function Navbar() {
   }, [isMenuOpen]);
 
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { method: "POST" });
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setUser(null);
+    notifyAuthChanged();
     setIsMenuOpen(false);
     router.push("/");
     router.refresh();

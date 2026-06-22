@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 import { CATEGORY_META } from "./app/lib/categories";
+import { getAssetPrefix, getImageRemotePatterns } from "./app/lib/cdn";
+import { CACHE_CONTROL } from "./app/lib/cache";
 import {
   getPostHogAssetsHost,
   POSTHOG_API_HOST,
@@ -21,9 +23,27 @@ const categoryRedirects = CATEGORY_META.flatMap((cat) => [
 ]);
 
 const posthogAssetsHost = getPostHogAssetsHost(POSTHOG_API_HOST);
+const assetPrefix = getAssetPrefix();
+const imageRemotePatterns = getImageRemotePatterns();
+
+/** Routes API images — sans `search` pour autoriser `?v=` si besoin. */
+const imageLocalPatterns = [
+  { pathname: "/api/**" },
+];
 
 const nextConfig: NextConfig = {
+  assetPrefix,
+  compress: true,
+  poweredByHeader: false,
   skipTrailingSlashRedirect: true,
+  images: {
+    formats: ["image/avif", "image/webp"],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+    localPatterns: imageLocalPatterns,
+    remotePatterns: imageRemotePatterns,
+  },
   async redirects() {
     return categoryRedirects;
   },
@@ -36,6 +56,46 @@ const nextConfig: NextConfig = {
       {
         source: "/ingest/:path*",
         destination: `${POSTHOG_API_HOST}/:path*`,
+      },
+    ];
+  },
+  async headers() {
+    return [
+      {
+        source: "/_next/static/:path*",
+        headers: [
+          { key: "Cache-Control", value: CACHE_CONTROL.STATIC_IMMUTABLE },
+        ],
+      },
+      {
+        source: "/_next/image",
+        headers: [
+          { key: "Cache-Control", value: CACHE_CONTROL.IMAGE_LONG },
+        ],
+      },
+      {
+        source: "/api/services/:id/cover",
+        headers: [
+          { key: "Cache-Control", value: CACHE_CONTROL.IMAGE_LONG },
+        ],
+      },
+      {
+        source: "/api/requests/:id/cover",
+        headers: [
+          { key: "Cache-Control", value: CACHE_CONTROL.IMAGE_LONG },
+        ],
+      },
+      {
+        source: "/api/users/:id/avatar",
+        headers: [
+          { key: "Cache-Control", value: CACHE_CONTROL.IMAGE_LONG },
+        ],
+      },
+      {
+        source: "/api/provider/portfolio/:id/image",
+        headers: [
+          { key: "Cache-Control", value: CACHE_CONTROL.IMAGE_LONG },
+        ],
       },
     ];
   },

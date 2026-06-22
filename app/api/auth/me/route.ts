@@ -7,7 +7,10 @@ export async function GET(req: NextRequest) {
     const auth = getAuthUser(req);
 
     if (!auth) {
-      return NextResponse.json({ user: null });
+      return NextResponse.json(
+        { user: null },
+        { headers: { "Cache-Control": "private, no-store" } }
+      );
     }
 
     const user = await prisma.user.findUnique({
@@ -40,7 +43,14 @@ export async function GET(req: NextRequest) {
 
     const { suspendedAt: _, ...userWithoutSuspended } = user;
 
-    return NextResponse.json({ user: userWithoutSuspended });
+    return NextResponse.json(
+      { user: userWithoutSuspended },
+      {
+        headers: {
+          "Cache-Control": "private, no-store",
+        },
+      }
+    );
   } catch {
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

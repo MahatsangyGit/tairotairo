@@ -8,6 +8,7 @@ import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import NegotiateServiceButton from "@/components/messages/NegotiateServiceButton";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import UserAvatar from "@/components/profile/UserAvatar";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -206,11 +207,15 @@ export default function ServiceDetailPage() {
               {/* Card service */}
               <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                 {service.coverImageUrl && (
-                  <img
-                    src={service.coverImageUrl}
-                    alt={service.title}
-                    className="w-full max-h-80 object-cover bg-muted"
-                  />
+                  <div className="relative w-full h-80 max-h-80 bg-muted">
+                    <OptimizedImage
+                      src={service.coverImageUrl}
+                      alt={service.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      priority
+                    />
+                  </div>
                 )}
                 <div className="p-8">
                 <span className="inline-block bg-brand-50 text-brand-700 text-xs font-medium px-2.5 py-1 rounded-full mb-4">

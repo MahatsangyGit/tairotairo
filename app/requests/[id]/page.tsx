@@ -12,6 +12,7 @@ import {
   RequestResponseStatus,
 } from "@/lib/request-response-status";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 interface Client {
   id: string;
@@ -218,11 +219,15 @@ export default function RequestDetailPage() {
             <div className="lg:col-span-2 flex flex-col gap-6">
               <div className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden">
                 {request.coverImageUrl && (
-                  <img
-                    src={request.coverImageUrl}
-                    alt={request.title}
-                    className="w-full max-h-80 object-cover bg-muted"
-                  />
+                  <div className="relative w-full h-80 max-h-80 bg-muted">
+                    <OptimizedImage
+                      src={request.coverImageUrl}
+                      alt={request.title}
+                      fill
+                      sizes="(max-width: 1024px) 100vw, 66vw"
+                      priority
+                    />
+                  </div>
                 )}
                 <div className="p-8">
                 <span className="inline-block bg-amber-50 text-amber-800 text-xs font-medium px-2.5 py-1 rounded-full mb-4">

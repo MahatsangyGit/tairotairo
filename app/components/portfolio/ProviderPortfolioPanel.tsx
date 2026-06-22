@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PortfolioItemPayload } from "@/lib/portfolio";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const ACCEPT = ".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp";
 
@@ -215,11 +216,9 @@ export default function ProviderPortfolioPanel() {
             key={item.id}
             className="border border-border rounded-xl overflow-hidden"
           >
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="w-full h-40 object-cover bg-gray-100"
-            />
+            <div className="relative w-full h-40 bg-gray-100">
+              <OptimizedImage src={item.imageUrl} alt="" fill sizes="(max-width: 640px) 100vw, 50vw" />
+            </div>
             <div className="p-3 flex flex-col gap-2">
               {editingId === item.id ? (
                 <>

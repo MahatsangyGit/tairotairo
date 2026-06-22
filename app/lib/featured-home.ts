@@ -94,6 +94,7 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
       category: s.category,
       location: s.location,
       coverImageMime: s.coverImageMime,
+      updatedAt: s.updatedAt,
       provider: { ...provider, ...rating },
     });
   });
