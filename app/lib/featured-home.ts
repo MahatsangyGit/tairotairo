@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { withAnonymousRls } from "@/lib/rls";
 import { averageRating } from "@/lib/advanced-search";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { withCoverImageUrl } from "@/lib/listing-cover";
@@ -27,6 +28,7 @@ export async function providerHasActiveSubscription(
 }
 
 export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS) {
+  return withAnonymousRls(async () => {
   const rows = await prisma.user.findMany({
     where: {
       role: "PROVIDER",
@@ -57,9 +59,11 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       ...rating,
     };
   });
+  });
 }
 
 export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) {
+  return withAnonymousRls(async () => {
   const rows = await prisma.service.findMany({
     where: {
       featuredOnHomepage: true,
@@ -97,5 +101,6 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
       updatedAt: s.updatedAt,
       provider: { ...provider, ...rating },
     });
+  });
   });
 }

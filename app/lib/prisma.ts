@@ -1,9 +1,42 @@
 import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
+import { applyRlsToPgClient } from "@/lib/rls";
 
-const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL,
-});
+function createRlsPool(): pg.Pool {
+  const pool = new pg.Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  const originalConnect = pool.connect.bind(pool);
+
+  pool.connect = ((...args: unknown[]) => {
+    const callback = args[0];
+
+    if (typeof callback === "function") {
+      return originalConnect(
+        (err: Error | undefined, client: pg.PoolClient | undefined, release) => {
+          if (err || !client) {
+            callback(err, client, release);
+            return;
+          }
+          void applyRlsToPgClient(client)
+            .then(() => callback(null, client, release))
+            .catch((applyErr: Error) => callback(applyErr, client, release));
+        }
+      );
+    }
+
+    return originalConnect().then(async (client) => {
+      await applyRlsToPgClient(client);
+      return client;
+    });
+  }) as typeof pool.connect;
+
+  return pool;
+}
+
+const adapter = new PrismaPg(createRlsPool());
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -16,7 +49,7 @@ function createPrismaClient(): PrismaClient {
 }
 
 /** Incrémenter après chaque changement de schéma pour invalider le singleton en dev. */
-const PRISMA_CLIENT_GENERATION = 2;
+const PRISMA_CLIENT_GENERATION = 3;
 
 type PrismaClientWithGeneration = PrismaClient & { __generation?: number };
 

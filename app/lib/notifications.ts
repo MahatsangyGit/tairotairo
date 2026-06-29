@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { withBypassRls } from "@/lib/rls";
 import { BRAND_PRIMARY, SITE_NAME } from "@/lib/site";
 import { APP_URL, sendEmail, emailLayout } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
@@ -46,6 +47,7 @@ async function sendNotificationEmail(
 export async function dispatchNotification(
   input: DispatchNotificationInput
 ): Promise<void> {
+  return withBypassRls(async () => {
   const user = await prisma.user.findUnique({
     where: { id: input.userId },
     select: {
@@ -94,6 +96,7 @@ export async function dispatchNotification(
   }
 
   await Promise.allSettled(tasks);
+  });
 }
 
 export async function dispatchNotificationToMany(

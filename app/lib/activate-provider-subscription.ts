@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import { withBypassRls } from "@/lib/rls";
 import {
   extendSubscriptionExpiry,
   serializeSubscription,
@@ -11,6 +12,7 @@ export async function activateProviderSubscription(
   months: number,
   notes?: string | null
 ) {
+  return withBypassRls(async () => {
   const existing = await prisma.providerSubscription.findUnique({
     where: { providerId },
   });
@@ -41,4 +43,5 @@ export async function activateProviderSubscription(
         : ". Mise en avant sur l'accueil dès que le KYC est approuvé."
     }`,
   };
+  });
 }
