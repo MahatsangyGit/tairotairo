@@ -6,6 +6,7 @@ import {
   suspendUser,
   unsuspendUser,
 } from "@/lib/admin-users";
+import { unlockUserLogin } from "@/lib/login-lockout-admin";
 
 export const dynamic = "force-dynamic";
 
@@ -38,6 +39,18 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ message: result.message, suspendedAt: null });
     }
 
+    if (action === "unlockLogin") {
+      const result = await unlockUserLogin(id);
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: result.status });
+      }
+      return NextResponse.json({
+        message: result.message,
+        loginLockedAt: null,
+        failedLoginAttempts: 0,
+      });
+    }
+
     if (action === "setRole") {
       const role = body.role;
       if (!role || !isValidRole(role)) {
@@ -55,7 +68,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     return NextResponse.json(
-      { error: "Action requise : suspend, unsuspend ou setRole" },
+      { error: "Action requise : suspend, unsuspend, unlockLogin ou setRole" },
       { status: 400 }
     );
   } catch (error) {

@@ -34,6 +34,8 @@ interface UserRow {
   phone: string | null;
   role: Role;
   suspendedAt: string | null;
+  loginLockedAt: string | null;
+  failedLoginAttempts: number;
   kycStatus: string | null;
   createdAt: string;
   stats: {
@@ -47,6 +49,7 @@ interface UserRow {
 type PendingAction =
   | { type: "suspend"; user: UserRow }
   | { type: "unsuspend"; user: UserRow }
+  | { type: "unlockLogin"; user: UserRow }
   | { type: "setRole"; user: UserRow; role: Role };
 
 const ROLE_LABEL: Record<Role, string> = {
@@ -77,6 +80,7 @@ export default function AdminUsersPanel() {
     providers: 0,
     admins: 0,
     suspended: 0,
+    loginLocked: 0,
   });
   const [pagination, setPagination] = useState({
     page: 1,
@@ -173,9 +177,11 @@ export default function AdminUsersPanel() {
       ? "Suspendre le compte"
       : pendingAction?.type === "unsuspend"
         ? "Réactiver le compte"
-        : pendingAction?.type === "setRole"
-          ? "Changer le rôle"
-          : "";
+        : pendingAction?.type === "unlockLogin"
+          ? "Débloquer la connexion"
+          : pendingAction?.type === "setRole"
+            ? "Changer le rôle"
+            : "";
 
   const dialogDescription = (() => {
     if (!pendingAction) return "";
@@ -186,6 +192,9 @@ export default function AdminUsersPanel() {
     if (pendingAction.type === "unsuspend") {
       return `Réactiver le compte de ${name} ?`;
     }
+    if (pendingAction.type === "unlockLogin") {
+      return `Débloquer la connexion de ${name} ? Le compteur de tentatives échouées sera remis à zéro.`;
+    }
     return `Attribuer le rôle « ${ROLE_LABEL[pendingAction.role]} » à ${name} ?`;
   })();
 
@@ -194,8 +203,8 @@ export default function AdminUsersPanel() {
   return (
     <div className="flex flex-col gap-6">
       <StatusAlert variant="info">
-        Gérez les comptes utilisateurs : consultez la liste, suspendez un compte ou
-        modifiez son rôle (client, prestataire, administrateur).
+        Gérez les comptes utilisateurs : consultez la liste, suspendez un compte,
+        débloquez une connexion verrouillée ou modifiez son rôle.
       </StatusAlert>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -323,13 +332,18 @@ export default function AdminUsersPanel() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {u.suspendedAt ? (
-                          <Badge variant="destructive">Suspendu</Badge>
-                        ) : (
-                          <Badge variant="outline" className="border-green-200 bg-green-50 text-green-800">
-                            Actif
-                          </Badge>
-                        )}
+                        <div className="flex flex-wrap gap-1">
+                          {u.suspendedAt ? (
+                            <Badge variant="destructive">Suspendu</Badge>
+                          ) : (
+                            <Badge variant="outline" className="border-green-200 bg-green-50 text-green-800">
+                              Actif
+                            </Badge>
+                          )}
+                          {u.loginLockedAt && (
+                            <Badge variant="destructive">Connexion verrouillée</Badge>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground">
                         {new Date(u.createdAt).toLocaleDateString("fr-MG", {
@@ -359,6 +373,19 @@ export default function AdminUsersPanel() {
                       <TableCell>
                         {!isSelf(u.id) && (
                           <div className="flex flex-wrap gap-2">
+                            {u.loginLockedAt && (
+                              <Button
+                                type="button"
+                                size="xs"
+                                variant="outline"
+                                disabled={busyId != null}
+                                onClick={() =>
+                                  setPendingAction({ type: "unlockLogin", user: u })
+                                }
+                              >
+                                Débloquer connexion
+                              </Button>
+                            )}
                             {u.suspendedAt ? (
                               <Button
                                 type="button"
@@ -444,11 +471,13 @@ export default function AdminUsersPanel() {
         confirmLabel={
           pendingAction?.type === "unsuspend"
             ? "Réactiver"
-            : pendingAction?.type === "setRole"
-              ? "Confirmer"
-              : pendingAction?.type === "suspend"
-                ? "Suspendre"
-                : "Confirmer"
+            : pendingAction?.type === "unlockLogin"
+              ? "Débloquer"
+              : pendingAction?.type === "setRole"
+                ? "Confirmer"
+                : pendingAction?.type === "suspend"
+                  ? "Suspendre"
+                  : "Confirmer"
         }
         destructive={
           pendingAction?.type === "suspend" ||

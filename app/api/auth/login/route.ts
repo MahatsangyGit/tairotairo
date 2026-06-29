@@ -4,6 +4,15 @@ import prisma from "@/lib/prisma";
 import { signToken } from "@/lib/jwt";
 import { PostHogEvents } from "@/lib/posthog";
 import { captureServerEvent } from "@/lib/posthog-server";
+import {
+  isLoginLocked,
+  LOGIN_FAILED_MESSAGE,
+  LOGIN_LOCKED_MESSAGE,
+} from "@/lib/login-lockout";
+import {
+  recordFailedLogin,
+  resetLoginAttempts,
+} from "@/lib/login-lockout-admin";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,21 +36,13 @@ export async function POST(req: NextRequest) {
         phone: true,
         avatar: true,
         suspendedAt: true,
+        loginLockedAt: true,
       },
     });
 
     if (!user) {
       return NextResponse.json(
-        { error: "Email ou mot de passe incorrect" },
-        { status: 401 }
-      );
-    }
-
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
-      return NextResponse.json(
-        { error: "Email ou mot de passe incorrect" },
+        { error: LOGIN_FAILED_MESSAGE },
         { status: 401 }
       );
     }
@@ -53,13 +54,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (isLoginLocked(user.loginLockedAt)) {
+      return NextResponse.json({ error: LOGIN_LOCKED_MESSAGE }, { status: 423 });
+    }
+
+    const isValidPassword = await bcrypt.compare(password, user.password);
+
+    if (!isValidPassword) {
+      const { locked } = await recordFailedLogin(user.id);
+
+      if (locked) {
+        return NextResponse.json({ error: LOGIN_LOCKED_MESSAGE }, { status: 423 });
+      }
+
+      return NextResponse.json(
+        { error: LOGIN_FAILED_MESSAGE },
+        { status: 401 }
+      );
+    }
+
+    await resetLoginAttempts(user.id);
+
     const token = signToken({
       userId: user.id,
       email: user.email,
       role: user.role,
     });
 
-    const { password: _, ...userWithoutPassword } = user;
+    const { password: _, loginLockedAt: __, ...userWithoutPassword } = user;
 
     const response = NextResponse.json(
       { message: "Connexion réussie", user: userWithoutPassword },

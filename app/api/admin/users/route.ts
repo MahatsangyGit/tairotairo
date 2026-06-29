@@ -52,6 +52,8 @@ export async function GET(req: NextRequest) {
           phone: true,
           role: true,
           suspendedAt: true,
+          loginLockedAt: true,
+          failedLoginAttempts: true,
           kycStatus: true,
           createdAt: true,
           _count: {
@@ -70,6 +72,7 @@ export async function GET(req: NextRequest) {
         prisma.user.count({ where: { role: "PROVIDER" } }),
         prisma.user.count({ where: { role: "ADMIN" } }),
         prisma.user.count({ where: { suspendedAt: { not: null } } }),
+        prisma.user.count({ where: { loginLockedAt: { not: null } } }),
       ]),
     ]);
 
@@ -81,6 +84,8 @@ export async function GET(req: NextRequest) {
         phone: u.phone,
         role: u.role,
         suspendedAt: u.suspendedAt?.toISOString() ?? null,
+        loginLockedAt: u.loginLockedAt?.toISOString() ?? null,
+        failedLoginAttempts: u.failedLoginAttempts,
         kycStatus: u.role === "PROVIDER" ? u.kycStatus : null,
         createdAt: u.createdAt.toISOString(),
         stats: {
@@ -102,6 +107,7 @@ export async function GET(req: NextRequest) {
         providers: counts[2],
         admins: counts[3],
         suspended: counts[4],
+        loginLocked: counts[5],
       },
     });
   } catch (error) {
