@@ -100,30 +100,35 @@ export function resolveRlsContextFromRequest(
 
 /** Applies session variables on a pooled pg client before each query. */
 export async function applyRlsToPgClient(client: PoolClient): Promise<void> {
-  const ctx = getRlsContext();
+  try {
+    const ctx = getRlsContext();
 
-  if (ctx.mode === "bypass") {
-    await client.query(
-      `SELECT set_config('app.bypass_rls', 'true', false),
-              set_config('app.user_id', '', false),
-              set_config('app.user_role', '', false)`
-    );
-    return;
-  }
+    if (ctx.mode === "bypass") {
+      await client.query(
+        `SELECT set_config('app.bypass_rls', 'true', false),
+                set_config('app.user_id', '', false),
+                set_config('app.user_role', '', false)`
+      );
+      return;
+    }
 
-  if (ctx.mode === "anonymous") {
+    if (ctx.mode === "anonymous") {
+      await client.query(
+        `SELECT set_config('app.bypass_rls', 'false', false),
+                set_config('app.user_id', '', false),
+                set_config('app.user_role', '', false)`
+      );
+      return;
+    }
+
     await client.query(
       `SELECT set_config('app.bypass_rls', 'false', false),
-              set_config('app.user_id', '', false),
-              set_config('app.user_role', '', false)`
+              set_config('app.user_id', $1, false),
+              set_config('app.user_role', $2, false)`,
+      [ctx.userId, ctx.role]
     );
-    return;
+  } catch (error) {
+    console.error("[RLS] Impossible d'appliquer le contexte sur la connexion pg:", error);
+    throw error;
   }
-
-  await client.query(
-    `SELECT set_config('app.bypass_rls', 'false', false),
-            set_config('app.user_id', $1, false),
-            set_config('app.user_role', $2, false)`,
-    [ctx.userId, ctx.role]
-  );
 }

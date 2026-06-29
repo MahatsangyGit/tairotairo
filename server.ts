@@ -1,8 +1,18 @@
 import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
+import "dotenv/config";
 import { attachMessagingWebSocket } from "./app/lib/realtime/ws-server";
 import { resolveRlsContextFromRequest, runWithRls } from "./app/lib/rls";
+import { validateDatabaseUrl } from "./app/lib/database-url";
+
+try {
+  validateDatabaseUrl();
+} catch (error) {
+  console.error("[Tairo ampio] Configuration base de données invalide :");
+  console.error(error instanceof Error ? error.message : error);
+  process.exit(1);
+}
 
 const dev = process.env.NODE_ENV !== "production";
 const hostname = process.env.HOSTNAME ?? "localhost";

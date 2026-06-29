@@ -163,5 +163,8 @@ ALTER ROLE tairo_app PASSWORD 'votre_mot_de_passe';
 ```
 
 ```
-DATABASE_URL=postgresql://tairo_app:mot_de_passe@host:5432/dbname
+DATABASE_URL=postgresql://mahatsangyraz@localhost:5432/ankino_db
 ```
+
+> **Ne pas utiliser** `host` comme nom d'hôte — c'est un placeholder de documentation.
+> En local : `localhost`. En production : l'hôte Supabase ou votre serveur.

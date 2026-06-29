@@ -2,10 +2,13 @@ import { PrismaClient } from "@/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 import { applyRlsToPgClient } from "@/lib/rls";
+import { getDatabaseUrl, validateDatabaseUrl } from "@/lib/database-url";
+
+validateDatabaseUrl();
 
 function createRlsPool(): pg.Pool {
   const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
+    connectionString: getDatabaseUrl(),
   });
 
   const originalConnect = pool.connect.bind(pool);
