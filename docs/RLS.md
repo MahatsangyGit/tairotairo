@@ -1,38 +1,167 @@
-# Row Level Security (PostgreSQL)
+# Row Level Security — Matrice des policies
 
-L'application utilise un JWT custom (cookie `token`), pas Supabase Auth. Le RLS est appliqué via des variables de session PostgreSQL, définies automatiquement à chaque requête HTTP par `server.ts`.
+Policies définies dans `supabase/migrations/20260629120000_010_rls_enforcement.sql`.
 
 ## Variables de session
 
-| Variable | Description |
-|----------|-------------|
-| `app.user_id` | ID utilisateur connecté (vide = anonyme) |
-| `app.user_role` | `CLIENT`, `PROVIDER` ou `ADMIN` |
-| `app.bypass_rls` | `true` pour auth, cron et écritures système |
+| Variable | Valeur |
+|----------|--------|
+| `app.user_id` | ID connecté (vide = anonyme) |
+| `app.user_role` | `CLIENT`, `PROVIDER`, `ADMIN` |
+| `app.bypass_rls` | `true` pour auth, cron, notifications |
+
+## Légende
+
+| Symbole | Signification |
+|---------|---------------|
+| **Public** | Visiteur non connecté |
+| **Self** | Utilisateur connecté (propre données) |
+| **Peer** | Client ou prestataire en relation active |
+| **Bypass** | Contexte système (`app.bypass_rls`) |
+| **Admin** | Rôle `ADMIN` ou bypass |
+
+---
+
+## `users`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | Prestataires KYC ✓, clients avec demande ouverte ✓, auteurs d'avis ✓ | + Self, peers marketplace | + Self, peers | Tous |
+| INSERT | — | — | — | Bypass (inscription) |
+| UPDATE | — | Self | Self | Tous |
+| DELETE | — | — | — | ✓ |
+
+---
+
+## `services`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | `available = true` | idem | + ses annonces (même off) | Tous |
+| INSERT | — | — | Self (`provider_id`) | ✓ |
+| UPDATE | — | — | Self | ✓ |
+| DELETE | — | — | Self | ✓ |
+
+---
+
+## `service_requests`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | `open = true` | + ses demandes | + demandes où il a répondu | Tous |
+| INSERT | — | Self (`client_id`) | — | ✓ |
+| UPDATE | — | Self | Si réponse envoyée | ✓ |
+| DELETE | — | Self | — | ✓ |
+
+---
+
+## `request_responses`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | Si demande ouverte | Ses demandes | Self | Tous |
+| INSERT | — | — | Self sur demande ouverte | ✓ |
+| UPDATE | — | Client de la demande | Self | ✓ |
+| DELETE | — | — | Self | ✓ |
+
+---
+
+## `bookings`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | — | `client_id` = Self | `provider_id` = Self | Tous |
+| INSERT | — | Self client | Self provider / bypass | ✓ |
+| UPDATE | — | Participant | Participant | ✓ |
+| DELETE | — | — | — | ✓ |
+
+---
+
+## `transactions`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | — | Via réservation | Via réservation | Tous |
+| INSERT | — | — | — | Bypass / Admin |
+| UPDATE | — | — | — | Bypass / Admin |
+
+---
+
+## `conversations` / `messages`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | — | Participant | Participant | Tous |
+| INSERT | — | Ouvre fil (client) | Ouvre fil (provider) | ✓ |
+| UPDATE | — | Participant | Participant | ✓ |
+| Messages INSERT | — | `sender_id` = Self + participant | idem | ✓ |
+
+---
+
+## `notifications` / `push_subscriptions`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | — | Self | Self | Tous |
+| INSERT | — | Self | Self | Bypass (notif tiers) |
+| UPDATE/DELETE | — | Self | Self | ✓ |
+
+---
+
+## `reviews`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | ✓ (tous) | ✓ | ✓ | ✓ |
+| INSERT | — | Après booking `COMPLETED` | — | ✓ |
+| UPDATE/DELETE | — | — | — | ✓ |
+
+---
+
+## `provider_portfolio_items` / `portfolio_item_comments`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| Portfolio SELECT | Prestataire KYC approuvé | idem | + ses items | Tous |
+| Portfolio CUD | — | — | Self | ✓ |
+| Comments SELECT | ✓ | ✓ | ✓ | ✓ |
+| Comments INSERT | — | Connecté | Connecté | ✓ |
+
+---
+
+## `provider_kyc_documents`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | — | — | Self | ✓ (revue) |
+| INSERT/UPDATE/DELETE | — | — | Self | ✓ |
+
+---
+
+## `provider_subscriptions` / `provider_subscription_payments`
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| Subscriptions SELECT | — | — | Self | ✓ |
+| Subscriptions CUD | — | — | — | Bypass / Admin |
+| Payments SELECT | — | — | Self | ✓ |
+| Payments INSERT | — | — | Self | ✓ |
+| Payments UPDATE | — | — | Self / Bypass | ✓ |
+
+---
+
+## `email_otps` / `password_reset_tokens`
+
+Accès **Bypass uniquement** (inscription, OTP, mot de passe oublié).
+
+---
 
 ## Configuration
 
-1. **Appliquer la migration** `supabase/migrations/20260629120000_010_rls_enforcement.sql` sur votre base PostgreSQL.
+```sql
+ALTER ROLE tairo_app PASSWORD 'votre_mot_de_passe';
+```
 
-2. **Créer le mot de passe du rôle applicatif** (une fois) :
-   ```sql
-   ALTER ROLE tairo_app PASSWORD 'votre_mot_de_passe';
-   ```
-
-3. **Mettre à jour `DATABASE_URL`** pour utiliser le rôle `tairo_app` (pas un superutilisateur) :
-   ```
-   DATABASE_URL=postgresql://tairo_app:votre_mot_de_passe@host:5432/dbname
-   ```
-
-4. **Migrations** : utilisez un rôle propriétaire des tables (ex. `postgres`) via `DATABASE_URL_MIGRATE` ou la CLI Supabase — le rôle `tairo_app` n'a pas les droits DDL.
-
-## Contexte RLS dans le code
-
-- **Requêtes HTTP** : contexte résolu automatiquement dans `server.ts` (JWT cookie + chemins bypass auth/cron).
-- **Écritures système** (notifications, activation abonnement) : `withBypassRls()` dans `app/lib/rls.ts`.
-- **Lectures publiques** (accueil) : `withAnonymousRls()` si appelé hors requête HTTP.
-
-## Chemins bypass (sans utilisateur)
-
-- `/api/auth/login`, `/register`, `/forgot-password`, `/reset-password`, `/email/*`
-- `/api/cron/*`
+```
+DATABASE_URL=postgresql://tairo_app:mot_de_passe@host:5432/dbname
+```
