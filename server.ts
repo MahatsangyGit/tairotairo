@@ -34,8 +34,34 @@ app.prepare().then(async () => {
     rejectInvalidCsrf,
     rejectOversizedApiBody,
   } = await import("./app/lib/http-security");
+  const {
+    attachCorsHeadersOnResponse,
+    resolveCorsForNodeRequest,
+    writeCorsOnlyResponse,
+  } = await import("./app/lib/cors");
 
   const server = createServer((req, res) => {
+    const parsedUrl = parse(req.url!, true);
+    const pathname = parsedUrl.pathname ?? "";
+
+    if (pathname.startsWith("/api")) {
+      const cors = resolveCorsForNodeRequest(req);
+
+      if (cors.action === "preflight") {
+        writeCorsOnlyResponse(res, cors.status, cors.headers);
+        return;
+      }
+
+      if (cors.action === "forbidden") {
+        writeCorsOnlyResponse(res, cors.status, {});
+        return;
+      }
+
+      if (cors.action === "continue") {
+        attachCorsHeadersOnResponse(res, cors.headers);
+      }
+    }
+
     if (rejectOversizedApiBody(req.method, req.url, req.headers)) {
       payloadTooLargeResponse(res);
       return;
@@ -45,8 +71,6 @@ app.prepare().then(async () => {
       csrfRejectedResponse(res);
       return;
     }
-
-    const parsedUrl = parse(req.url!, true);
     const rlsContext = resolveRlsContextFromRequest(
       req.url ?? undefined,
       req.headers.cookie
