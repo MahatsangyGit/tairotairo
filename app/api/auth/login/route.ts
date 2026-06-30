@@ -108,10 +108,10 @@ export async function POST(req: NextRequest) {
       tokenVersion: user.tokenVersion,
     });
 
-    const { password: _, loginLockedAt: __, ...userWithoutPassword } = user;
+    const { password: _, loginLockedAt: __, tokenVersion: ___, ...userPublic } = user;
 
     const response = NextResponse.json(
-      { message: "Connexion réussie", user: userWithoutPassword },
+      { message: "Connexion réussie", user: userPublic },
       { status: 200 }
     );
 

@@ -1,20 +1,49 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import Navbar from "@/components/layout/Navbar";
 import { SITE_NAME } from "@/lib/site";
 
+function readResetTokenFromLocation(): string {
+  if (typeof window === "undefined") return "";
+
+  const fromHash = new URLSearchParams(
+    window.location.hash.replace(/^#/, "")
+  )
+    .get("token")
+    ?.trim();
+
+  if (fromHash) return fromHash;
+
+  return (
+    new URLSearchParams(window.location.search).get("token")?.trim() ?? ""
+  );
+}
+
+function clearTokenFromAddressBar(): void {
+  if (typeof window === "undefined" || !window.history.replaceState) return;
+  window.history.replaceState(null, "", window.location.pathname);
+}
+
 function ResetPasswordContent() {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const token = searchParams.get("token")?.trim() ?? "";
-
+  const [token, setToken] = useState("");
+  const [tokenReady, setTokenReady] = useState(false);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const value = readResetTokenFromLocation();
+    setToken(value);
+    setTokenReady(true);
+    if (value) {
+      clearTokenFromAddressBar();
+    }
+  }, []);
 
   const handleSubmit = async () => {
     setError("");
@@ -58,6 +87,14 @@ function ResetPasswordContent() {
       setLoading(false);
     }
   };
+
+  if (!tokenReady) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Chargement...</p>
+      </div>
+    );
+  }
 
   if (!token) {
     return (

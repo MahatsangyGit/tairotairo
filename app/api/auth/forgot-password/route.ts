@@ -70,7 +70,7 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      const resetUrl = `${APP_URL}/auth/reset-password?token=${encodeURIComponent(raw)}`;
+      const resetUrl = `${APP_URL}/auth/reset-password#token=${encodeURIComponent(raw)}`;
       await sendPasswordResetEmail({
         to: user.email,
         name: user.name,

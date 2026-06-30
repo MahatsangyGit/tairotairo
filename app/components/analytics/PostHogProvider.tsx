@@ -1,27 +1,27 @@
 "use client";
 
 import { PostHogProvider as PHProvider, usePostHog } from "@posthog/react";
-import { usePathname, useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { Suspense, useEffect, type ReactNode } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { POSTHOG_KEY, posthogOptions } from "@/lib/posthog";
+import {
+  buildSafePageViewUrl,
+  isAnalyticsSensitivePath,
+} from "@/lib/analytics-url";
 
 function PostHogPageView() {
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const posthog = usePostHog();
 
   useEffect(() => {
     if (!pathname || !posthog) return;
+    if (isAnalyticsSensitivePath(pathname)) return;
 
-    let url = window.location.origin + pathname;
-    const query = searchParams.toString();
-    if (query) {
-      url += `?${query}`;
-    }
-
-    posthog.capture("$pageview", { $current_url: url });
-  }, [pathname, searchParams, posthog]);
+    posthog.capture("$pageview", {
+      $current_url: buildSafePageViewUrl(pathname),
+    });
+  }, [pathname, posthog]);
 
   return null;
 }

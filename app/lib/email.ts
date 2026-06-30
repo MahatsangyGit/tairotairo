@@ -6,6 +6,7 @@ const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
 import { BRAND_PRIMARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
 import { escapeHtml } from "@/lib/html-escape";
+import { redactEmailDevLog } from "@/lib/dev-log-redact";
 
 const EMAIL_FROM = process.env.EMAIL_FROM ?? `${SITE_NAME} <noreply@tairotairo.mg>`;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -44,7 +45,7 @@ export async function sendEmail({
   const transport = getTransport();
 
   if (!transport) {
-    console.info("[email:dev]", { to, subject, text: text ?? html });
+    console.info("[email:dev]", redactEmailDevLog({ to, subject, text, html }));
     return true;
   }
 

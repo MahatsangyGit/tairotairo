@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { getAuthUser, requireAuth } from "@/lib/auth";
+import { canViewRequestClientPhone } from "@/lib/contact-privacy";
 import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
 import { withCoverImageUrl } from "@/lib/listing-cover";
 import { deleteListingCoverFiles } from "@/lib/listing-cover-storage";
@@ -16,11 +17,12 @@ import {
 
 // GET - Détail d'une demande
 export async function GET(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const viewer = getAuthUser(req);
 
     const request = await prisma.serviceRequest.findUnique({
       where: { id },
@@ -40,8 +42,23 @@ export async function GET(
       return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
     }
 
+    const showClientPhone = await canViewRequestClientPhone(
+      id,
+      request.clientId,
+      viewer
+    );
+
+    const client = {
+      id: request.client.id,
+      name: request.client.name,
+      avatar: request.client.avatar,
+      phone: showClientPhone ? request.client.phone : null,
+    };
+
+    const { client: _client, ...requestFields } = request;
+
     return NextResponse.json({
-      request: withCoverImageUrl("request", request),
+      request: withCoverImageUrl("request", { ...requestFields, client }),
     });
   } catch (error) {
     console.error("[GET /api/requests/[id]]", error);

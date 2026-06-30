@@ -17,7 +17,6 @@ interface Provider {
   name:   string;
   avatar: string | null;
   bio:    string | null;
-  phone:  string | null;
 }
 
 interface Service {
@@ -270,9 +269,6 @@ export default function ServiceDetailPage() {
                     </Link>
                     {service.provider.bio && (
                       <p className="text-muted-foreground text-sm mt-1">{service.provider.bio}</p>
-                    )}
-                    {service.provider.phone && (
-                      <p className="text-muted-foreground text-sm mt-1">📞 {service.provider.phone}</p>
                     )}
                     <div className="mt-3">
                       <ContactProviderButton providerId={service.provider.id} />

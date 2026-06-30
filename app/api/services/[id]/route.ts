@@ -4,6 +4,7 @@ import { getAuthUser, requireAuth } from "@/lib/auth";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { assertEmailVerified } from "@/lib/email-verification";
 import { isKycApproved } from "@/lib/kyc";
+import { stripPhone } from "@/lib/contact-privacy";
 import { clearServiceFeaturedIfNeeded } from "@/lib/provider-spotlight";
 import { withCoverImageUrl } from "@/lib/listing-cover";
 import { deleteListingCoverFiles } from "@/lib/listing-cover-storage";
@@ -78,7 +79,10 @@ export async function GET(
         : 0;
 
     return NextResponse.json({
-      service: withCoverImageUrl("service", service),
+      service: withCoverImageUrl("service", {
+        ...service,
+        provider: stripPhone(service.provider),
+      }),
       reviews,
       averageRating,
       totalReviews: reviews.length,
