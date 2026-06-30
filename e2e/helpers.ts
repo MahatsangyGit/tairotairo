@@ -3,6 +3,19 @@ import pg from "pg";
 
 const PASSWORD = "E2eTest!2026";
 
+/** Dummy token accepted by Cloudflare test secret keys only. */
+const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
+
+export function turnstileFields(): { turnstileToken?: string } {
+  const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
+  const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
+  if (!secret || !siteKey) return {};
+  if (secret === "1x0000000000000000000000000000000AA") {
+    return { turnstileToken: TURNSTILE_DUMMY_TOKEN };
+  }
+  return {};
+}
+
 const CSRF_EXEMPT_PREFIXES = [
   "/api/auth/login",
   "/api/auth/register",
@@ -137,7 +150,9 @@ export async function registerUser(
     phone?: string;
   }
 ) {
-  const res = await request.post("/api/auth/register", { data });
+  const res = await request.post("/api/auth/register", {
+    data: { ...data, ...turnstileFields() },
+  });
   const body = await res.json();
   if (!res.ok()) {
     throw new Error(`Register failed (${res.status()}): ${body.error ?? JSON.stringify(body)}`);
@@ -151,7 +166,7 @@ export async function login(
   password: string
 ) {
   const res = await request.post("/api/auth/login", {
-    data: { email, password },
+    data: { email, password, ...turnstileFields() },
   });
   const body = await res.json();
   if (!res.ok()) {

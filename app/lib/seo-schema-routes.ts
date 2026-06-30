@@ -111,8 +111,8 @@ export async function resolveSeoSchema(
           id: provider.id,
           name: provider.name,
           description: provider.bio,
-          averageRating: rating.averageRating,
-          reviewCount: rating.total,
+          averageRating: rating.averageRating ?? 0,
+          reviewCount: rating.reviewCount,
         }),
         cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
       };

@@ -17,6 +17,10 @@ function hostToOrigin(host: string): string | null {
 
 function collectTrustedOrigins(): string[] {
   const origins = new Set<string>();
+  const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  if (turnstileSiteKey) {
+    origins.add("https://challenges.cloudflare.com");
+  }
 
   for (const host of getConfiguredImageHosts()) {
     const origin = hostToOrigin(host);
@@ -68,6 +72,7 @@ export function buildContentSecurityPolicy(nonce: string): string {
     `img-src ${imgSrc}`,
     `font-src ${fontSrc}`,
     `connect-src ${connectSrc}`,
+    `frame-src 'self'${originList ? ` ${originList}` : ""}`,
     "worker-src 'self'",
     "manifest-src 'self'",
     "frame-ancestors 'none'",

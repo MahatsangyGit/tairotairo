@@ -13,6 +13,7 @@ import {
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const GENERIC_MESSAGE =
   "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.";
@@ -32,7 +33,15 @@ export async function POST(req: NextRequest) {
     const parsed = parseBody(forgotPasswordSchema, json.body);
     if (!parsed.ok) return parsed.response;
 
-    const { email } = parsed.data;
+    const { email, turnstileToken } = parsed.data;
+    const turnstile = await verifyTurnstileToken(
+      req,
+      turnstileToken,
+      "forgot_password"
+    );
+    if (!turnstile.ok) {
+      return NextResponse.json({ error: turnstile.error }, { status: 400 });
+    }
 
     const user = await prisma.user.findFirst({
       where: { email: { equals: email, mode: "insensitive" } },

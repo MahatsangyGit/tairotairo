@@ -4,29 +4,42 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { SITE_NAME } from "@/lib/site";
+import TurnstileWidget from "@/components/security/TurnstileWidget";
 
 export default function ForgotPasswordPage() {
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const handleSubmit = async () => {
     setError("");
     setSuccess("");
+    if (turnstileEnabled && !turnstileToken) {
+      setError("Validez la vérification anti-bot avant de continuer.");
+      return;
+    }
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/forgot-password", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({
+          email,
+          ...(turnstileEnabled ? { turnstileToken } : {}),
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         setError(data.error ?? "Une erreur est survenue");
+        setTurnstileToken(null);
+        setTurnstileResetKey((current) => current + 1);
         return;
       }
 
@@ -68,10 +81,22 @@ export default function ForgotPasswordPage() {
               </p>
             )}
 
+            {turnstileEnabled ? (
+              <TurnstileWidget
+                action="forgot_password"
+                onTokenChange={setTurnstileToken}
+                resetKey={turnstileResetKey}
+              />
+            ) : null}
+
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={loading || !email.trim()}
+              disabled={
+                loading ||
+                !email.trim() ||
+                (turnstileEnabled && !turnstileToken)
+              }
               className="w-full bg-brand-600 text-white py-3 rounded-lg font-semibold hover:bg-brand-700 transition-colors disabled:opacity-50"
             >
               {loading ? "Envoi..." : "Envoyer le lien"}

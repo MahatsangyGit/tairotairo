@@ -73,6 +73,7 @@ export const registerSchema = z.object({
     ),
   phone: optionalPhoneInput,
   role: z.string().optional(),
+  turnstileToken: z.string().trim().max(2048).optional(),
 });
 
 export const loginSchema = z.object({
@@ -81,6 +82,7 @@ export const loginSchema = z.object({
     .string()
     .min(1, "Mot de passe obligatoire")
     .max(128, "Mot de passe trop long"),
+  turnstileToken: z.string().trim().max(2048).optional(),
 });
 
 export const createServiceSchema = z.object({
@@ -168,6 +170,7 @@ export const resetPasswordSchema = z.object({
 
 export const forgotPasswordSchema = z.object({
   email: emailSchema,
+  turnstileToken: z.string().trim().max(2048).optional(),
 });
 
 export const verifyOtpSchema = z.object({

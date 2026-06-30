@@ -9,6 +9,7 @@ import {
   PASSWORD,
   promoteToAdmin,
   registerUser,
+  turnstileFields,
   verifyUserEmail,
 } from "./helpers";
 import {
@@ -90,7 +91,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
   }) => {
     for (let i = 1; i < MAX_FAILED_LOGIN_ATTEMPTS; i++) {
       const res = await request.post("/api/auth/login", {
-        data: { email: clientEmail, password: `wrong-password-${i}` },
+        data: { email: clientEmail, password: `wrong-password-${i}`, ...turnstileFields() },
       });
       const body = await res.json();
 
@@ -99,14 +100,14 @@ test.describe.serial("Auth — chemins d'échec", () => {
     }
 
     const fifth = await request.post("/api/auth/login", {
-      data: { email: clientEmail, password: "wrong-password-5" },
+      data: { email: clientEmail, password: "wrong-password-5", ...turnstileFields() },
     });
     const fifthBody = await fifth.json();
     expect(fifth.status()).toBe(423);
     expect(fifthBody.error).toBe(LOGIN_LOCKED_MESSAGE);
 
     const blocked = await request.post("/api/auth/login", {
-      data: { email: clientEmail, password: PASSWORD },
+      data: { email: clientEmail, password: PASSWORD, ...turnstileFields() },
     });
     const blockedBody = await blocked.json();
     expect(blocked.status()).toBe(423);
@@ -129,7 +130,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
     expect(unlockBody.message).toContain("débloquée");
 
     const ok = await request.post("/api/auth/login", {
-      data: { email: clientEmail, password: PASSWORD },
+      data: { email: clientEmail, password: PASSWORD, ...turnstileFields() },
     });
     expect(ok.status()).toBe(200);
   });
@@ -138,7 +139,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
     request,
   }) => {
     const res = await request.post("/api/auth/forgot-password", {
-      data: { email: ghostEmail },
+      data: { email: ghostEmail, ...turnstileFields() },
     });
     const body = await res.json();
 
@@ -168,7 +169,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
     expect(secondBody.error).toContain("invalide ou a expiré");
 
     await request.post("/api/auth/login", {
-      data: { email: clientEmail, password: newPassword },
+      data: { email: clientEmail, password: newPassword, ...turnstileFields() },
     });
   });
 
@@ -178,7 +179,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
     const code = await seedEmailOtp(userId);
 
     const loginRes = await request.post("/api/auth/login", {
-      data: { email: clientEmail, password: "ResetOk!2026" },
+      data: { email: clientEmail, password: "ResetOk!2026", ...turnstileFields() },
     });
     expect(loginRes.status()).toBe(200);
 
@@ -204,6 +205,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
         email: clientEmail,
         password: "AnotherPass!99",
         role: "CLIENT",
+        ...turnstileFields(),
       },
     });
     const body = await res.json();

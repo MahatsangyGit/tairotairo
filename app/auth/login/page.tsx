@@ -18,6 +18,7 @@ import {
 import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { StatusAlert } from "@/components/ui/status-alert";
+import TurnstileWidget from "@/components/security/TurnstileWidget";
 
 function safeCallbackUrl(url: string | null): string | null {
   if (!url || !url.startsWith("/") || url.startsWith("//")) return null;
@@ -37,6 +38,7 @@ interface UserResponse {
 }
 
 function LoginPageContent() {
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const router = useRouter();
   const { refreshUser } = useAuth();
   const searchParams = useSearchParams();
@@ -50,22 +52,35 @@ function LoginPageContent() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const handleSubmit = async () => {
     setError("");
+
+    if (turnstileEnabled && !turnstileToken) {
+      setError("Validez la vérification anti-bot avant de continuer.");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ...(turnstileEnabled ? { turnstileToken } : {}),
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         setError(data.error);
+        setTurnstileToken(null);
+        setTurnstileResetKey((current) => current + 1);
         return;
       }
 
@@ -164,6 +179,14 @@ function LoginPageContent() {
               </div>
 
               {error && <StatusAlert variant="error">{error}</StatusAlert>}
+
+              {turnstileEnabled ? (
+                <TurnstileWidget
+                  action="login"
+                  onTokenChange={setTurnstileToken}
+                  resetKey={turnstileResetKey}
+                />
+              ) : null}
 
               <Button
                 onClick={handleSubmit}

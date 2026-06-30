@@ -15,6 +15,7 @@ import {
   parseJsonBody,
   registerSchema,
 } from "@/lib/api-schemas";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 const REGISTRATION_FAILED_MESSAGE =
   "Impossible de créer le compte avec ces informations.";
@@ -30,7 +31,11 @@ export async function POST(req: NextRequest) {
     const parsed = parseBody(registerSchema, json.body);
     if (!parsed.ok) return parsed.response;
 
-    const { name, email, password, phone, role } = parsed.data;
+    const { name, email, password, phone, role, turnstileToken } = parsed.data;
+    const turnstile = await verifyTurnstileToken(req, turnstileToken, "register");
+    if (!turnstile.ok) {
+      return NextResponse.json({ error: turnstile.error }, { status: 400 });
+    }
 
     const existingUser = await prisma.user.findUnique({
       where: { email },

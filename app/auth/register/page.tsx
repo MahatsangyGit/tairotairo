@@ -17,6 +17,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { StatusAlert } from "@/components/ui/status-alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TurnstileWidget from "@/components/security/TurnstileWidget";
 
 type Role = "CLIENT" | "PROVIDER";
 
@@ -29,6 +30,7 @@ interface FormData {
 }
 
 export default function RegisterPage() {
+  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -39,22 +41,33 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const handleSubmit = async () => {
     setError("");
+    if (turnstileEnabled && !turnstileToken) {
+      setError("Validez la vérification anti-bot avant de continuer.");
+      return;
+    }
     setLoading(true);
 
     try {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          ...formData,
+          ...(turnstileEnabled ? { turnstileToken } : {}),
+        }),
       });
 
       const data = await res.json();
 
       if (!res.ok) {
         setError(data.error);
+        setTurnstileToken(null);
+        setTurnstileResetKey((current) => current + 1);
         return;
       }
 
@@ -151,6 +164,14 @@ export default function RegisterPage() {
               </FormField>
 
               {error && <StatusAlert variant="error">{error}</StatusAlert>}
+
+              {turnstileEnabled ? (
+                <TurnstileWidget
+                  action="register"
+                  onTokenChange={setTurnstileToken}
+                  resetKey={turnstileResetKey}
+                />
+              ) : null}
 
               <Button onClick={handleSubmit} disabled={loading} className="w-full">
                 {loading ? "Création..." : "Créer mon compte"}

@@ -22,6 +22,7 @@ import {
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
 import { loginSchema, parseBody, parseJsonBody } from "@/lib/api-schemas";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,7 +35,11 @@ export async function POST(req: NextRequest) {
     const parsed = parseBody(loginSchema, json.body);
     if (!parsed.ok) return parsed.response;
 
-    const { email, password } = parsed.data;
+    const { email, password, turnstileToken } = parsed.data;
+    const turnstile = await verifyTurnstileToken(req, turnstileToken, "login");
+    if (!turnstile.ok) {
+      return NextResponse.json({ error: turnstile.error }, { status: 400 });
+    }
 
     const user = await prisma.user.findUnique({
       where: { email },
