@@ -5,11 +5,13 @@ import "dotenv/config";
 import { attachMessagingWebSocket } from "./app/lib/realtime/ws-server";
 import { resolveRlsContextFromRequest, runWithRls } from "./app/lib/rls";
 import { validateDatabaseUrl } from "./app/lib/database-url";
+import { validateJwtSecret } from "./app/lib/jwt-secret";
 
 try {
   validateDatabaseUrl();
+  validateJwtSecret();
 } catch (error) {
-  console.error("[Tairo ampio] Configuration base de données invalide :");
+  console.error("[Tairo ampio] Configuration invalide :");
   console.error(error instanceof Error ? error.message : error);
   process.exit(1);
 }

@@ -14,7 +14,7 @@ export const dynamic = "force-dynamic";
 // GET - Lister les réservations de l'utilisateur connecté
 export async function GET(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json(
@@ -82,7 +82,7 @@ export async function GET(req: NextRequest) {
 // POST - Créer une réservation
 export async function POST(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json(

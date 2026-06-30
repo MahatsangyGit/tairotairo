@@ -39,7 +39,7 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string; responseId: string }> }
 ) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

@@ -7,12 +7,20 @@ import {
   getPasswordResetCooldownSeconds,
   getPasswordResetExpiry,
 } from "@/lib/password-reset";
+import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 
 const GENERIC_MESSAGE =
   "Si un compte existe avec cet email, vous recevrez un lien de réinitialisation.";
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimited = enforceRateLimit(
+      req,
+      "forgot-password",
+      AUTH_RATE_LIMITS.forgotPassword
+    );
+    if (rateLimited) return rateLimited;
+
     const body = await req.json();
     const email =
       typeof body.email === "string" ? body.email.trim().toLowerCase() : "";

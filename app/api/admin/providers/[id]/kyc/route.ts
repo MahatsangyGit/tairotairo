@@ -16,7 +16,7 @@ interface RouteParams {
 
 export async function PATCH(req: NextRequest, { params }: RouteParams) {
   try {
-    const admin = requireAdmin(req);
+    const admin = await requireAdmin(req);
     if (!admin.ok) return admin.response;
 
     const { id } = await params;

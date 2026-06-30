@@ -2,8 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { hashPasswordResetToken } from "@/lib/password-reset";
-
-const MIN_PASSWORD_LENGTH = 8;
+import { validatePassword } from "@/lib/password-policy";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,13 +18,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (!password || password.length < MIN_PASSWORD_LENGTH) {
-      return NextResponse.json(
-        {
-          error: `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`,
-        },
-        { status: 400 }
-      );
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
+      return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
     }
 
     const tokenHash = hashPasswordResetToken(token);

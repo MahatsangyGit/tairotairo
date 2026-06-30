@@ -15,7 +15,7 @@ export async function GET() {
 // POST - Enregistrer un abonnement push
 export async function POST(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -55,7 +55,7 @@ export async function POST(req: NextRequest) {
 // DELETE - Désactiver push pour cet endpoint
 export async function DELETE(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

@@ -153,10 +153,11 @@ model PushSubscription {
 }
 
 model EmailOtp {
-  id        String   @id @default(cuid())
-  codeHash  String
-  expiresAt DateTime
-  createdAt DateTime @default(now())
+  id             String   @id @default(cuid())
+  codeHash       String
+  failedAttempts Int      @default(0)
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
 
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String

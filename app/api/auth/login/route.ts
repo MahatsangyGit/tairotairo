@@ -14,9 +14,13 @@ import {
   resetLoginAttempts,
 } from "@/lib/login-lockout-admin";
 import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth-cookie";
+import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimited = enforceRateLimit(req, "login", AUTH_RATE_LIMITS.login);
+    if (rateLimited) return rateLimited;
+
     const { email, password } = await req.json();
 
     if (!email || !password) {

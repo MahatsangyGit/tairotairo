@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ unreadTotal: 0 });
     }

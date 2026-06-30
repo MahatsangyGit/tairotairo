@@ -57,7 +57,7 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
 
 export async function POST(req: NextRequest, { params }: RouteParams) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
@@ -100,7 +100,7 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(req: NextRequest, { params }: RouteParams) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }

@@ -12,7 +12,7 @@ import { getNegotiationHintsFromMessages } from "@/lib/price-negotiation";
 // GET — Liste des conversations de l'utilisateur connecté
 export async function GET(req: NextRequest) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
