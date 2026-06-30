@@ -8,6 +8,7 @@ import {
   rateLimitResponse,
   AUTH_RATE_LIMITS,
 } from "@/lib/rate-limit";
+import { logSecurityEventFromRequest } from "@/lib/security-audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -57,12 +58,20 @@ export async function POST(req: NextRequest) {
 
       if (nextAttempts >= MAX_OTP_ATTEMPTS) {
         await prisma.emailOtp.delete({ where: { id: otp.id } });
+        logSecurityEventFromRequest("auth.otp_locked", req, {
+          userId: auth.userId,
+        });
         return NextResponse.json({ error: OTP_LOCKED_MESSAGE }, { status: 429 });
       }
 
       await prisma.emailOtp.update({
         where: { id: otp.id },
         data: { failedAttempts: nextAttempts },
+      });
+
+      logSecurityEventFromRequest("auth.otp_failed", req, {
+        userId: auth.userId,
+        meta: { attempts: nextAttempts },
       });
 
       return NextResponse.json({ error: "Code incorrect" }, { status: 400 });

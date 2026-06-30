@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { hashPasswordResetToken } from "@/lib/password-reset";
 import { validatePassword } from "@/lib/password-policy";
+import { logSecurityEventFromRequest } from "@/lib/security-audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -49,7 +50,10 @@ export async function POST(req: NextRequest) {
     await prisma.$transaction([
       prisma.user.update({
         where: { id: resetRecord.userId },
-        data: { password: hashedPassword },
+        data: {
+          password: hashedPassword,
+          tokenVersion: { increment: 1 },
+        },
       }),
       prisma.passwordResetToken.update({
         where: { id: resetRecord.id },
@@ -63,6 +67,10 @@ export async function POST(req: NextRequest) {
         },
       }),
     ]);
+
+    logSecurityEventFromRequest("auth.password_reset", req, {
+      userId: resetRecord.userId,
+    });
 
     return NextResponse.json({
       message: "Mot de passe mis à jour. Vous pouvez vous connecter.",

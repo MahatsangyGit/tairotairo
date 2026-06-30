@@ -11,6 +11,10 @@ import {
 import { validatePassword } from "@/lib/password-policy";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 import { FIELD_LIMITS, validateRequiredText } from "@/lib/field-limits";
+import { logSecurityEventFromRequest } from "@/lib/security-audit";
+
+const REGISTRATION_FAILED_MESSAGE =
+  "Impossible de créer le compte avec ces informations.";
 
 export async function POST(req: NextRequest) {
   try {
@@ -41,8 +45,9 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingUser) {
+      logSecurityEventFromRequest("auth.register_duplicate", req, { email });
       return NextResponse.json(
-        { error: "Cet email est déjà utilisé" },
+        { error: REGISTRATION_FAILED_MESSAGE },
         { status: 400 }
       );
     }

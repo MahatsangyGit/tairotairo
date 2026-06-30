@@ -6,6 +6,12 @@ import { attachMessagingWebSocket } from "./app/lib/realtime/ws-server";
 import { resolveRlsContextFromRequest, runWithRls } from "./app/lib/rls";
 import { validateDatabaseUrl } from "./app/lib/database-url";
 import { validateJwtSecret } from "./app/lib/jwt-secret";
+import {
+  csrfRejectedResponse,
+  payloadTooLargeResponse,
+  rejectInvalidCsrf,
+  rejectOversizedApiBody,
+} from "./app/lib/http-security";
 
 try {
   validateDatabaseUrl();
@@ -25,6 +31,16 @@ const handle = app.getRequestHandler();
 
 app.prepare().then(() => {
   const server = createServer((req, res) => {
+    if (rejectOversizedApiBody(req.method, req.url, req.headers)) {
+      payloadTooLargeResponse(res);
+      return;
+    }
+
+    if (rejectInvalidCsrf(req.method, req.url, req.headers)) {
+      csrfRejectedResponse(res);
+      return;
+    }
+
     const parsedUrl = parse(req.url!, true);
     const rlsContext = resolveRlsContextFromRequest(
       req.url ?? undefined,

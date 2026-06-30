@@ -2,12 +2,15 @@ import { test, expect } from "@playwright/test";
 import {
   E2E_PNG,
   PASSWORD,
+  apiPatch,
+  apiPost,
   cleanupTestUsers,
   createTestUsers,
   futureBookingDate,
   login,
   promoteToAdmin,
   registerUser,
+  verifyUserEmail,
 } from "./helpers";
 
 test.describe.serial("E2E — réservation, KYC, abonnement", () => {
@@ -50,6 +53,10 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
       role: "CLIENT",
     });
 
+    await verifyUserEmail(emails[0]);
+    await verifyUserEmail(emails[1]);
+    await verifyUserEmail(emails[2]);
+
     const provider = await login(request, emails[0], PASSWORD);
     providerId = provider.id;
 
@@ -66,7 +73,7 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
   test("KYC — upload, soumission, validation admin", async ({ request }) => {
     await login(request, emails[0], PASSWORD);
 
-    const uploadRes = await request.post("/api/provider/kyc/upload", {
+    const uploadRes = await apiPost(request, "/api/provider/kyc/upload", {
       multipart: {
         type: "CIN",
         cinSlot: "1",
@@ -81,14 +88,15 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
     expect(uploadRes.ok(), uploadBody.error ?? "upload KYC").toBeTruthy();
     expect(uploadBody.kyc?.documents?.length).toBeGreaterThan(0);
 
-    const submitRes = await request.post("/api/provider/kyc/submit");
+    const submitRes = await apiPost(request, "/api/provider/kyc/submit");
     const submitBody = await submitRes.json();
     expect(submitRes.ok(), submitBody.error ?? "submit KYC").toBeTruthy();
     expect(submitBody.kyc?.status).toBe("PENDING");
 
     await login(request, emails[2], PASSWORD);
 
-    const approveRes = await request.patch(
+    const approveRes = await apiPatch(
+      request,
       `/api/admin/providers/${providerId}/kyc`,
       { data: { action: "approve" } }
     );
@@ -104,7 +112,7 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
   test("prestataire publie une annonce", async ({ request }) => {
     await login(request, emails[0], PASSWORD);
 
-    const res = await request.post("/api/services", {
+    const res = await apiPost(request, "/api/services", {
       data: {
         title: `Service E2E ${runId}`,
         description: "Annonce créée par test E2E Playwright",
@@ -124,7 +132,7 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
   }) => {
     await login(request, emails[1], PASSWORD);
 
-    const bookRes = await request.post("/api/bookings", {
+    const bookRes = await apiPost(request, "/api/bookings", {
       data: {
         serviceId,
         date: await futureBookingDate(),
@@ -139,7 +147,7 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
 
     await login(request, emails[0], PASSWORD);
 
-    const confirmRes = await request.patch(`/api/bookings/${bookingId}`, {
+    const confirmRes = await apiPatch(request, `/api/bookings/${bookingId}`, {
       data: { status: "CONFIRMED" },
     });
     const confirmBody = await confirmRes.json();
@@ -156,7 +164,7 @@ test.describe.serial("E2E — réservation, KYC, abonnement", () => {
   test("abonnement — achat simulé actif", async ({ request }) => {
     await login(request, emails[0], PASSWORD);
 
-    const purchaseRes = await request.post("/api/provider/subscription/purchase", {
+    const purchaseRes = await apiPost(request, "/api/provider/subscription/purchase", {
       data: {
         months: 1,
         paymentMethod: "MVOLA",

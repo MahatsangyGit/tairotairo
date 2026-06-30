@@ -43,12 +43,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ user });
   } catch (error) {
     console.error("[GET /api/users/me]", error);
-    const detail =
-      process.env.NODE_ENV === "development" && error instanceof Error
-        ? error.message
-        : undefined;
     return NextResponse.json(
-      { error: "Erreur serveur", ...(detail && { detail }) },
+      { error: "Erreur serveur" },
       { status: 500 }
     );
   }

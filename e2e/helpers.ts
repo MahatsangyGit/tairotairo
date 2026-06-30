@@ -3,6 +3,13 @@ import pg from "pg";
 
 const PASSWORD = "E2eTest!2026";
 
+const CSRF_EXEMPT_PREFIXES = [
+  "/api/auth/login",
+  "/api/auth/register",
+  "/api/auth/forgot-password",
+  "/api/auth/reset-password",
+];
+
 function getPool() {
   return new pg.Pool({ connectionString: process.env.DATABASE_URL! });
 }
@@ -17,6 +24,73 @@ export interface TestUsers {
   provider: { email: string; password: string; id: string };
   client: { email: string; password: string; id: string };
   admin: { email: string; password: string; id: string };
+}
+
+function isCsrfExempt(url: string): boolean {
+  return CSRF_EXEMPT_PREFIXES.some((prefix) => url.startsWith(prefix));
+}
+
+export async function getCsrfToken(request: APIRequestContext): Promise<string> {
+  const res = await request.get("/api/auth/csrf");
+  const body = await res.json();
+  if (!res.ok() || !body.csrfToken) {
+    throw new Error("Failed to obtain CSRF token for e2e tests");
+  }
+  return body.csrfToken as string;
+}
+
+async function withCsrfHeaders(
+  request: APIRequestContext,
+  url: string,
+  headers: Record<string, string> = {}
+): Promise<Record<string, string>> {
+  if (isCsrfExempt(url)) {
+    return headers;
+  }
+
+  return {
+    ...headers,
+    "X-CSRF-Token": await getCsrfToken(request),
+  };
+}
+
+export async function apiPost(
+  request: APIRequestContext,
+  url: string,
+  options?: Parameters<APIRequestContext["post"]>[1]
+) {
+  const headers = await withCsrfHeaders(
+    request,
+    url,
+    (options?.headers as Record<string, string> | undefined) ?? {}
+  );
+  return request.post(url, { ...options, headers });
+}
+
+export async function apiPatch(
+  request: APIRequestContext,
+  url: string,
+  options?: Parameters<APIRequestContext["patch"]>[1]
+) {
+  const headers = await withCsrfHeaders(
+    request,
+    url,
+    (options?.headers as Record<string, string> | undefined) ?? {}
+  );
+  return request.patch(url, { ...options, headers });
+}
+
+export async function apiDelete(
+  request: APIRequestContext,
+  url: string,
+  options?: Parameters<APIRequestContext["delete"]>[1]
+) {
+  const headers = await withCsrfHeaders(
+    request,
+    url,
+    (options?.headers as Record<string, string> | undefined) ?? {}
+  );
+  return request.delete(url, { ...options, headers });
 }
 
 export async function createTestUsers(runId: string): Promise<TestUsers> {
@@ -39,6 +113,18 @@ export async function createTestUsers(runId: string): Promise<TestUsers> {
     client: { email: clientEmail, password: PASSWORD, id: "" },
     admin: { email: adminEmail, password: PASSWORD, id: "" },
   };
+}
+
+export async function verifyUserEmail(email: string) {
+  const pool = getPool();
+  try {
+    await pool.query(
+      `UPDATE "User" SET "emailVerified" = true, "emailVerifiedAt" = NOW() WHERE email = $1`,
+      [email]
+    );
+  } finally {
+    await pool.end();
+  }
 }
 
 export async function registerUser(

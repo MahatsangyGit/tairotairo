@@ -2,11 +2,14 @@ import { test, expect } from "@playwright/test";
 import pg from "pg";
 import { LOGIN_LOCKED_MESSAGE, MAX_FAILED_LOGIN_ATTEMPTS } from "../app/lib/login-lockout";
 import {
+  apiPatch,
+  apiPost,
   cleanupTestUsers,
   login,
   PASSWORD,
   promoteToAdmin,
   registerUser,
+  verifyUserEmail,
 } from "./helpers";
 import {
   generatePasswordResetToken,
@@ -76,6 +79,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
       password: PASSWORD,
       role: "CLIENT",
     });
+    await verifyUserEmail(clientEmail);
     const user = await login(request, clientEmail, PASSWORD);
     userId = user.id;
     expect(userId).toBeTruthy();
@@ -117,7 +121,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
     await promoteToAdmin(adminEmail);
     await login(request, adminEmail, PASSWORD);
 
-    const unlock = await request.patch(`/api/admin/users/${userId}`, {
+    const unlock = await apiPatch(request, `/api/admin/users/${userId}`, {
       data: { action: "unlockLogin" },
     });
     const unlockBody = await unlock.json();
@@ -178,14 +182,14 @@ test.describe.serial("Auth — chemins d'échec", () => {
     });
     expect(loginRes.status()).toBe(200);
 
-    const first = await request.post("/api/auth/email/verify-otp", {
+    const first = await apiPost(request, "/api/auth/email/verify-otp", {
       data: { code },
     });
     const firstBody = await first.json();
     expect(first.status()).toBe(200);
     expect(firstBody.emailVerified).toBe(true);
 
-    const second = await request.post("/api/auth/email/verify-otp", {
+    const second = await apiPost(request, "/api/auth/email/verify-otp", {
       data: { code },
     });
     const secondBody = await second.json();
@@ -205,6 +209,8 @@ test.describe.serial("Auth — chemins d'échec", () => {
     const body = await res.json();
 
     expect(res.status()).toBe(400);
-    expect(body.error).toBe("Cet email est déjà utilisé");
+    expect(body.error).toBe(
+      "Impossible de créer le compte avec ces informations."
+    );
   });
 });

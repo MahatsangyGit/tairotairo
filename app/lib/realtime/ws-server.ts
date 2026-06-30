@@ -2,6 +2,7 @@ import type { Duplex } from "stream";
 import type { Server as HttpServer, IncomingMessage } from "http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { verifyToken } from "@/lib/jwt";
+import prisma from "@/lib/prisma";
 import { getMessagingHub } from "@/lib/realtime/hub";
 import type { RealtimeClientEvent } from "@/lib/realtime/types";
 
@@ -31,6 +32,26 @@ function parseCookies(header: string | undefined): Record<string, string> {
 function getTokenFromRequest(request: IncomingMessage): string | null {
   const cookies = parseCookies(request.headers.cookie);
   return cookies.token ?? null;
+}
+
+async function verifyWsAuth(token: string) {
+  const auth = verifyToken(token);
+  if (!auth) return null;
+
+  const user = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { suspendedAt: true, tokenVersion: true },
+  });
+
+  if (
+    !user ||
+    user.suspendedAt ||
+    user.tokenVersion !== auth.tokenVersion
+  ) {
+    return null;
+  }
+
+  return auth;
 }
 
 function safeParseClientEvent(raw: string): RealtimeClientEvent | null {
@@ -74,19 +95,25 @@ export function attachMessagingWebSocket(
     }
 
     const token = getTokenFromRequest(request);
-    const auth = token ? verifyToken(token) : null;
-
-    if (!auth) {
+    if (!token) {
       socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
       socket.destroy();
       return;
     }
 
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      const client = ws as ClientSocket;
-      client.userId = auth.userId;
-      client.isAlive = true;
-      wss.emit("connection", client, request);
+    void verifyWsAuth(token).then((auth) => {
+      if (!auth) {
+        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+        socket.destroy();
+        return;
+      }
+
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        const client = ws as ClientSocket;
+        client.userId = auth.userId;
+        client.isAlive = true;
+        wss.emit("connection", client, request);
+      });
     });
   });
 

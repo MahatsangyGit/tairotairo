@@ -14,7 +14,13 @@ import {
   resetLoginAttempts,
 } from "@/lib/login-lockout-admin";
 import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth-cookie";
+import {
+  generateCsrfToken,
+  getCsrfCookieName,
+  getCsrfCookieOptions,
+} from "@/lib/csrf";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
+import { logSecurityEventFromRequest } from "@/lib/security-audit";
 
 export async function POST(req: NextRequest) {
   try {
@@ -42,10 +48,12 @@ export async function POST(req: NextRequest) {
         avatar: true,
         suspendedAt: true,
         loginLockedAt: true,
+        tokenVersion: true,
       },
     });
 
     if (!user) {
+      logSecurityEventFromRequest("auth.login_failed", req, { email });
       return NextResponse.json(
         { error: LOGIN_FAILED_MESSAGE },
         { status: 401 }
@@ -53,9 +61,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (user.suspendedAt) {
+      logSecurityEventFromRequest("auth.login_failed", req, {
+        userId: user.id,
+        email,
+        detail: "suspended",
+      });
       return NextResponse.json(
-        { error: "Ce compte a été suspendu. Contactez le support." },
-        { status: 403 }
+        { error: LOGIN_FAILED_MESSAGE },
+        { status: 401 }
       );
     }
 
@@ -69,9 +82,17 @@ export async function POST(req: NextRequest) {
       const { locked } = await recordFailedLogin(user.id);
 
       if (locked) {
+        logSecurityEventFromRequest("auth.login_locked", req, {
+          userId: user.id,
+          email,
+        });
         return NextResponse.json({ error: LOGIN_LOCKED_MESSAGE }, { status: 423 });
       }
 
+      logSecurityEventFromRequest("auth.login_failed", req, {
+        userId: user.id,
+        email,
+      });
       return NextResponse.json(
         { error: LOGIN_FAILED_MESSAGE },
         { status: 401 }
@@ -84,6 +105,7 @@ export async function POST(req: NextRequest) {
       userId: user.id,
       email: user.email,
       role: user.role,
+      tokenVersion: user.tokenVersion,
     });
 
     const { password: _, loginLockedAt: __, ...userWithoutPassword } = user;
@@ -95,6 +117,13 @@ export async function POST(req: NextRequest) {
 
     response.cookies.set(getAuthCookieName(), token, getAuthCookieOptions());
 
+    const csrfToken = generateCsrfToken();
+    response.cookies.set(getCsrfCookieName(), csrfToken, getCsrfCookieOptions());
+
+    logSecurityEventFromRequest("auth.login_success", req, {
+      userId: user.id,
+      email: user.email,
+    });
     void captureServerEvent(user.id, PostHogEvents.USER_LOGGED_IN, {
       role: user.role,
     }).catch(console.error);
