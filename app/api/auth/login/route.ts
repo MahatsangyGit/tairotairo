@@ -13,6 +13,7 @@ import {
   recordFailedLogin,
   resetLoginAttempts,
 } from "@/lib/login-lockout-admin";
+import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth-cookie";
 
 export async function POST(req: NextRequest) {
   try {
@@ -88,12 +89,7 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     );
 
-    response.cookies.set("token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 7,
-    });
+    response.cookies.set(getAuthCookieName(), token, getAuthCookieOptions());
 
     void captureServerEvent(user.id, PostHogEvents.USER_LOGGED_IN, {
       role: user.role,

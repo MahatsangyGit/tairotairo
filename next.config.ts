@@ -6,6 +6,7 @@ import {
   getPostHogAssetsHost,
   POSTHOG_API_HOST,
 } from "./app/lib/posthog";
+import { getSecurityHeaders } from "./app/lib/security-headers";
 
 const categoryRedirects = CATEGORY_META.flatMap((cat) => [
   {
@@ -61,6 +62,10 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/:path*",
+        headers: getSecurityHeaders(),
+      },
       {
         source: "/_next/static/:path*",
         headers: [

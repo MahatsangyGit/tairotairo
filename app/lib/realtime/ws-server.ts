@@ -30,15 +30,7 @@ function parseCookies(header: string | undefined): Record<string, string> {
 
 function getTokenFromRequest(request: IncomingMessage): string | null {
   const cookies = parseCookies(request.headers.cookie);
-  if (cookies.token) return cookies.token;
-
-  try {
-    const url = new URL(request.url ?? "", `http://${request.headers.host}`);
-    const queryToken = url.searchParams.get("token");
-    return queryToken || null;
-  } catch {
-    return null;
-  }
+  return cookies.token ?? null;
 }
 
 function safeParseClientEvent(raw: string): RealtimeClientEvent | null {
