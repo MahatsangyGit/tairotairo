@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import {
+  notificationPreferencesSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export async function GET(req: NextRequest) {
   try {
@@ -29,13 +34,19 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { notifyEmail, notifyPush } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(notificationPreferencesSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { notifyEmail, notifyPush } = parsed.data;
 
     const preferences = await prisma.user.update({
       where: { id: user.userId },
       data: {
-        ...(notifyEmail !== undefined && { notifyEmail: Boolean(notifyEmail) }),
-        ...(notifyPush !== undefined && { notifyPush: Boolean(notifyPush) }),
+        ...(notifyEmail !== undefined && { notifyEmail }),
+        ...(notifyPush !== undefined && { notifyPush }),
       },
       select: { notifyEmail: true, notifyPush: true },
     });

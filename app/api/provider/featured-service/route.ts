@@ -3,6 +3,11 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { assertEmailVerified } from "@/lib/email-verification";
 import { setProviderFeaturedService } from "@/lib/provider-spotlight";
+import {
+  featuredServiceSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -25,15 +30,13 @@ export async function PATCH(req: NextRequest) {
       );
     }
 
-    const body = await req.json().catch(() => ({}));
-    const serviceId =
-      body.serviceId === null || body.serviceId === undefined
-        ? null
-        : String(body.serviceId).trim();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (serviceId === "") {
-      return NextResponse.json({ error: "serviceId invalide" }, { status: 400 });
-    }
+    const parsed = parseBody(featuredServiceSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { serviceId } = parsed.data;
 
     const result = await setProviderFeaturedService(auth.userId, serviceId);
     if (!result.ok) {

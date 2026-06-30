@@ -11,6 +11,11 @@ import {
   savePortfolioImage,
   validatePortfolioImageFile,
 } from "@/lib/portfolio-storage";
+import {
+  parseBody,
+  parseJsonBody,
+  portfolioDescriptionPatchSchema,
+} from "@/lib/api-schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -97,19 +102,18 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       });
     }
 
-    const body = await req.json();
-    const description = body.description != null ? String(body.description).trim() : undefined;
+    const bodyJson = await parseJsonBody(req);
+    if (!bodyJson.ok) return bodyJson.response;
+
+    const parsed = parseBody(portfolioDescriptionPatchSchema, bodyJson.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { description } = parsed.data;
 
     if (description !== undefined) {
       if (!description) {
         return NextResponse.json(
           { error: "La description est obligatoire" },
-          { status: 400 }
-        );
-      }
-      if (description.length > PORTFOLIO_MAX_DESCRIPTION_LENGTH) {
-        return NextResponse.json(
-          { error: `Description trop longue (max ${PORTFOLIO_MAX_DESCRIPTION_LENGTH} caractères)` },
           { status: 400 }
         );
       }

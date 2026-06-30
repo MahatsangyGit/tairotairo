@@ -2,27 +2,22 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { hashPasswordResetToken } from "@/lib/password-reset";
-import { validatePassword } from "@/lib/password-policy";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
+import {
+  parseBody,
+  parseJsonBody,
+  resetPasswordSchema,
+} from "@/lib/api-schemas";
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const token = typeof body.token === "string" ? body.token.trim() : "";
-    const password =
-      typeof body.password === "string" ? body.password : "";
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: "Lien de réinitialisation invalide" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(resetPasswordSchema, json.body);
+    if (!parsed.ok) return parsed.response;
 
-    const passwordCheck = validatePassword(password);
-    if (!passwordCheck.ok) {
-      return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
-    }
+    const { token, password } = parsed.data;
 
     const tokenHash = hashPasswordResetToken(token);
 

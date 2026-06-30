@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import {
-  FIELD_LIMITS,
-  validateOptionalText,
-  validateRequiredText,
-} from "@/lib/field-limits";
+  parseBody,
+  parseJsonBody,
+  patchUserProfileSchema,
+} from "@/lib/api-schemas";
 
 const userSelect = {
   id: true,
@@ -59,41 +59,20 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { name, phone, bio } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    let nameValue: string | undefined;
-    if (name !== undefined) {
-      const nameCheck = validateRequiredText(
-        name,
-        "Nom",
-        FIELD_LIMITS.USER_NAME
-      );
-      if (!nameCheck.ok) {
-        return NextResponse.json({ error: nameCheck.error }, { status: 400 });
-      }
-      nameValue = nameCheck.value;
-    }
+    const parsed = parseBody(patchUserProfileSchema, json.body);
+    if (!parsed.ok) return parsed.response;
 
-    const phoneCheck = validateOptionalText(
-      phone,
-      "Téléphone",
-      FIELD_LIMITS.USER_PHONE
-    );
-    if (!phoneCheck.ok) {
-      return NextResponse.json({ error: phoneCheck.error }, { status: 400 });
-    }
-
-    const bioCheck = validateOptionalText(bio, "Bio", FIELD_LIMITS.USER_BIO);
-    if (!bioCheck.ok) {
-      return NextResponse.json({ error: bioCheck.error }, { status: 400 });
-    }
+    const { name, phone, bio } = parsed.data;
 
     const user = await prisma.user.update({
       where: { id: auth.userId },
       data: {
-        ...(nameValue !== undefined && { name: nameValue }),
-        ...(phone !== undefined && { phone: phoneCheck.value }),
-        ...(bio !== undefined && { bio: bioCheck.value }),
+        ...(name !== undefined && { name }),
+        ...(phone !== undefined && { phone }),
+        ...(bio !== undefined && { bio }),
       },
       select: userSelect,
     });

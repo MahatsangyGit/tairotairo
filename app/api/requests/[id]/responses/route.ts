@@ -5,9 +5,10 @@ import { notifyNewRequestResponse } from "@/lib/notify-requests";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { assertEmailVerified } from "@/lib/email-verification";
 import {
-  FIELD_LIMITS,
-  validateRequiredText,
-} from "@/lib/field-limits";
+  parseBody,
+  parseJsonBody,
+  requestResponseCreateSchema,
+} from "@/lib/api-schemas";
 
 const providerSelect = {
   id: true,
@@ -122,18 +123,24 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { message, proposedPrice } = await req.json();
 
-    const messageCheck = validateRequiredText(
-      message,
-      "Message",
-      FIELD_LIMITS.REQUEST_RESPONSE_MESSAGE
-    );
-    if (!messageCheck.ok) {
-      return NextResponse.json({ error: messageCheck.error }, { status: 400 });
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(requestResponseCreateSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { message, proposedPrice } = parsed.data;
+    const trimmedMessage = message;
+
+    let parsedPrice: number | null = null;
+    if (
+      proposedPrice !== undefined &&
+      proposedPrice !== null &&
+      proposedPrice !== ""
+    ) {
+      parsedPrice = proposedPrice as number;
     }
-
-    const trimmedMessage = messageCheck.value;
 
     const request = await prisma.serviceRequest.findUnique({
       where: { id },
@@ -168,14 +175,6 @@ export async function POST(
         { error: "Vous avez déjà envoyé une proposition pour cette demande" },
         { status: 400 }
       );
-    }
-
-    let parsedPrice: number | null = null;
-    if (proposedPrice !== undefined && proposedPrice !== null && proposedPrice !== "") {
-      parsedPrice = parseFloat(proposedPrice);
-      if (Number.isNaN(parsedPrice) || parsedPrice < 0) {
-        return NextResponse.json({ error: "Prix proposé invalide" }, { status: 400 });
-      }
     }
 
     const response = await prisma.requestResponse.create({

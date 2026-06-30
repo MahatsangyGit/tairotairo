@@ -11,12 +11,11 @@ import {
 } from "@/lib/booking-display";
 import { notifyBookingConfirmed } from "@/lib/notify-booking";
 import { notifyRequestResponseAccepted } from "@/lib/notify-requests";
-
-const VALID_STATUSES: RequestResponseStatus[] = [
-  "ACCEPTED",
-  "REJECTED",
-  "WITHDRAWN",
-];
+import {
+  parseBody,
+  parseJsonBody,
+  responseStatusPatchSchema,
+} from "@/lib/api-schemas";
 
 const responseInclude = {
   provider: {
@@ -46,14 +45,14 @@ export async function PATCH(
     }
 
     const { id, responseId } = await params;
-    const { status } = await req.json();
 
-    if (!status || !VALID_STATUSES.includes(status)) {
-      return NextResponse.json(
-        { error: "Statut invalide (ACCEPTED, REJECTED ou WITHDRAWN)" },
-        { status: 400 }
-      );
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(responseStatusPatchSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { status } = parsed.data;
 
     const response = await prisma.requestResponse.findUnique({
       where: { id: responseId },

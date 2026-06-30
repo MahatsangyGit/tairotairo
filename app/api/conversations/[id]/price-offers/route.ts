@@ -10,6 +10,11 @@ import { createPriceOffer } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
 import { notifyMessageReceived } from "@/lib/notify-messages";
 import { publishThreadRefresh } from "@/lib/realtime/publish";
+import {
+  parseBody,
+  parseJsonBody,
+  priceOfferSchema,
+} from "@/lib/api-schemas";
 
 // POST — Proposer un prix dans la conversation
 export async function POST(
@@ -23,19 +28,14 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { price, requestResponseId, serviceId } = await req.json();
 
-    const parsed = parseFloat(price);
-    if (Number.isNaN(parsed) || parsed < 0) {
-      return NextResponse.json({ error: "Prix invalide" }, { status: 400 });
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!requestResponseId && !serviceId) {
-      return NextResponse.json(
-        { error: "requestResponseId ou serviceId requis" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(priceOfferSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { price, requestResponseId, serviceId } = parsed.data;
 
     const conversation = await getConversationForParticipant(id, auth.userId);
     if (!conversation) {
@@ -48,10 +48,10 @@ export async function POST(
     const result = await createPriceOffer({
       conversationId: id,
       senderId: auth.userId,
-      price: parsed,
+      price,
       ...(requestResponseId
-        ? { requestResponseId: String(requestResponseId) }
-        : { serviceId: String(serviceId) }),
+        ? { requestResponseId }
+        : { serviceId: serviceId! }),
     });
 
     if ("error" in result) {

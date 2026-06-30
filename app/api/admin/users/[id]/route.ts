@@ -1,12 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
-  isValidRole,
   setUserRole,
   suspendUser,
   unsuspendUser,
 } from "@/lib/admin-users";
 import { unlockUserLogin } from "@/lib/login-lockout-admin";
+import {
+  adminUserActionSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -20,8 +24,14 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (!admin.ok) return admin.response;
 
     const { id } = await params;
-    const body = await req.json().catch(() => ({}));
-    const action = body.action;
+
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(adminUserActionSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { action, role } = parsed.data;
 
     if (action === "suspend") {
       const result = await suspendUser(id, admin.auth.userId);
@@ -52,15 +62,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     if (action === "setRole") {
-      const role = body.role;
-      if (!role || !isValidRole(role)) {
-        return NextResponse.json(
-          { error: "Rôle requis : CLIENT, PROVIDER ou ADMIN" },
-          { status: 400 }
-        );
-      }
-
-      const result = await setUserRole(id, admin.auth.userId, role);
+      const result = await setUserRole(id, admin.auth.userId, role!);
       if (!result.ok) {
         return NextResponse.json({ error: result.error }, { status: result.status });
       }

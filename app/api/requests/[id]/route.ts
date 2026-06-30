@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
-import { FIELD_LIMITS, validateTextIfPresent } from "@/lib/field-limits";
-import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
 import { withCoverImageUrl } from "@/lib/listing-cover";
 import { deleteListingCoverFiles } from "@/lib/listing-cover-storage";
@@ -10,6 +8,11 @@ import {
   parseScheduleInput,
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
+import {
+  parseBody,
+  parseJsonBody,
+  patchRequestSchema,
+} from "@/lib/api-schemas";
 
 // GET - Détail d'une demande
 export async function GET(
@@ -59,7 +62,12 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const body = await req.json();
+
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(patchRequestSchema, json.body);
+    if (!parsed.ok) return parsed.response;
 
     const existing = await prisma.serviceRequest.findUnique({ where: { id } });
 
@@ -71,22 +79,17 @@ export async function PATCH(
       return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
     }
 
-    const { title, description, budget, category, location, open } = body;
-
-    for (const check of [
-      validateTextIfPresent(title, "Titre", FIELD_LIMITS.LISTING_TITLE),
-      validateTextIfPresent(
-        description,
-        "Description",
-        FIELD_LIMITS.LISTING_DESCRIPTION
-      ),
-      validateTextIfPresent(category, "Catégorie", FIELD_LIMITS.LISTING_CATEGORY),
-      validateTextIfPresent(location, "Ville", FIELD_LIMITS.LISTING_LOCATION),
-    ]) {
-      if (!check.ok) {
-        return NextResponse.json({ error: check.error }, { status: 400 });
-      }
-    }
+    const {
+      title,
+      description,
+      budget,
+      category,
+      location,
+      open,
+      desiredDate,
+      desiredSlotStart,
+      desiredSlotEnd,
+    } = parsed.data;
 
     let desiredPatch:
       | {
@@ -97,14 +100,14 @@ export async function PATCH(
       | undefined;
 
     if (
-      body.desiredDate !== undefined ||
-      body.desiredSlotStart !== undefined ||
-      body.desiredSlotEnd !== undefined
+      desiredDate !== undefined ||
+      desiredSlotStart !== undefined ||
+      desiredSlotEnd !== undefined
     ) {
       const schedule = parseScheduleInput({
-        desiredDate: body.desiredDate,
-        desiredSlotStart: body.desiredSlotStart,
-        desiredSlotEnd: body.desiredSlotEnd,
+        desiredDate,
+        desiredSlotStart,
+        desiredSlotEnd,
       });
 
       if (schedule.error) {
@@ -119,32 +122,16 @@ export async function PATCH(
       };
     }
 
-    if (
-      category &&
-      !(SERVICE_CATEGORIES as readonly string[]).includes(category)
-    ) {
-      return NextResponse.json({ error: "Catégorie invalide" }, { status: 400 });
-    }
-
-    if (budget !== undefined) {
-      const parsedBudget = parseFloat(budget);
-      if (Number.isNaN(parsedBudget) || parsedBudget < 0) {
-        return NextResponse.json({ error: "Budget invalide" }, { status: 400 });
-      }
-    }
-
     const updated = await prisma.serviceRequest.update({
       where: { id },
       data: {
-        ...(title !== undefined && { title: String(title).trim() }),
-        ...(description !== undefined && {
-          description: String(description).trim(),
-        }),
-        ...(budget !== undefined && { budget: parseFloat(budget) }),
+        ...(title !== undefined && { title }),
+        ...(description !== undefined && { description }),
+        ...(budget !== undefined && { budget }),
         ...(category !== undefined && { category }),
-        ...(location !== undefined && { location: String(location).trim() }),
+        ...(location !== undefined && { location }),
         ...desiredPatch,
-        ...(open !== undefined && { open: Boolean(open) }),
+        ...(open !== undefined && { open }),
       },
     });
 

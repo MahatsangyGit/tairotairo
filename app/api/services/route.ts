@@ -3,11 +3,15 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { assertEmailVerified } from "@/lib/email-verification";
-import { FIELD_LIMITS, validateRequiredText } from "@/lib/field-limits";
 import { parseListSearchParams } from "@/lib/advanced-search";
 import { searchPublicServices } from "@/lib/service-list-search";
 import { withCoverImageUrl } from "@/lib/listing-cover";
 import { jsonWithPublicCache } from "@/lib/cache";
+import {
+  createServiceSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 // GET - Lister et rechercher les services (?mine=true pour le prestataire connecté)
 export async function GET(req: NextRequest) {
@@ -99,61 +103,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { title, description, price, category, location } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    const titleCheck = validateRequiredText(
-      title,
-      "Titre",
-      FIELD_LIMITS.LISTING_TITLE
-    );
-    if (!titleCheck.ok) {
-      return NextResponse.json({ error: titleCheck.error }, { status: 400 });
-    }
+    const parsed = parseBody(createServiceSchema, json.body);
+    if (!parsed.ok) return parsed.response;
 
-    const descriptionCheck = validateRequiredText(
-      description,
-      "Description",
-      FIELD_LIMITS.LISTING_DESCRIPTION
-    );
-    if (!descriptionCheck.ok) {
-      return NextResponse.json(
-        { error: descriptionCheck.error },
-        { status: 400 }
-      );
-    }
-
-    const categoryCheck = validateRequiredText(
-      category,
-      "Catégorie",
-      FIELD_LIMITS.LISTING_CATEGORY
-    );
-    if (!categoryCheck.ok) {
-      return NextResponse.json({ error: categoryCheck.error }, { status: 400 });
-    }
-
-    const locationCheck = validateRequiredText(
-      location,
-      "Ville",
-      FIELD_LIMITS.LISTING_LOCATION
-    );
-    if (!locationCheck.ok) {
-      return NextResponse.json({ error: locationCheck.error }, { status: 400 });
-    }
-
-    if (!price) {
-      return NextResponse.json(
-        { error: "Tous les champs sont obligatoires" },
-        { status: 400 }
-      );
-    }
+    const { title, description, price, category, location } = parsed.data;
 
     const service = await prisma.service.create({
       data: {
-        title: titleCheck.value,
-        description: descriptionCheck.value,
-        price: parseFloat(price),
-        category: categoryCheck.value,
-        location: locationCheck.value,
+        title,
+        description,
+        price,
+        category,
+        location,
         providerId: user.userId,
       },
     });

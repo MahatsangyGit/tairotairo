@@ -21,20 +21,20 @@ import {
 } from "@/lib/csrf";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
+import { loginSchema, parseBody, parseJsonBody } from "@/lib/api-schemas";
 
 export async function POST(req: NextRequest) {
   try {
     const rateLimited = enforceRateLimit(req, "login", AUTH_RATE_LIMITS.login);
     if (rateLimited) return rateLimited;
 
-    const { email, password } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email et mot de passe obligatoires" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(loginSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { email, password } = parsed.data;
 
     const user = await prisma.user.findUnique({
       where: { email },

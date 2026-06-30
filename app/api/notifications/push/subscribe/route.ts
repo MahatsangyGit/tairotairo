@@ -2,6 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { getVapidPublicKey, isPushConfigured } from "@/lib/push";
+import {
+  parseBody,
+  parseJsonBody,
+  pushSubscribeSchema,
+  pushUnsubscribeSchema,
+} from "@/lib/api-schemas";
 
 // GET - Clé publique VAPID pour le client
 export async function GET() {
@@ -21,14 +27,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { endpoint, keys } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!endpoint || !keys?.p256dh || !keys?.auth) {
-      return NextResponse.json(
-        { error: "Abonnement push invalide" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(pushSubscribeSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { endpoint, keys } = parsed.data;
 
     await prisma.pushSubscription.upsert({
       where: { endpoint },
@@ -61,7 +66,13 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }
 
-    const { endpoint } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(pushUnsubscribeSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { endpoint } = parsed.data;
 
     if (endpoint) {
       await prisma.pushSubscription.deleteMany({

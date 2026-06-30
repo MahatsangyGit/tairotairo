@@ -8,13 +8,15 @@ import {
   getPlanPrice,
   isValidMgPhone,
   normalizeMgPhone,
-  PAYMENT_METHOD_OPTIONS,
 } from "@/lib/subscription-plans";
 import { serializeSubscription } from "@/lib/subscription";
+import {
+  parseBody,
+  parseJsonBody,
+  subscriptionPurchaseSchema,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
-
-const VALID_METHODS = PAYMENT_METHOD_OPTIONS.map((m) => m.id);
 
 function generateReferenceId(): string {
   const suffix = Math.random().toString(36).slice(2, 8).toUpperCase();
@@ -40,14 +42,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json().catch(() => ({}));
-    const months = Math.min(12, Math.max(1, parseInt(String(body.months ?? 1), 10) || 1));
-    const paymentMethod = String(body.paymentMethod ?? "").trim();
-    const phone = normalizeMgPhone(String(body.phone ?? "").trim());
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!VALID_METHODS.includes(paymentMethod as (typeof VALID_METHODS)[number])) {
-      return NextResponse.json({ error: "Mode de paiement invalide" }, { status: 400 });
-    }
+    const parsed = parseBody(subscriptionPurchaseSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { months, paymentMethod } = parsed.data;
+    const phone = normalizeMgPhone(parsed.data.phone);
 
     if (!isValidMgPhone(phone)) {
       return NextResponse.json(

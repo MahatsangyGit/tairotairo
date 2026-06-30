@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
-import { PORTFOLIO_MAX_COMMENT_LENGTH } from "@/lib/portfolio";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
 } from "@/lib/portfolio-serialize";
+import {
+  parseBody,
+  parseJsonBody,
+  portfolioCommentSchema,
+} from "@/lib/api-schemas";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -29,19 +33,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     }
 
     const { id } = await params;
-    const { body } = await req.json();
-    const text = String(body ?? "").trim();
 
-    if (!text) {
-      return NextResponse.json({ error: "Le commentaire est obligatoire" }, { status: 400 });
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (text.length > PORTFOLIO_MAX_COMMENT_LENGTH) {
-      return NextResponse.json(
-        { error: `Commentaire trop long (max ${PORTFOLIO_MAX_COMMENT_LENGTH} caractères)` },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(portfolioCommentSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const text = parsed.data.body;
 
     const item = await prisma.providerPortfolioItem.findUnique({
       where: { id },

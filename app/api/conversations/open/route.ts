@@ -7,6 +7,7 @@ import {
   resolveConversationPair,
   upsertConversationForPair,
 } from "@/lib/conversations";
+import { parseJsonBody } from "@/lib/api-schemas";
 
 // POST — Ouvrir ou créer une conversation (réservation, ou contact direct)
 export async function POST(req: NextRequest) {
@@ -24,7 +25,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const body = json.body as {
+      bookingId?: string;
+      providerId?: string;
+      clientId?: string;
+      requestResponseId?: string;
+      serviceId?: string;
+    };
     const pair = await resolveConversationPair({
       userId: auth.userId,
       role: auth.role,

@@ -4,6 +4,11 @@ import { requireAdmin } from "@/lib/admin-auth";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import { activateProviderSubscription } from "@/lib/activate-provider-subscription";
 import { disableProviderHomepageSpotlight } from "@/lib/provider-spotlight";
+import {
+  adminSubscriptionSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -17,10 +22,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
     if (!admin.ok) return admin.response;
 
     const { id } = await params;
-    const body = await req.json().catch(() => ({}));
-    const months = Math.min(12, Math.max(1, parseInt(String(body.months ?? 1), 10) || 1));
-    const notes =
-      body.notes != null ? String(body.notes).trim().slice(0, 500) : undefined;
+
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(adminSubscriptionSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { months, notes } = parsed.data;
 
     const provider = await prisma.user.findUnique({
       where: { id, role: "PROVIDER" },

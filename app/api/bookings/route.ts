@@ -9,6 +9,7 @@ import {
   parseScheduleInput,
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
+import { parseJsonBody } from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -107,8 +108,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const body = await req.json();
-    const { serviceId } = body;
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const body = json.body as Record<string, unknown>;
+    const serviceId =
+      typeof body.serviceId === "string" ? body.serviceId.trim() : "";
     const schedule = parseScheduleInput(body);
 
     if (schedule.error) {

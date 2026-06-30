@@ -7,6 +7,11 @@ import {
   syncProviderHomepageSpotlight,
 } from "@/lib/provider-spotlight";
 import { notifyKycApproved, notifyKycRejected } from "@/lib/notify-kyc";
+import {
+  adminKycActionSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -20,15 +25,14 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (!admin.ok) return admin.response;
 
     const { id } = await params;
-    const body = await req.json().catch(() => ({}));
-    const action = body.action;
 
-    if (action !== "approve" && action !== "reject") {
-      return NextResponse.json(
-        { error: "Action requise : approve ou reject" },
-        { status: 400 }
-      );
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(adminKycActionSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { action } = parsed.data;
 
     const provider = await prisma.user.findUnique({
       where: { id, role: "PROVIDER" },

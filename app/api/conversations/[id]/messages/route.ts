@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { assertEmailVerified } from "@/lib/email-verification";
-import { FIELD_LIMITS } from "@/lib/field-limits";
 import {
   conversationPath,
   getConversationForParticipant,
@@ -11,8 +10,11 @@ import {
 import { notifyMessageReceived } from "@/lib/notify-messages";
 import { serializeMessage } from "@/lib/message-serialize";
 import { publishMessageCreated } from "@/lib/realtime/publish";
-
-const MAX_BODY_LENGTH = FIELD_LIMITS.MESSAGE_BODY;
+import {
+  messageBodySchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 // POST — Envoyer un message
 export async function POST(
@@ -34,22 +36,14 @@ export async function POST(
     }
 
     const { id } = await params;
-    const { body } = await req.json();
-    const text = body ? String(body).trim() : "";
 
-    if (!text) {
-      return NextResponse.json(
-        { error: "Le message ne peut pas être vide" },
-        { status: 400 }
-      );
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (text.length > MAX_BODY_LENGTH) {
-      return NextResponse.json(
-        { error: `Message trop long (max ${MAX_BODY_LENGTH} caractères)` },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(messageBodySchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const text = parsed.data.body;
 
     const conversation = await getConversationForParticipant(id, auth.userId);
 

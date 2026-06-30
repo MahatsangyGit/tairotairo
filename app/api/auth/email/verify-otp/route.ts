@@ -9,6 +9,11 @@ import {
   AUTH_RATE_LIMITS,
 } from "@/lib/rate-limit";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
+import {
+  parseBody,
+  parseJsonBody,
+  verifyOtpSchema,
+} from "@/lib/api-schemas";
 
 export async function POST(req: NextRequest) {
   try {
@@ -27,14 +32,13 @@ export async function POST(req: NextRequest) {
       return rateLimitResponse(rateLimit.retryAfter);
     }
 
-    const { code } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!code || String(code).trim().length !== 6) {
-      return NextResponse.json(
-        { error: "Code à 6 chiffres requis" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(verifyOtpSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { code } = parsed.data;
 
     const otp = await prisma.emailOtp.findFirst({
       where: {
@@ -51,7 +55,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const valid = await verifyOtpCode(String(code).trim(), otp.codeHash);
+    const valid = await verifyOtpCode(code, otp.codeHash);
 
     if (!valid) {
       const nextAttempts = otp.failedAttempts + 1;

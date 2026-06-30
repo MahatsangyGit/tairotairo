@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 import { providerHasActiveSubscription } from "@/lib/featured-home";
+import {
+  featuredFlagSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -15,11 +20,14 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     if (!admin.ok) return admin.response;
 
     const { id } = await params;
-    const { featured } = await req.json();
 
-    if (typeof featured !== "boolean") {
-      return NextResponse.json({ error: "Champ featured requis (boolean)" }, { status: 400 });
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(featuredFlagSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { featured } = parsed.data;
 
     const service = await prisma.service.findUnique({
       where: { id },

@@ -3,6 +3,11 @@ import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { assertEmailVerified } from "@/lib/email-verification";
 import { FIELD_LIMITS, validateOptionalText } from "@/lib/field-limits";
+import {
+  createReviewSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 // GET - Lister les avis d'un prestataire
 export async function GET(req: NextRequest) {
@@ -65,21 +70,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const { bookingId, rating, comment } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!bookingId || !rating) {
-      return NextResponse.json(
-        { error: "bookingId et rating sont obligatoires" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(createReviewSchema, json.body);
+    if (!parsed.ok) return parsed.response;
 
-    if (rating < 1 || rating > 5) {
-      return NextResponse.json(
-        { error: "La note doit être entre 1 et 5" },
-        { status: 400 }
-      );
-    }
+    const { bookingId, rating, comment } = parsed.data;
 
     const commentCheck = validateOptionalText(
       comment,

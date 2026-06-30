@@ -8,10 +8,13 @@ import {
   captureServerEvent,
   identifyServerUser,
 } from "@/lib/posthog-server";
-import { validatePassword } from "@/lib/password-policy";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
-import { FIELD_LIMITS, validateRequiredText } from "@/lib/field-limits";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
+import {
+  parseBody,
+  parseJsonBody,
+  registerSchema,
+} from "@/lib/api-schemas";
 
 const REGISTRATION_FAILED_MESSAGE =
   "Impossible de créer le compte avec ces informations.";
@@ -21,24 +24,13 @@ export async function POST(req: NextRequest) {
     const rateLimited = enforceRateLimit(req, "register", AUTH_RATE_LIMITS.register);
     if (rateLimited) return rateLimited;
 
-    const { name, email, password, phone, role } = await req.json();
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
 
-    if (!name || !email || !password) {
-      return NextResponse.json(
-        { error: "Nom, email et mot de passe obligatoires" },
-        { status: 400 }
-      );
-    }
+    const parsed = parseBody(registerSchema, json.body);
+    if (!parsed.ok) return parsed.response;
 
-    const passwordCheck = validatePassword(password);
-    if (!passwordCheck.ok) {
-      return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
-    }
-
-    const nameCheck = validateRequiredText(name, "Nom", FIELD_LIMITS.USER_NAME);
-    if (!nameCheck.ok) {
-      return NextResponse.json({ error: nameCheck.error }, { status: 400 });
-    }
+    const { name, email, password, phone, role } = parsed.data;
 
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -57,7 +49,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.create({
       data: {
-        name: nameCheck.value,
+        name,
         email,
         password: hashedPassword,
         phone,

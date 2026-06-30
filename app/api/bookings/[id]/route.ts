@@ -11,14 +11,13 @@ import {
   notifyBookingCompleted,
   notifyBookingConfirmed,
 } from "@/lib/notify-booking";
+import {
+  bookingStatusPatchSchema,
+  parseBody,
+  parseJsonBody,
+} from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
-
-const VALID_STATUSES: BookingStatus[] = [
-  "CONFIRMED",
-  "CANCELLED",
-  "COMPLETED",
-];
 
 const bookingInclude = {
   service: {
@@ -66,14 +65,14 @@ export async function PATCH(
     }
 
     const { id } = await params;
-    const { status } = await req.json();
 
-    if (!status || !VALID_STATUSES.includes(status)) {
-      return NextResponse.json(
-        { error: "Statut invalide (CONFIRMED, CANCELLED ou COMPLETED)" },
-        { status: 400 }
-      );
-    }
+    const json = await parseJsonBody(req);
+    if (!json.ok) return json.response;
+
+    const parsed = parseBody(bookingStatusPatchSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { status } = parsed.data;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
