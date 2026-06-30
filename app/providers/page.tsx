@@ -1,15 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import JsonLd from "@/components/seo/JsonLd";
+import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import UserAvatar from "@/components/profile/UserAvatar";
 import prisma from "@/lib/prisma";
 import { averageRating } from "@/lib/advanced-search";
-import {
-  jsonLdBreadcrumbList,
-  jsonLdItemList,
-  providersListMetadata,
-} from "@/lib/seo";
+import { providersListMetadata } from "@/lib/seo";
+import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export const metadata: Metadata = providersListMetadata();
@@ -59,20 +56,7 @@ export default async function ProvidersPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <JsonLd
-        data={[
-          jsonLdBreadcrumbList([
-            { name: "Accueil", path: "/" },
-            { name: "Prestataires", path: "/providers" },
-          ]),
-          jsonLdItemList(
-            "Prestataires vérifiés à Madagascar",
-            "Profils de prestataires vérifiés sur Tairo ampio",
-            "/providers",
-            providers.map((p) => ({ name: p.name, url: `/providers/${p.id}` }))
-          ),
-        ]}
-      />
+      <JsonLdScripts paths={SEO_SCHEMA_PATHS.providersList} />
       <Navbar />
 
       <section className="bg-neutral-950 text-white">

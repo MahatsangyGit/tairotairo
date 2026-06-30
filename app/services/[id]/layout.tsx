@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import JsonLd from "@/components/seo/JsonLd";
+import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import prisma from "@/lib/prisma";
 import { isKycApproved } from "@/lib/kyc";
-import { buildPageMetadata, jsonLdBreadcrumbList, jsonLdService } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
+import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -63,24 +64,7 @@ export default async function ServiceDetailLayout({
     service &&
     service.available &&
     isKycApproved(service.provider.kycStatus) ? (
-      <JsonLd
-        data={[
-          jsonLdBreadcrumbList([
-            { name: "Accueil", path: "/" },
-            { name: "Services", path: "/services" },
-            { name: service.title, path: `/services/${id}` },
-          ]),
-          jsonLdService({
-            id: service.id,
-            title: service.title,
-            description: service.description,
-            price: service.price,
-            category: service.category,
-            location: service.location,
-            providerName: service.provider.name,
-          }),
-        ]}
-      />
+      <JsonLdScripts paths={SEO_SCHEMA_PATHS.service(id)} />
     ) : null;
 
   return (

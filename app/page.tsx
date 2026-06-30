@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
-import JsonLd from "@/components/seo/JsonLd";
+import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import FeaturedProvidersSection from "@/components/home/FeaturedProvidersSection";
 import FeaturedServicesSection from "@/components/home/FeaturedServicesSection";
 import {
@@ -10,11 +10,8 @@ import {
 } from "@/lib/featured-home";
 import { CATEGORY_META, servicesCategoryPath } from "@/lib/categories";
 import { BRAND_PRIMARY, BRAND_TERTIARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
-import {
-  homeMetadata,
-  jsonLdOrganization,
-  jsonLdWebSite,
-} from "@/lib/seo";
+import { homeMetadata } from "@/lib/seo";
+import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
 
 export const revalidate = PAGE_REVALIDATE_SECONDS.HOME;
@@ -32,7 +29,7 @@ export default async function HomePage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <JsonLd data={[jsonLdWebSite(), jsonLdOrganization()]} />
+      <JsonLdScripts paths={SEO_SCHEMA_PATHS.home} />
       <Navbar />
 
       {/* Hero */}

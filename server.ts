@@ -2,16 +2,8 @@ import { createServer } from "http";
 import { parse } from "url";
 import next from "next";
 import "dotenv/config";
-import { attachMessagingWebSocket } from "./app/lib/realtime/ws-server";
-import { resolveRlsContextFromRequest, runWithRls } from "./app/lib/rls";
 import { validateDatabaseUrl } from "./app/lib/database-url";
 import { validateJwtSecret } from "./app/lib/jwt-secret";
-import {
-  csrfRejectedResponse,
-  payloadTooLargeResponse,
-  rejectInvalidCsrf,
-  rejectOversizedApiBody,
-} from "./app/lib/http-security";
 
 try {
   validateDatabaseUrl();
@@ -29,7 +21,20 @@ const port = parseInt(process.env.PORT ?? "3000", 10);
 const app = next({ dev, hostname, port });
 const handle = app.getRequestHandler();
 
-app.prepare().then(() => {
+app.prepare().then(async () => {
+  const { attachMessagingWebSocket } = await import(
+    "./app/lib/realtime/ws-server"
+  );
+  const { resolveRlsContextFromRequest, runWithRls } = await import(
+    "./app/lib/rls"
+  );
+  const {
+    csrfRejectedResponse,
+    payloadTooLargeResponse,
+    rejectInvalidCsrf,
+    rejectOversizedApiBody,
+  } = await import("./app/lib/http-security");
+
   const server = createServer((req, res) => {
     if (rejectOversizedApiBody(req.method, req.url, req.headers)) {
       payloadTooLargeResponse(res);

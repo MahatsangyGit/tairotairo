@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-import JsonLd from "@/components/seo/JsonLd";
+import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import prisma from "@/lib/prisma";
-import { buildPageMetadata, jsonLdBreadcrumbList } from "@/lib/seo";
+import { buildPageMetadata } from "@/lib/seo";
+import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -55,13 +56,7 @@ export default async function RequestDetailLayout({
 
   const jsonLd =
     request && request.open ? (
-      <JsonLd
-        data={jsonLdBreadcrumbList([
-          { name: "Accueil", path: "/" },
-          { name: "Demandes", path: "/requests" },
-          { name: request.title, path: `/requests/${id}` },
-        ])}
-      />
+      <JsonLdScripts paths={SEO_SCHEMA_PATHS.request(id)} />
     ) : null;
 
   return (

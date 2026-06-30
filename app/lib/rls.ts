@@ -3,7 +3,6 @@ import type { NextRequest } from "next/server";
 import type { PoolClient } from "pg";
 import type { JwtPayload } from "@/lib/jwt";
 import { verifyToken } from "@/lib/jwt";
-import { getAuthUser } from "@/lib/auth";
 
 export type RlsContext =
   | { mode: "anonymous" }
@@ -32,7 +31,9 @@ export function withRequestRls<T>(
   req: NextRequest,
   fn: () => Promise<T>
 ): Promise<T> {
-  return runWithRls(rlsContextFromAuth(getAuthUser(req)), fn);
+  const token = req.cookies.get("token")?.value;
+  const auth = token ? verifyToken(token) : null;
+  return runWithRls(rlsContextFromAuth(auth), fn);
 }
 
 export function withBypassRls<T>(fn: () => Promise<T>): Promise<T> {

@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
-import JsonLd from "@/components/seo/JsonLd";
+import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import PublicServicesExplorer from "@/components/search/PublicServicesExplorer";
 import {
   CATEGORY_META,
@@ -15,9 +15,8 @@ import prisma from "@/lib/prisma";
 import { buildServiceWhere } from "@/lib/advanced-search";
 import {
   categoryServicesMetadata,
-  jsonLdBreadcrumbList,
-  jsonLdItemList,
 } from "@/lib/seo";
+import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -68,21 +67,7 @@ export default async function ServicesCategoryPage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <JsonLd
-        data={[
-          jsonLdBreadcrumbList([
-            { name: "Accueil", path: "/" },
-            { name: "Services", path: "/services" },
-            { name: meta.name, path },
-          ]),
-          jsonLdItemList(
-            `${meta.name} à Madagascar`,
-            meta.description,
-            path,
-            services.map((s) => ({ name: s.title, url: `/services/${s.id}` }))
-          ),
-        ]}
-      />
+      <JsonLdScripts paths={SEO_SCHEMA_PATHS.servicesCategory(slug)} />
       <Navbar />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <Breadcrumbs

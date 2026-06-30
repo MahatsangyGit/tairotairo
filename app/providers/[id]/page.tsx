@@ -3,8 +3,9 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
-import JsonLd from "@/components/seo/JsonLd";
-import { buildPageMetadata, jsonLdBreadcrumbList, jsonLdLocalBusiness } from "@/lib/seo";
+import JsonLdScripts from "@/components/seo/JsonLdScripts";
+import { buildPageMetadata } from "@/lib/seo";
+import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderPortfolioPublic from "@/components/portfolio/ProviderPortfolioPublic";
 import {
@@ -125,22 +126,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <JsonLd
-        data={[
-          jsonLdBreadcrumbList([
-            { name: "Accueil", path: "/" },
-            { name: "Prestataires", path: "/providers" },
-            { name: provider.name, path: `/providers/${id}` },
-          ]),
-          jsonLdLocalBusiness({
-            id: provider.id,
-            name: provider.name,
-            description: provider.bio,
-            averageRating,
-            reviewCount: totalReviews,
-          }),
-        ]}
-      />
+      <JsonLdScripts paths={SEO_SCHEMA_PATHS.provider(id)} />
       <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
