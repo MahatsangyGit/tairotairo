@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
     const mine = searchParams.get("mine") === "true";
 
     if (mine) {
-      const user = requireAuth(req);
+      const user = await requireAuth(req);
 
       if (!user) {
         return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -56,7 +56,7 @@ export async function GET(req: NextRequest) {
 // POST - Publier une demande de service (client)
 export async function POST(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

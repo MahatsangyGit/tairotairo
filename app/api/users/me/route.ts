@@ -20,7 +20,7 @@ const userSelect = {
 // GET - Profil complet
 export async function GET(req: NextRequest) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
 
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -52,7 +52,7 @@ export async function GET(req: NextRequest) {
 // PATCH - Mettre à jour le profil
 export async function PATCH(req: NextRequest) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
 
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

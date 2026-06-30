@@ -107,7 +107,7 @@ function isExportType(value: string | null): value is ExportType {
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = requireAdmin(req);
+    const admin = await requireAdmin(req);
     if (!admin.ok) return admin.response;
 
     const type = req.nextUrl.searchParams.get("type");

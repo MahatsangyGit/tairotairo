@@ -8,9 +8,14 @@ import {
   captureServerEvent,
   identifyServerUser,
 } from "@/lib/posthog-server";
+import { validatePassword } from "@/lib/password-policy";
+import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
+    const rateLimited = enforceRateLimit(req, "register", AUTH_RATE_LIMITS.register);
+    if (rateLimited) return rateLimited;
+
     const { name, email, password, phone, role } = await req.json();
 
     if (!name || !email || !password) {
@@ -18,6 +23,11 @@ export async function POST(req: NextRequest) {
         { error: "Nom, email et mot de passe obligatoires" },
         { status: 400 }
       );
+    }
+
+    const passwordCheck = validatePassword(password);
+    if (!passwordCheck.ok) {
+      return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
     }
 
     const existingUser = await prisma.user.findUnique({

@@ -4,7 +4,7 @@ import { requireAuth } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
@@ -23,7 +23,7 @@ export async function GET(req: NextRequest) {
 
 export async function PATCH(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

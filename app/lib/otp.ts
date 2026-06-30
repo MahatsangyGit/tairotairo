@@ -5,6 +5,11 @@ const OTP_LENGTH = 6;
 const OTP_TTL_MS = 10 * 60 * 1000;
 const RESEND_COOLDOWN_MS = 60 * 1000;
 
+export const MAX_OTP_ATTEMPTS = 5;
+
+export const OTP_LOCKED_MESSAGE =
+  "Trop de tentatives incorrectes. Demandez un nouveau code.";
+
 export function generateOtpCode(): string {
   const max = 10 ** OTP_LENGTH;
   const num = crypto.randomInt(0, max);

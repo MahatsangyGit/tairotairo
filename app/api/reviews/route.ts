@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
 // POST - Créer un avis
 export async function POST(req: NextRequest) {
   try {
-    const user = requireAuth(req);
+    const user = await requireAuth(req);
 
     if (!user) {
       return NextResponse.json(

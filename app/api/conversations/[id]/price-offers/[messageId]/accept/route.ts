@@ -17,7 +17,7 @@ export async function POST(
   { params }: { params: Promise<{ id: string; messageId: string }> }
 ) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
     }

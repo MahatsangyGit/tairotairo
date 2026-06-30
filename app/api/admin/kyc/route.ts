@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = requireAdmin(req);
+    const admin = await requireAdmin(req);
     if (!admin.ok) return admin.response;
 
     const filter = req.nextUrl.searchParams.get("filter") ?? "pending";

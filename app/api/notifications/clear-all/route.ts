@@ -5,7 +5,7 @@ import { requireAuth } from "@/lib/auth";
 // DELETE — Supprimer toutes les notifications de l'utilisateur
 export async function DELETE(_req: NextRequest) {
   try {
-    const user = requireAuth(_req);
+    const user = await requireAuth(_req);
 
     if (!user) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });

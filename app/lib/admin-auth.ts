@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAuth } from "@/lib/auth";
 
-export function requireAdmin(req: NextRequest) {
-  const auth = requireAuth(req);
+export async function requireAdmin(req: NextRequest) {
+  const auth = await requireAuth(req);
   if (!auth) {
     return {
       ok: false as const,

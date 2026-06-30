@@ -1,14 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
-import { verifyOtpCode } from "@/lib/otp";
+import { verifyOtpCode, MAX_OTP_ATTEMPTS, OTP_LOCKED_MESSAGE } from "@/lib/otp";
+import {
+  checkRateLimit,
+  getClientIp,
+  rateLimitResponse,
+  AUTH_RATE_LIMITS,
+} from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = requireAuth(req);
+    const auth = await requireAuth(req);
 
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    const ip = getClientIp(req);
+    const rateLimit = checkRateLimit(
+      `verify-otp:${ip}:${auth.userId}`,
+      AUTH_RATE_LIMITS.verifyOtp
+    );
+    if (!rateLimit.ok) {
+      return rateLimitResponse(rateLimit.retryAfter);
     }
 
     const { code } = await req.json();
@@ -38,6 +53,18 @@ export async function POST(req: NextRequest) {
     const valid = await verifyOtpCode(String(code).trim(), otp.codeHash);
 
     if (!valid) {
+      const nextAttempts = otp.failedAttempts + 1;
+
+      if (nextAttempts >= MAX_OTP_ATTEMPTS) {
+        await prisma.emailOtp.delete({ where: { id: otp.id } });
+        return NextResponse.json({ error: OTP_LOCKED_MESSAGE }, { status: 429 });
+      }
+
+      await prisma.emailOtp.update({
+        where: { id: otp.id },
+        data: { failedAttempts: nextAttempts },
+      });
+
       return NextResponse.json({ error: "Code incorrect" }, { status: 400 });
     }
 

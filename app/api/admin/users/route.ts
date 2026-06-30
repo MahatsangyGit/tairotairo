@@ -9,7 +9,7 @@ const PAGE_SIZE = 25;
 
 export async function GET(req: NextRequest) {
   try {
-    const admin = requireAdmin(req);
+    const admin = await requireAdmin(req);
     if (!admin.ok) return admin.response;
 
     const params = req.nextUrl.searchParams;
