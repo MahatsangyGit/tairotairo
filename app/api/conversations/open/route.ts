@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { assertEmailVerified } from "@/lib/email-verification";
 import {
   conversationPath,
   resolveConversationPair,
@@ -13,6 +14,14 @@ export async function POST(req: NextRequest) {
     const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    const emailCheck = await assertEmailVerified(auth.userId, auth.role);
+    if (!emailCheck.ok) {
+      return NextResponse.json(
+        { error: emailCheck.error },
+        { status: emailCheck.status }
+      );
     }
 
     const body = await req.json();

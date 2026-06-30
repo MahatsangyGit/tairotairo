@@ -1,6 +1,7 @@
 import { getConfiguredImageHosts, getCdnUrl } from "./cdn";
 
 const isProduction = process.env.NODE_ENV === "production";
+const isDev = process.env.NODE_ENV === "development";
 
 function hostToOrigin(host: string): string | null {
   if (!host) return null;
@@ -43,15 +44,19 @@ function collectTrustedOrigins(): string[] {
   return [...origins];
 }
 
-function buildContentSecurityPolicy(): string {
+/** CSP with per-request nonce (set via proxy.ts). */
+export function buildContentSecurityPolicy(nonce: string): string {
   const trustedOrigins = collectTrustedOrigins();
   const originList = trustedOrigins.join(" ");
 
-  const scriptSrc = isProduction
-    ? `'self' 'unsafe-inline'${originList ? ` ${originList}` : ""}`
-    : `'self' 'unsafe-inline' 'unsafe-eval'${originList ? ` ${originList}` : ""}`;
+  const scriptSrc = `'self' 'nonce-${nonce}' 'strict-dynamic'${
+    isDev ? " 'unsafe-eval'" : ""
+  }${originList ? ` ${originList}` : ""}`;
 
-  const styleSrc = `'self' 'unsafe-inline'${originList ? ` ${originList}` : ""}`;
+  const styleSrc = isDev
+    ? `'self' 'unsafe-inline'${originList ? ` ${originList}` : ""}`
+    : `'self' 'nonce-${nonce}'${originList ? ` ${originList}` : ""}`;
+
   const imgSrc = `'self' data: blob:${originList ? ` ${originList}` : ""}`;
   const fontSrc = `'self' data:${originList ? ` ${originList}` : ""}`;
   const connectSrc = `'self' ws: wss:${originList ? ` ${originList}` : ""}`;
@@ -78,7 +83,7 @@ function buildContentSecurityPolicy(): string {
   return directives.join("; ");
 }
 
-/** Standard HTTP security headers applied to every response. */
+/** Security headers without CSP (CSP is applied per-request in proxy.ts). */
 export function getSecurityHeaders(): Array<{ key: string; value: string }> {
   const headers: Array<{ key: string; value: string }> = [
     { key: "X-DNS-Prefetch-Control", value: "on" },
@@ -92,7 +97,6 @@ export function getSecurityHeaders(): Array<{ key: string; value: string }> {
     },
     { key: "X-Permitted-Cross-Domain-Policies", value: "none" },
     { key: "Cross-Origin-Opener-Policy", value: "same-origin" },
-    { key: "Content-Security-Policy", value: buildContentSecurityPolicy() },
   ];
 
   if (isProduction) {
@@ -103,4 +107,24 @@ export function getSecurityHeaders(): Array<{ key: string; value: string }> {
   }
 
   return headers;
+}
+
+export function applyCspToResponse(
+  response: Response,
+  csp: string,
+  nonce: string
+): void {
+  response.headers.set("Content-Security-Policy", csp);
+  response.headers.set("x-nonce", nonce);
+}
+
+export function createCspRequestHeaders(
+  request: Request,
+  csp: string,
+  nonce: string
+): Headers {
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
+  return requestHeaders;
 }

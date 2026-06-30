@@ -7,6 +7,8 @@ import {
   parseScheduleInput,
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
+import { assertEmailVerified } from "@/lib/email-verification";
+import { FIELD_LIMITS, validateRequiredText } from "@/lib/field-limits";
 import { withCoverImageUrl } from "@/lib/listing-cover";
 import { jsonWithPublicCache } from "@/lib/cache";
 
@@ -69,6 +71,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    if (user.role === "CLIENT") {
+      const emailCheck = await assertEmailVerified(user.userId, user.role);
+      if (!emailCheck.ok) {
+        return NextResponse.json(
+          { error: emailCheck.error },
+          { status: emailCheck.status }
+        );
+      }
+    }
+
     const body = await req.json();
     const { title, description, budget, category, location } = body;
     const schedule = parseScheduleInput(body);
@@ -79,7 +91,46 @@ export async function POST(req: NextRequest) {
 
     const desired = scheduleFieldsForDb(schedule);
 
-    if (!title || !description || !budget || !category || !location) {
+    const titleCheck = validateRequiredText(
+      title,
+      "Titre",
+      FIELD_LIMITS.LISTING_TITLE
+    );
+    if (!titleCheck.ok) {
+      return NextResponse.json({ error: titleCheck.error }, { status: 400 });
+    }
+
+    const descriptionCheck = validateRequiredText(
+      description,
+      "Description",
+      FIELD_LIMITS.LISTING_DESCRIPTION
+    );
+    if (!descriptionCheck.ok) {
+      return NextResponse.json(
+        { error: descriptionCheck.error },
+        { status: 400 }
+      );
+    }
+
+    const categoryCheck = validateRequiredText(
+      category,
+      "Catégorie",
+      FIELD_LIMITS.LISTING_CATEGORY
+    );
+    if (!categoryCheck.ok) {
+      return NextResponse.json({ error: categoryCheck.error }, { status: 400 });
+    }
+
+    const locationCheck = validateRequiredText(
+      location,
+      "Ville",
+      FIELD_LIMITS.LISTING_LOCATION
+    );
+    if (!locationCheck.ok) {
+      return NextResponse.json({ error: locationCheck.error }, { status: 400 });
+    }
+
+    if (!budget) {
       return NextResponse.json(
         { error: "Titre, description, budget, catégorie et ville sont obligatoires" },
         { status: 400 }
@@ -93,11 +144,11 @@ export async function POST(req: NextRequest) {
 
     const request = await prisma.serviceRequest.create({
       data: {
-        title: String(title).trim(),
-        description: String(description).trim(),
+        title: titleCheck.value,
+        description: descriptionCheck.value,
         budget: parsedBudget,
-        category,
-        location: String(location).trim(),
+        category: categoryCheck.value,
+        location: locationCheck.value,
         desiredDate: desired.date,
         desiredSlotStart: desired.slotStart,
         desiredSlotEnd: desired.slotEnd,

@@ -4,6 +4,7 @@ import { requireAuth } from "@/lib/auth";
 import { notifyBookingCreated } from "@/lib/notify-booking";
 import { prepareBookingForApi } from "@/lib/booking-status";
 import { snapshotFromService } from "@/lib/booking-display";
+import { assertEmailVerified } from "@/lib/email-verification";
 import {
   parseScheduleInput,
   scheduleFieldsForDb,
@@ -95,6 +96,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { error: "Seuls les clients peuvent faire une réservation" },
         { status: 403 }
+      );
+    }
+
+    const emailCheck = await assertEmailVerified(user.userId, user.role);
+    if (!emailCheck.ok) {
+      return NextResponse.json(
+        { error: emailCheck.error },
+        { status: emailCheck.status }
       );
     }
 

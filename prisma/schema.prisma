@@ -28,6 +28,7 @@ model User {
   suspendedAt          DateTime?
   failedLoginAttempts  Int       @default(0)
   loginLockedAt        DateTime?
+  tokenVersion         Int       @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 

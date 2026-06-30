@@ -10,6 +10,11 @@ import {
 } from "@/lib/posthog-server";
 import { validatePassword } from "@/lib/password-policy";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
+import { FIELD_LIMITS, validateRequiredText } from "@/lib/field-limits";
+import { logSecurityEventFromRequest } from "@/lib/security-audit";
+
+const REGISTRATION_FAILED_MESSAGE =
+  "Impossible de créer le compte avec ces informations.";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,13 +35,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
     }
 
+    const nameCheck = validateRequiredText(name, "Nom", FIELD_LIMITS.USER_NAME);
+    if (!nameCheck.ok) {
+      return NextResponse.json({ error: nameCheck.error }, { status: 400 });
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
+      logSecurityEventFromRequest("auth.register_duplicate", req, { email });
       return NextResponse.json(
-        { error: "Cet email est déjà utilisé" },
+        { error: REGISTRATION_FAILED_MESSAGE },
         { status: 400 }
       );
     }
@@ -46,7 +57,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.create({
       data: {
-        name,
+        name: nameCheck.value,
         email,
         password: hashedPassword,
         phone,

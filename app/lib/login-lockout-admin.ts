@@ -1,5 +1,6 @@
 import prisma from "@/lib/prisma";
 import { MAX_FAILED_LOGIN_ATTEMPTS } from "@/lib/login-lockout";
+import { logSecurityEvent } from "@/lib/security-audit";
 
 export async function unlockUserLogin(
   targetId: string
@@ -23,6 +24,11 @@ export async function unlockUserLogin(
       loginLockedAt: null,
       failedLoginAttempts: 0,
     },
+  });
+
+  logSecurityEvent({
+    event: "admin.login_unlocked",
+    userId: targetId,
   });
 
   return { ok: true, message: "Connexion débloquée" };

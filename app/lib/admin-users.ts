@@ -1,6 +1,8 @@
 import prisma from "@/lib/prisma";
 import type { Role } from "@/generated/prisma/client";
 import { disableProviderHomepageSpotlight } from "@/lib/provider-spotlight";
+import { bumpTokenVersion } from "@/lib/token-version";
+import { logSecurityEvent } from "@/lib/security-audit";
 
 const ROLES: Role[] = ["CLIENT", "PROVIDER", "ADMIN"];
 
@@ -51,6 +53,14 @@ export async function suspendUser(
     data: { suspendedAt: new Date() },
   });
 
+  await bumpTokenVersion(targetId);
+
+  logSecurityEvent({
+    event: "admin.user_suspended",
+    userId: targetId,
+    meta: { adminId },
+  });
+
   if (target.role === "PROVIDER") {
     await disableProviderHomepageSpotlight(targetId);
   }
@@ -77,6 +87,11 @@ export async function unsuspendUser(
   await prisma.user.update({
     where: { id: targetId },
     data: { suspendedAt: null },
+  });
+
+  logSecurityEvent({
+    event: "admin.user_unsuspended",
+    userId: targetId,
   });
 
   return { ok: true, message: "Compte réactivé" };

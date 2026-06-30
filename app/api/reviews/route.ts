@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { assertEmailVerified } from "@/lib/email-verification";
+import { FIELD_LIMITS, validateOptionalText } from "@/lib/field-limits";
 
 // GET - Lister les avis d'un prestataire
 export async function GET(req: NextRequest) {
@@ -55,6 +57,14 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const emailCheck = await assertEmailVerified(user.userId, user.role);
+    if (!emailCheck.ok) {
+      return NextResponse.json(
+        { error: emailCheck.error },
+        { status: emailCheck.status }
+      );
+    }
+
     const { bookingId, rating, comment } = await req.json();
 
     if (!bookingId || !rating) {
@@ -69,6 +79,15 @@ export async function POST(req: NextRequest) {
         { error: "La note doit être entre 1 et 5" },
         { status: 400 }
       );
+    }
+
+    const commentCheck = validateOptionalText(
+      comment,
+      "Commentaire",
+      FIELD_LIMITS.REVIEW_COMMENT
+    );
+    if (!commentCheck.ok) {
+      return NextResponse.json({ error: commentCheck.error }, { status: 400 });
     }
 
     const booking = await prisma.booking.findUnique({
@@ -113,7 +132,7 @@ export async function POST(req: NextRequest) {
         targetId: booking.providerId,
         bookingId,
         rating,
-        comment,
+        comment: commentCheck.value,
       },
     });
 

@@ -10,7 +10,7 @@ export const getAuthUser = (req: NextRequest): JwtPayload | null => {
   return verifyToken(token);
 };
 
-/** Verifies JWT and rejects suspended accounts. */
+/** Verifies JWT, token version, and rejects suspended accounts. */
 export async function requireAuth(
   req: NextRequest
 ): Promise<JwtPayload | null> {
@@ -19,10 +19,14 @@ export async function requireAuth(
 
   const record = await prisma.user.findUnique({
     where: { id: user.userId },
-    select: { suspendedAt: true },
+    select: { suspendedAt: true, tokenVersion: true },
   });
 
-  if (!record || record.suspendedAt) {
+  if (
+    !record ||
+    record.suspendedAt ||
+    record.tokenVersion !== user.tokenVersion
+  ) {
     return null;
   }
 

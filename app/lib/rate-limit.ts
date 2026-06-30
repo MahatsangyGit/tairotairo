@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { logSecurityEventFromRequest } from "@/lib/security-audit";
 
 interface RateLimitConfig {
   maxAttempts: number;
@@ -94,6 +95,10 @@ export function enforceRateLimit(
   const result = checkRateLimit(`${scope}:${ip}`, config);
 
   if (!result.ok) {
+    logSecurityEventFromRequest("auth.rate_limited", req, {
+      detail: scope,
+      meta: { retryAfter: result.retryAfter },
+    });
     return rateLimitResponse(result.retryAfter);
   }
 

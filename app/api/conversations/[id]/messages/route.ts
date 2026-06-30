@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { assertEmailVerified } from "@/lib/email-verification";
+import { FIELD_LIMITS } from "@/lib/field-limits";
 import {
   conversationPath,
   getConversationForParticipant,
@@ -10,7 +12,7 @@ import { notifyMessageReceived } from "@/lib/notify-messages";
 import { serializeMessage } from "@/lib/message-serialize";
 import { publishMessageCreated } from "@/lib/realtime/publish";
 
-const MAX_BODY_LENGTH = 2000;
+const MAX_BODY_LENGTH = FIELD_LIMITS.MESSAGE_BODY;
 
 // POST — Envoyer un message
 export async function POST(
@@ -21,6 +23,14 @@ export async function POST(
     const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
+    }
+
+    const emailCheck = await assertEmailVerified(auth.userId, auth.role);
+    if (!emailCheck.ok) {
+      return NextResponse.json(
+        { error: emailCheck.error },
+        { status: emailCheck.status }
+      );
     }
 
     const { id } = await params;
