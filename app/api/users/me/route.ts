@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import {
+  FIELD_LIMITS,
+  validateOptionalText,
+  validateRequiredText,
+} from "@/lib/field-limits";
 
 const userSelect = {
   id: true,
@@ -60,16 +65,39 @@ export async function PATCH(req: NextRequest) {
 
     const { name, phone, bio } = await req.json();
 
-    if (name !== undefined && !String(name).trim()) {
-      return NextResponse.json({ error: "Le nom est obligatoire" }, { status: 400 });
+    let nameValue: string | undefined;
+    if (name !== undefined) {
+      const nameCheck = validateRequiredText(
+        name,
+        "Nom",
+        FIELD_LIMITS.USER_NAME
+      );
+      if (!nameCheck.ok) {
+        return NextResponse.json({ error: nameCheck.error }, { status: 400 });
+      }
+      nameValue = nameCheck.value;
+    }
+
+    const phoneCheck = validateOptionalText(
+      phone,
+      "Téléphone",
+      FIELD_LIMITS.USER_PHONE
+    );
+    if (!phoneCheck.ok) {
+      return NextResponse.json({ error: phoneCheck.error }, { status: 400 });
+    }
+
+    const bioCheck = validateOptionalText(bio, "Bio", FIELD_LIMITS.USER_BIO);
+    if (!bioCheck.ok) {
+      return NextResponse.json({ error: bioCheck.error }, { status: 400 });
     }
 
     const user = await prisma.user.update({
       where: { id: auth.userId },
       data: {
-        ...(name !== undefined && { name: String(name).trim() }),
-        ...(phone !== undefined && { phone: phone ? String(phone).trim() : null }),
-        ...(bio !== undefined && { bio: bio ? String(bio).trim() : null }),
+        ...(nameValue !== undefined && { name: nameValue }),
+        ...(phone !== undefined && { phone: phoneCheck.value }),
+        ...(bio !== undefined && { bio: bioCheck.value }),
       },
       select: userSelect,
     });

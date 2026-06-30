@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
+import { assertEmailVerified } from "@/lib/email-verification";
 import {
   deleteListingCoverFiles,
   readListingCoverFile,
@@ -75,6 +76,14 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
         return NextResponse.json(
           { error: kycCheck.error },
           { status: kycCheck.status }
+        );
+      }
+
+      const emailCheck = await assertEmailVerified(auth.userId, auth.role);
+      if (!emailCheck.ok) {
+        return NextResponse.json(
+          { error: emailCheck.error },
+          { status: emailCheck.status }
         );
       }
     }

@@ -10,6 +10,7 @@ import {
 } from "@/lib/posthog-server";
 import { validatePassword } from "@/lib/password-policy";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
+import { FIELD_LIMITS, validateRequiredText } from "@/lib/field-limits";
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,6 +31,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: passwordCheck.error }, { status: 400 });
     }
 
+    const nameCheck = validateRequiredText(name, "Nom", FIELD_LIMITS.USER_NAME);
+    if (!nameCheck.ok) {
+      return NextResponse.json({ error: nameCheck.error }, { status: 400 });
+    }
+
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -46,7 +52,7 @@ export async function POST(req: NextRequest) {
 
     const user = await prisma.user.create({
       data: {
-        name,
+        name: nameCheck.value,
         email,
         password: hashedPassword,
         phone,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { assertEmailVerified } from "@/lib/email-verification";
 import { setProviderFeaturedService } from "@/lib/provider-spotlight";
 
 export const dynamic = "force-dynamic";
@@ -14,6 +15,14 @@ export async function PATCH(req: NextRequest) {
 
     if (auth.role !== "PROVIDER") {
       return NextResponse.json({ error: "Réservé aux prestataires" }, { status: 403 });
+    }
+
+    const emailCheck = await assertEmailVerified(auth.userId, auth.role);
+    if (!emailCheck.ok) {
+      return NextResponse.json(
+        { error: emailCheck.error },
+        { status: emailCheck.status }
+      );
     }
 
     const body = await req.json().catch(() => ({}));

@@ -3,6 +3,11 @@ import prisma from "@/lib/prisma";
 import { getAuthUser, requireAuth } from "@/lib/auth";
 import { notifyNewRequestResponse } from "@/lib/notify-requests";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
+import { assertEmailVerified } from "@/lib/email-verification";
+import {
+  FIELD_LIMITS,
+  validateRequiredText,
+} from "@/lib/field-limits";
 
 const providerSelect = {
   id: true,
@@ -99,6 +104,14 @@ export async function POST(
     }
 
     if (user.role === "PROVIDER") {
+      const emailCheck = await assertEmailVerified(user.userId, user.role);
+      if (!emailCheck.ok) {
+        return NextResponse.json(
+          { error: emailCheck.error },
+          { status: emailCheck.status }
+        );
+      }
+
       const kycCheck = await assertProviderKycApproved(user.userId, user.role);
       if (!kycCheck.ok) {
         return NextResponse.json(
@@ -111,12 +124,16 @@ export async function POST(
     const { id } = await params;
     const { message, proposedPrice } = await req.json();
 
-    if (!message || !String(message).trim()) {
-      return NextResponse.json(
-        { error: "Un message est obligatoire" },
-        { status: 400 }
-      );
+    const messageCheck = validateRequiredText(
+      message,
+      "Message",
+      FIELD_LIMITS.REQUEST_RESPONSE_MESSAGE
+    );
+    if (!messageCheck.ok) {
+      return NextResponse.json({ error: messageCheck.error }, { status: 400 });
     }
+
+    const trimmedMessage = messageCheck.value;
 
     const request = await prisma.serviceRequest.findUnique({
       where: { id },
@@ -165,7 +182,7 @@ export async function POST(
       data: {
         requestId: id,
         providerId: user.userId,
-        message: String(message).trim(),
+        message: trimmedMessage,
         proposedPrice: parsedPrice,
       },
       include: responseInclude,

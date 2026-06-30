@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { assertEmailVerified } from "@/lib/email-verification";
 import {
   PORTFOLIO_MAX_DESCRIPTION_LENGTH,
   PORTFOLIO_MAX_ITEMS,
@@ -53,6 +54,14 @@ export async function POST(req: NextRequest) {
 
     if (auth.role !== "PROVIDER") {
       return NextResponse.json({ error: "Réservé aux prestataires" }, { status: 403 });
+    }
+
+    const emailCheck = await assertEmailVerified(auth.userId, auth.role);
+    if (!emailCheck.ok) {
+      return NextResponse.json(
+        { error: emailCheck.error },
+        { status: emailCheck.status }
+      );
     }
 
     const count = await prisma.providerPortfolioItem.count({

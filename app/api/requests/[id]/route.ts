@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { FIELD_LIMITS, validateTextIfPresent } from "@/lib/field-limits";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
 import { withCoverImageUrl } from "@/lib/listing-cover";
@@ -71,6 +72,21 @@ export async function PATCH(
     }
 
     const { title, description, budget, category, location, open } = body;
+
+    for (const check of [
+      validateTextIfPresent(title, "Titre", FIELD_LIMITS.LISTING_TITLE),
+      validateTextIfPresent(
+        description,
+        "Description",
+        FIELD_LIMITS.LISTING_DESCRIPTION
+      ),
+      validateTextIfPresent(category, "Catégorie", FIELD_LIMITS.LISTING_CATEGORY),
+      validateTextIfPresent(location, "Ville", FIELD_LIMITS.LISTING_LOCATION),
+    ]) {
+      if (!check.ok) {
+        return NextResponse.json({ error: check.error }, { status: 400 });
+      }
+    }
 
     let desiredPatch:
       | {
