@@ -19,6 +19,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { StatusAlert } from "@/components/ui/status-alert";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
+import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
 
 function safeCallbackUrl(url: string | null): string | null {
   if (!url || !url.startsWith("/") || url.startsWith("//")) return null;
@@ -38,7 +39,7 @@ interface UserResponse {
 }
 
 function LoginPageContent() {
-  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const turnstileEnabled = isTurnstileClientEnabled();
   const router = useRouter();
   const { refreshUser } = useAuth();
   const searchParams = useSearchParams();

@@ -5,9 +5,10 @@ import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
 import { SITE_NAME } from "@/lib/site";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
+import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
 
 export default function ForgotPasswordPage() {
-  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const turnstileEnabled = isTurnstileClientEnabled();
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");

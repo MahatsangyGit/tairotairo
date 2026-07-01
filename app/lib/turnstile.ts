@@ -1,5 +1,6 @@
 import type { NextRequest } from "next/server";
 import { randomUUID } from "crypto";
+import { isTurnstileServerEnabled } from "@/lib/turnstile-config";
 
 const TURNSTILE_VERIFY_URL =
   "https://challenges.cloudflare.com/turnstile/v0/siteverify";
@@ -27,7 +28,7 @@ function getTurnstileSecret(): string {
 }
 
 export function isTurnstileEnabled(): boolean {
-  return Boolean(getTurnstileSecret() && process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  return isTurnstileServerEnabled();
 }
 
 export function getTurnstileSiteKey(): string {

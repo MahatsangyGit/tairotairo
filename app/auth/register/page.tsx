@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { StatusAlert } from "@/components/ui/status-alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
+import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
 
 type Role = "CLIENT" | "PROVIDER";
 
@@ -30,7 +31,7 @@ interface FormData {
 }
 
 export default function RegisterPage() {
-  const turnstileEnabled = Boolean(process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY);
+  const turnstileEnabled = isTurnstileClientEnabled();
   const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     name: "",
