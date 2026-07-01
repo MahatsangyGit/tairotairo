@@ -197,7 +197,7 @@ export default function Navbar() {
               <>
                 <Link
                   href="/auth/login"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  className="text-sm font-medium text-muted-foreground px-3 py-2 rounded-lg transition-colors hover:bg-primary/30 hover:text-primary dark:hover:bg-tertiary-400/30 dark:hover:text-white"
                 >
                   Connexion
                 </Link>
