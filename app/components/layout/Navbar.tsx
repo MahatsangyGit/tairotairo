@@ -8,6 +8,7 @@ import MessageInboxLink from "@/components/messages/MessageInboxLink";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
 import { useAuth } from "@/components/auth/AuthProvider";
+import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import { notifyAuthChanged } from "@/lib/auth-client";
 import { isNavLinkActive } from "@/lib/nav-active";
 import { SITE_NAME } from "@/lib/site";
@@ -15,11 +16,11 @@ import { SITE_NAME } from "@/lib/site";
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
-  const { user, authChecked, setUser } = useAuth();
+  const { user, setUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
-  const showGuestAuth = !user && authChecked;
+  const showGuestAuth = !user;
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -96,12 +97,31 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            <Link href="/services" className={navLinkClass("/services")}>
-              Services
-            </Link>
-            <Link href="/requests" className={navLinkClass("/requests")}>
-              Demandes
-            </Link>
+            {user ? (
+              <>
+                <Link href="/services" className={navLinkClass("/services")}>
+                  Services
+                </Link>
+                <Link href="/requests" className={navLinkClass("/requests")}>
+                  Demandes
+                </Link>
+              </>
+            ) : (
+              <>
+                <GuestBrowseTrigger
+                  browse="services"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Voir tous les services
+                </GuestBrowseTrigger>
+                <GuestBrowseTrigger
+                  browse="requests"
+                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  Voir toutes les demandes
+                </GuestBrowseTrigger>
+              </>
+            )}
 
             {user && (
               <>
@@ -219,8 +239,29 @@ export default function Navbar() {
               <span className="text-sm font-medium text-muted-foreground">Thème</span>
               <ThemeToggle />
             </div>
-            <MobileNavLink href="/services" label="Services" active={isActive("/services")} onClick={close} />
-            <MobileNavLink href="/requests" label="Demandes" active={isActive("/requests")} onClick={close} />
+            {user ? (
+              <>
+                <MobileNavLink href="/services" label="Services" active={isActive("/services")} onClick={close} />
+                <MobileNavLink href="/requests" label="Demandes" active={isActive("/requests")} onClick={close} />
+              </>
+            ) : (
+              <>
+                <GuestBrowseTrigger
+                  browse="services"
+                  onActivate={close}
+                  className="px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/50 transition-colors text-left w-full"
+                >
+                  Voir tous les services
+                </GuestBrowseTrigger>
+                <GuestBrowseTrigger
+                  browse="requests"
+                  onActivate={close}
+                  className="px-3 py-2.5 rounded-lg text-sm font-medium text-foreground hover:bg-muted/50 transition-colors text-left w-full"
+                >
+                  Voir toutes les demandes
+                </GuestBrowseTrigger>
+              </>
+            )}
 
             {user && (
               <>

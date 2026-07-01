@@ -1,9 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import { connection } from "next/server";
+import { Suspense } from "react";
 import "./globals.css";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
+import { GuestBrowseProvider } from "@/components/auth/GuestBrowseProvider";
 import { MessagingRealtimeProvider } from "@/components/messages/MessagingRealtimeProvider";
 import PostHogProvider from "@/components/analytics/PostHogProvider";
 import CsrfProvider from "@/components/auth/CsrfProvider";
@@ -67,9 +69,13 @@ export default async function RootLayout({
         <ThemeProvider>
           <CsrfProvider>
             <AuthProvider>
-              <PostHogProvider>
-                <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
-              </PostHogProvider>
+              <Suspense fallback={null}>
+                <GuestBrowseProvider>
+                  <PostHogProvider>
+                    <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
+                  </PostHogProvider>
+                </GuestBrowseProvider>
+              </Suspense>
             </AuthProvider>
           </CsrfProvider>
         </ThemeProvider>

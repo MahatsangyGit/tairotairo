@@ -1,4 +1,6 @@
-import Link from "next/link";
+"use client";
+
+import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import OptimizedImage from "@/components/ui/OptimizedImage";
@@ -33,19 +35,20 @@ export default function FeaturedServicesSection({
         <div>
           <h2 className="text-2xl font-bold text-foreground">Annonces du moment</h2>
         </div>
-        <Link
-          href="/services"
+        <GuestBrowseTrigger
+          browse="services"
           className="text-sm text-brand-600 font-medium hover:text-brand-700 transition-colors hidden sm:inline"
         >
           Toutes les annonces →
-        </Link>
+        </GuestBrowseTrigger>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {services.map((service) => (
-          <Link
+          <GuestBrowseTrigger
             key={service.id}
+            browse="services"
             href={`/services/${service.id}`}
-            className="group bg-card rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-brand-200 transition-all overflow-hidden"
+            className="group bg-card rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-brand-200 transition-all overflow-hidden text-left"
           >
             {service.coverImageUrl && (
               <div className="relative w-full h-28 bg-muted">
@@ -85,7 +88,7 @@ export default function FeaturedServicesSection({
                 />
               </div>
             </div>
-          </Link>
+          </GuestBrowseTrigger>
         ))}
       </div>
     </section>

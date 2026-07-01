@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 
@@ -27,12 +30,12 @@ export default function FeaturedProvidersSection({
             Nos prestataires du mois
           </h2>
         </div>
-        <Link
-          href="/services"
+        <GuestBrowseTrigger
+          browse="services"
           className="text-sm text-brand-600 font-medium hover:text-brand-700 transition-colors hidden sm:inline"
         >
           Explorer →
-        </Link>
+        </GuestBrowseTrigger>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {providers.map((provider) => (

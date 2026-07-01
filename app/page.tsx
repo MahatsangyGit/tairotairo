@@ -5,11 +5,16 @@ import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import FeaturedProvidersSection from "@/components/home/FeaturedProvidersSection";
 import FeaturedServicesSection from "@/components/home/FeaturedServicesSection";
 import {
+  HomeCategoriesBrowse,
+  HomeFooterLinks,
+  HomeHeroBrowseCtas,
+  HomeProviderBrowseCta,
+} from "@/components/home/HomeGuestBrowse";
+import { BRAND_PRIMARY, BRAND_TERTIARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
+import {
   getFeaturedProvidersForHome,
   getFeaturedServicesForHome,
 } from "@/lib/featured-home";
-import { CATEGORY_META, servicesCategoryPath } from "@/lib/categories";
-import { BRAND_PRIMARY, BRAND_TERTIARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
 import { homeMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
@@ -54,23 +59,7 @@ export default async function HomePage() {
               Rapide, simple et sécurisé. Connectez-vous avec des prestataires
               qualifiés près de chez vous.
             </p>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Link
-                href="/services"
-                className="inline-flex items-center justify-center gap-2 bg-brand-600 text-white px-7 py-3.5 rounded-xl font-semibold hover:bg-brand-500 transition-colors text-sm"
-              >
-                Explorer les services
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </Link>
-              <Link
-                href="/requests"
-                className="inline-flex items-center justify-center bg-white/10 text-white border border-white/20 px-7 py-3.5 rounded-xl font-semibold hover:bg-white/15 transition-colors text-sm"
-              >
-                Voir les demandes
-              </Link>
-            </div>
+            <HomeHeroBrowseCtas />
           </div>
         </div>
       </section>
@@ -104,38 +93,7 @@ export default async function HomePage() {
 
       {/* Categories */}
       <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="flex items-end justify-between mb-10">
-          <div>
-            <p className="text-brand-600 text-xs font-semibold uppercase tracking-widest mb-2">
-              Parcourir
-            </p>
-            <h2 className="text-3xl font-bold text-foreground">
-              Nos catégories
-            </h2>
-          </div>
-          <Link
-            href="/services"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors hidden sm:inline"
-          >
-            Tout voir →
-          </Link>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-          {CATEGORY_META.map((cat) => (
-            <Link
-              key={cat.slug}
-              href={servicesCategoryPath(cat.slug)}
-              className="group flex flex-col items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-tertiary-400 hover:bg-tertiary-50 dark:hover:bg-tertiary-50 transition-all"
-            >
-              <span className="text-2xl" role="img" aria-label={cat.name}>
-                {cat.icon}
-              </span>
-              <span className="text-sm font-medium text-foreground group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors text-center">
-                {cat.name}
-              </span>
-            </Link>
-          ))}
-        </div>
+        <HomeCategoriesBrowse />
       </section>
 
       {/* Split CTA */}
@@ -191,12 +149,7 @@ export default async function HomePage() {
                 >
                   Devenir prestataire
                 </Link>
-                <Link
-                  href="/requests"
-                  className="inline-flex items-center text-brand-700 px-5 py-3 rounded-xl text-sm font-medium border border-tertiary-300 hover:bg-tertiary-100 transition-colors w-fit"
-                >
-                  Voir les demandes
-                </Link>
+                <HomeProviderBrowseCta />
               </div>
             </div>
           </div>
@@ -235,21 +188,16 @@ export default async function HomePage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <span className="w-6 h-6 rounded-md bg-brand-600 flex items-center justify-center">
-              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+              <svg width="12" height="12" viewBox="0 0 14 14" fill="none" aria-hidden>
                 <circle cx="7" cy="7" r="5.5" stroke="white" strokeWidth="2" />
                 <path d="M4 7h6M7 4v6" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
               </svg>
             </span>
             <span className="font-semibold text-foreground">{SITE_NAME}</span>
           </div>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
-            <Link href="/requests" className="hover:text-foreground transition-colors">Demandes</Link>
-            <Link href="/auth/register" className="hover:text-foreground transition-colors">S&apos;inscrire</Link>
-          </div>
+          <HomeFooterLinks />
           <p className="text-xs text-muted-foreground">
-            Édité par{" "}
-            <span className="text-muted-foreground">{PARENT_COMPANY}</span>
+            Édité par <span className="text-muted-foreground">{PARENT_COMPANY}</span>
           </p>
         </div>
       </footer>

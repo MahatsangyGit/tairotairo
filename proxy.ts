@@ -6,6 +6,10 @@ import {
   buildContentSecurityPolicy,
   createCspRequestHeaders,
 } from "@/lib/security-headers";
+import {
+  guestBrowseIntentFromPath,
+  isGuestBrowsePath,
+} from "@/lib/guest-browse";
 
 interface TokenPayload {
   userId: string;
@@ -60,6 +64,17 @@ export async function proxy(request: NextRequest) {
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = buildContentSecurityPolicy(nonce);
   const { pathname } = request.nextUrl;
+
+  if (isGuestBrowsePath(pathname)) {
+    const token = request.cookies.get("token")?.value;
+    const user = token ? await verifyAuthToken(token) : null;
+
+    if (!user) {
+      const home = new URL("/", request.url);
+      home.searchParams.set("join", guestBrowseIntentFromPath(pathname));
+      return finalizeResponse(NextResponse.redirect(home), csp, nonce);
+    }
+  }
 
   if (pathname.startsWith("/dashboard")) {
     const token = request.cookies.get("token")?.value;
