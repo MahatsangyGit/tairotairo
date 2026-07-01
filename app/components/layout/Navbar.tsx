@@ -70,7 +70,10 @@ export default function Navbar() {
     }`;
 
   return (
-    <nav className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border shadow-sm">
+    <nav
+      ref={menuRef}
+      className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border shadow-sm"
+    >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
 
@@ -210,7 +213,7 @@ export default function Navbar() {
 
       {/* Mobile menu */}
       {isMenuOpen && (
-        <div ref={menuRef} className="md:hidden border-t border-border bg-card">
+        <div className="md:hidden border-t border-border bg-card">
           <div className="px-4 py-4 flex flex-col gap-1">
             <div className="flex items-center justify-between px-3 py-2 mb-1">
               <span className="text-sm font-medium text-muted-foreground">Thème</span>

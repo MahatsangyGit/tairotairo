@@ -245,7 +245,6 @@ export default async function HomePage() {
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <Link href="/services" className="hover:text-foreground transition-colors">Services</Link>
             <Link href="/requests" className="hover:text-foreground transition-colors">Demandes</Link>
-            <Link href="/providers" className="hover:text-foreground transition-colors">Prestataires</Link>
             <Link href="/auth/register" className="hover:text-foreground transition-colors">S&apos;inscrire</Link>
           </div>
           <p className="text-xs text-muted-foreground">
