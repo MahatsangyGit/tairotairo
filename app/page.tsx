@@ -7,10 +7,9 @@ import FeaturedServicesSection from "@/components/home/FeaturedServicesSection";
 import {
   HomeCategoriesBrowse,
   HomeFooterLinks,
-  HomeHeroBrowseCtas,
   HomeProviderBrowseCta,
 } from "@/components/home/HomeGuestBrowse";
-import { BRAND_PRIMARY, BRAND_TERTIARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
+import { PARENT_COMPANY, SITE_NAME } from "@/lib/site";
 import {
   getFeaturedProvidersForHome,
   getFeaturedServicesForHome,
@@ -37,28 +36,20 @@ export default async function HomePage() {
       <Navbar />
 
       {/* Hero */}
-      <section className="relative overflow-hidden bg-neutral-950 text-white">
-        <div
-          className="absolute inset-0 opacity-20"
-          style={{
-            backgroundImage: `radial-gradient(circle at 30% 50%, ${BRAND_PRIMARY} 0%, transparent 60%), radial-gradient(circle at 75% 15%, ${BRAND_TERTIARY} 0%, transparent 45%), radial-gradient(circle at 80% 20%, #057676 0%, transparent 50%)`,
-          }}
-          aria-hidden="true"
-        />
-        <div className="relative max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
+      <section className="bg-background text-foreground border-b border-border">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
           <div className="max-w-2xl">
-            <p className="text-brand-400 text-sm font-semibold uppercase tracking-widest mb-4">
+            <p className="text-brand-600 dark:text-brand-400 text-sm font-semibold uppercase tracking-widest mb-4">
               Marketplace de services — Madagascar
             </p>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6 text-foreground">
               Trouvez un prestataire{" "}
-              <span className="text-brand-400">de confiance</span>
+              <span className="text-brand-600 dark:text-brand-400">de confiance</span>
             </h1>
-            <p className="text-muted-foreground text-lg mb-10 leading-relaxed">
+            <p className="text-muted-foreground text-lg leading-relaxed">
               Rapide, simple et sécurisé. Connectez-vous avec des prestataires
               qualifiés près de chez vous.
             </p>
-            <HomeHeroBrowseCtas />
           </div>
         </div>
       </section>

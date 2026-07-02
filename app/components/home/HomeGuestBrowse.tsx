@@ -5,34 +5,6 @@ import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import CategoryIcon from "@/components/categories/CategoryIcon";
 import { CATEGORY_META } from "@/lib/categories";
 
-export function HomeHeroBrowseCtas() {
-  return (
-    <div className="flex flex-col sm:flex-row gap-3">
-      <GuestBrowseTrigger
-        browse="services"
-        className="inline-flex items-center justify-center gap-2 bg-brand-600 text-white px-7 py-3.5 rounded-xl font-semibold hover:bg-brand-500 transition-colors text-sm"
-      >
-        Voir tous les services
-        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden>
-          <path
-            d="M3 8h10M9 4l4 4-4 4"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </GuestBrowseTrigger>
-      <GuestBrowseTrigger
-        browse="requests"
-        className="inline-flex items-center justify-center bg-white/10 text-white border border-white/20 px-7 py-3.5 rounded-xl font-semibold hover:bg-white/15 transition-colors text-sm"
-      >
-        Voir toutes les demandes
-      </GuestBrowseTrigger>
-    </div>
-  );
-}
-
 export function HomeCategoriesBrowse() {
   return (
     <>
