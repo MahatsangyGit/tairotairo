@@ -1,5 +1,9 @@
 import type { NextConfig } from "next";
-import { CATEGORY_META } from "./app/lib/categories";
+import {
+  CATEGORY_META,
+  LEGACY_CATEGORY_NAMES,
+  LEGACY_CATEGORY_SLUGS,
+} from "./app/lib/categories";
 import { getAssetPrefix, getImageRemotePatterns } from "./app/lib/cdn";
 import { CACHE_CONTROL } from "./app/lib/cache";
 import {
@@ -8,20 +12,61 @@ import {
 } from "./app/lib/posthog";
 import { getSecurityHeaders } from "./app/lib/security-headers";
 
-const categoryRedirects = CATEGORY_META.flatMap((cat) => [
-  {
-    source: "/services",
-    has: [{ type: "query" as const, key: "category", value: cat.name }],
-    destination: `/services/categorie/${cat.slug}`,
-    permanent: true,
-  },
-  {
-    source: "/requests",
-    has: [{ type: "query" as const, key: "category", value: cat.name }],
-    destination: `/requests/categorie/${cat.slug}`,
-    permanent: true,
-  },
-]);
+const legacyNameRedirects = Object.entries(LEGACY_CATEGORY_NAMES).flatMap(
+  ([legacyName, canonical]) => {
+    const meta = CATEGORY_META.find((cat) => cat.name === canonical);
+    if (!meta) return [];
+
+    return [
+      {
+        source: "/services",
+        has: [{ type: "query" as const, key: "category", value: legacyName }],
+        destination: `/services/categorie/${meta.slug}`,
+        permanent: true,
+      },
+      {
+        source: "/requests",
+        has: [{ type: "query" as const, key: "category", value: legacyName }],
+        destination: `/requests/categorie/${meta.slug}`,
+        permanent: true,
+      },
+    ];
+  }
+);
+
+const legacySlugRedirects = Object.entries(LEGACY_CATEGORY_SLUGS).flatMap(
+  ([legacySlug, resolvedSlug]) => [
+    {
+      source: `/services/categorie/${legacySlug}`,
+      destination: `/services/categorie/${resolvedSlug}`,
+      permanent: true,
+    },
+    {
+      source: `/requests/categorie/${legacySlug}`,
+      destination: `/requests/categorie/${resolvedSlug}`,
+      permanent: true,
+    },
+  ]
+);
+
+const categoryRedirects = [
+  ...legacyNameRedirects,
+  ...legacySlugRedirects,
+  ...CATEGORY_META.flatMap((cat) => [
+    {
+      source: "/services",
+      has: [{ type: "query" as const, key: "category", value: cat.name }],
+      destination: `/services/categorie/${cat.slug}`,
+      permanent: true,
+    },
+    {
+      source: "/requests",
+      has: [{ type: "query" as const, key: "category", value: cat.name }],
+      destination: `/requests/categorie/${cat.slug}`,
+      permanent: true,
+    },
+  ]),
+];
 
 const posthogAssetsHost = getPostHogAssetsHost(POSTHOG_API_HOST);
 const assetPrefix = getAssetPrefix();

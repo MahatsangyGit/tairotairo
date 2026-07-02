@@ -64,25 +64,6 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Stats strip */}
-      <section className="border-b border-border bg-tertiary-50/60 dark:bg-muted/40">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-wrap gap-6 sm:gap-12 justify-center text-center">
-            {[
-              { value: "500+", label: "Prestataires" },
-              { value: "2 000+", label: "Services publiés" },
-              { value: "11", label: "Catégories" },
-              { value: "24h", label: "Réponse moyenne" },
-            ].map((stat) => (
-              <div key={stat.label}>
-                <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* Featured */}
       {hasFeatured && (
         <section className="py-4">

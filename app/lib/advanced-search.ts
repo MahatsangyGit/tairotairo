@@ -1,4 +1,19 @@
 import type { Prisma } from "@/generated/prisma/client";
+import {
+  categoryDbValues,
+  normalizeCategoryName,
+} from "@/lib/categories";
+
+function buildCategoryFilter(category: string) {
+  const normalized = normalizeCategoryName(category);
+  if (normalized) {
+    return { category: { in: categoryDbValues(normalized) } };
+  }
+  if (category) {
+    return { category };
+  }
+  return {};
+}
 
 export const SEARCH_SORT_OPTIONS = [
   { value: "newest", label: "Plus récents" },
@@ -117,7 +132,7 @@ export function buildServiceWhere(
   const where: Prisma.ServiceWhereInput = {
     available: true,
     provider: { kycStatus: "APPROVED" },
-    ...(params.category && { category: params.category }),
+    ...buildCategoryFilter(params.category),
     ...(params.location && {
       location: { contains: params.location, mode: "insensitive" },
     }),
@@ -142,7 +157,7 @@ export function buildRequestWhere(
 ): Prisma.ServiceRequestWhereInput {
   const where: Prisma.ServiceRequestWhereInput = {
     open: true,
-    ...(params.category && { category: params.category }),
+    ...buildCategoryFilter(params.category),
     ...(params.location && {
       location: { contains: params.location, mode: "insensitive" },
     }),

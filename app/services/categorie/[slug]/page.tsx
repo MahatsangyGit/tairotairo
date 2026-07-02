@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
@@ -8,7 +8,9 @@ import PublicServicesExplorer from "@/components/search/PublicServicesExplorer";
 import {
   CATEGORY_META,
   getCategoryMeta,
+  isLegacyCategorySlug,
   isValidCategorySlug,
+  resolveCategorySlug,
   slugToCategory,
 } from "@/lib/categories";
 import prisma from "@/lib/prisma";
@@ -52,18 +54,21 @@ async function loadCategoryItems(slug: string) {
     prisma.service.count({ where }),
   ]);
 
-  return { category, services, total, meta: getCategoryMeta(slug)! };
+  return { category, services, total, meta: getCategoryMeta(resolveCategorySlug(slug))! };
 }
 
 export default async function ServicesCategoryPage({ params }: PageProps) {
   const { slug } = await params;
+  if (isLegacyCategorySlug(slug)) {
+    redirect(`/services/categorie/${resolveCategorySlug(slug)}`);
+  }
   if (!isValidCategorySlug(slug)) notFound();
 
   const data = await loadCategoryItems(slug);
   if (!data) notFound();
 
   const { meta, services, total } = data;
-  const path = `/services/categorie/${slug}`;
+  const path = `/services/categorie/${resolveCategorySlug(slug)}`;
 
   return (
     <div className="min-h-screen bg-background">
