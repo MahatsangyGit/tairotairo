@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { StarIcon } from "@/components/ui/app-icons";
 
 interface ReviewFormProps {
   bookingId: string;
@@ -22,9 +23,10 @@ function StarPicker({
           key={star}
           type="button"
           onClick={() => onChange(star)}
-          className={`text-2xl ${star <= value ? "text-yellow-400" : "text-gray-200"}`}
+          aria-label={`${star} étoile${star > 1 ? "s" : ""}`}
+          className={star <= value ? "text-yellow-400" : "text-gray-200"}
         >
-          ★
+          <StarIcon size={26} className="align-middle" />
         </button>
       ))}
     </div>

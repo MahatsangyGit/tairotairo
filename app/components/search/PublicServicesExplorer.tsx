@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import AdvancedSearchFilters from "@/components/search/AdvancedSearchFilters";
+import CategoryIcon from "@/components/categories/CategoryIcon";
+import { MapPinIcon } from "@/components/ui/app-icons";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import SuggestedProvidersSection, {
   type SuggestedProvider,
@@ -53,12 +55,14 @@ export interface PublicServicesExplorerProps {
   lockedCategory?: ServiceCategory;
   listBasePath?: string;
   title?: string;
+  titleIconSlug?: string;
 }
 
 export default function PublicServicesExplorer({
   lockedCategory,
   listBasePath = "/services",
   title = "Trouver un service",
+  titleIconSlug,
 }: PublicServicesExplorerProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -179,7 +183,17 @@ export default function PublicServicesExplorer({
     <>
       <section className="bg-neutral-950 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-          <h1 className="text-3xl font-bold mb-5">{title}</h1>
+          <h1 className="text-3xl font-bold mb-5 flex items-center gap-3">
+            {titleIconSlug && (
+              <span
+                className="inline-flex items-center justify-center w-11 h-11 rounded-full bg-brand-500/15 text-brand-400 shrink-0"
+                aria-hidden
+              >
+                <CategoryIcon slug={titleIconSlug} size={26} />
+              </span>
+            )}
+            {title}
+          </h1>
           <form onSubmit={handleSearchSubmit} className="flex gap-2">
             <input
               type="text"
@@ -355,7 +369,7 @@ export default function PublicServicesExplorer({
                       {service.price.toLocaleString("fr-MG")} Ar
                     </span>
                     <span className="text-muted-foreground text-xs">
-                      📍 {service.location}
+                      <MapPinIcon /> {service.location}
                     </span>
                   </div>
                   <div className="flex items-center justify-between gap-2 mt-4 pt-4 border-t border-border">

@@ -17,9 +17,8 @@ import {
 } from "@/lib/featured-home";
 import { homeMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
-import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
-
-export const revalidate = PAGE_REVALIDATE_SECONDS.HOME;
+// Doit être un littéral statique (voir PAGE_REVALIDATE_SECONDS.HOME).
+export const revalidate = 120;
 
 export const metadata: Metadata = homeMetadata();
 

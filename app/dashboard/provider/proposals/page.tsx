@@ -14,6 +14,7 @@ import {
   RequestResponseStatus,
 } from "@/lib/request-response-status";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { MapPinIcon } from "@/components/ui/app-icons";
 
 interface RequestSummary {
   id: string;
@@ -214,7 +215,7 @@ export default function ProviderProposalsPage() {
                       {response.request.title}
                     </h3>
                     <p className="text-muted-foreground text-sm mt-0.5">
-                      📍 {response.request.location} · Budget client{" "}
+                      <MapPinIcon /> {response.request.location} · Budget client{" "}
                       {response.request.budget.toLocaleString("fr-MG")} Ar
                     </p>
                   </div>

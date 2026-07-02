@@ -8,6 +8,7 @@ import ProviderNav from "@/components/layout/ProviderNav";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
+import { MapPinIcon } from "@/components/ui/app-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ function BookingCard({
             )}
           </div>
           <h3 className="font-semibold text-foreground">{display.title}</h3>
-          <p className="text-muted-foreground text-sm mt-0.5">📍 {display.location}</p>
+          <p className="text-muted-foreground text-sm mt-0.5"><MapPinIcon /> {display.location}</p>
         </div>
         <StatusBadge status={booking.status} />
       </div>

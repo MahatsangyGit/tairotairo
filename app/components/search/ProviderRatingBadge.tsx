@@ -1,3 +1,5 @@
+import { StarIcon } from "@/components/ui/app-icons";
+
 interface ProviderRatingBadgeProps {
   averageRating: number | null;
   reviewCount: number;
@@ -22,7 +24,7 @@ export default function ProviderRatingBadge({
       className={`text-xs font-medium text-amber-600 ${className}`}
       title={`${reviewCount} avis`}
     >
-      ★ {averageRating.toFixed(1)} ({reviewCount})
+      <StarIcon /> {averageRating.toFixed(1)} ({reviewCount})
     </span>
   );
 }

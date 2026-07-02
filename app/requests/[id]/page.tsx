@@ -13,6 +13,7 @@ import {
 } from "@/lib/request-response-status";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { MapPinIcon } from "@/components/ui/app-icons";
 
 interface Client {
   id: string;
@@ -235,7 +236,7 @@ export default function RequestDetailPage() {
                 </span>
                 <h1 className="text-2xl font-bold text-foreground mb-3">{request.title}</h1>
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
-                  <span>📍 {request.location}</span>
+                  <span><MapPinIcon /> {request.location}</span>
                   {desiredDateLabel && (
                     <span>📅 Souhaité : {desiredDateLabel}</span>
                   )}

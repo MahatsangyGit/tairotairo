@@ -7,11 +7,12 @@ import prisma from "@/lib/prisma";
 import { averageRating } from "@/lib/advanced-search";
 import { providersListMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
-import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
+import { StarIcon } from "@/components/ui/app-icons";
 
 export const metadata: Metadata = providersListMetadata();
 
-export const revalidate = PAGE_REVALIDATE_SECONDS.PROVIDERS;
+// Doit être un littéral statique (voir PAGE_REVALIDATE_SECONDS.PROVIDERS).
+export const revalidate = 300;
 
 async function loadProviders() {
   const rows = await prisma.user.findMany({
@@ -107,7 +108,7 @@ export default async function ProvidersPage() {
                 )}
                 {provider.reviewCount > 0 && (
                   <p className="text-xs text-muted-foreground">
-                    ★ {provider.averageRating} ({provider.reviewCount} avis)
+                    <StarIcon className="text-amber-500" /> {provider.averageRating} ({provider.reviewCount} avis)
                   </p>
                 )}
               </Link>

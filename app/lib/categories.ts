@@ -17,10 +17,13 @@ export const SERVICE_CATEGORIES = [
 
 export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
 
+/**
+ * Les icônes de catégories sont définies dans
+ * `app/components/categories/CategoryIcon.tsx` (Tabler Icons, rendu 2 tons).
+ */
 export interface CategoryMeta {
   name: ServiceCategory;
   slug: string;
-  icon: string;
   description: string;
 }
 
@@ -49,98 +52,84 @@ export const CATEGORY_META: CategoryMeta[] = [
   {
     name: "Plomberie",
     slug: "plomberie",
-    icon: "🔧",
     description:
       "Plombiers et réparations sanitaires à Madagascar. Fuites, installations et dépannage près de chez vous.",
   },
   {
     name: "Mécanique",
     slug: "mecanique",
-    icon: "🛠️",
     description:
       "Mécaniciens auto et moto à Madagascar. Entretien, réparation et diagnostic de véhicules.",
   },
   {
     name: "Électricité",
     slug: "electricite",
-    icon: "⚡",
     description:
       "Électriciens qualifiés à Madagascar. Installations, dépannage et mise aux normes.",
   },
   {
     name: "Jardinage",
     slug: "jardinage",
-    icon: "🌿",
     description:
       "Jardiniers et entretien d'espaces verts à Madagascar. Tonte, taille et aménagement.",
   },
   {
     name: "Ménage",
     slug: "menage",
-    icon: "🧹",
     description:
       "Services de ménage et nettoyage à domicile à Madagascar. Régulier ou ponctuel.",
   },
   {
     name: "Cours Particuliers",
     slug: "cours-particuliers",
-    icon: "📚",
     description:
       "Cours particuliers et soutien scolaire à Madagascar. Toutes matières et niveaux.",
   },
   {
     name: "Informatique",
     slug: "informatique",
-    icon: "💻",
     description:
       "Techniciens informatiques à Madagascar. Dépannage PC, réseau et assistance numérique.",
   },
   {
     name: "Cuisine",
     slug: "cuisine",
-    icon: "🍳",
     description:
       "Chefs et traiteurs à Madagascar. Cuisine à domicile, événements et prestations culinaires.",
   },
   {
     name: "Transport",
     slug: "transport",
-    icon: "🚗",
     description:
       "Chauffeurs et services de transport à Madagascar. Déplacements, livraison et courses.",
   },
   {
     name: "Irakiraka",
     slug: "irakiraka",
-    icon: "🏠",
     description:
       "Artisans du bâtiment et travaux Irakiraka à Madagascar. Maçonnerie, finitions et rénovation.",
   },
   {
     name: "Evénementiel",
     slug: "evenementiel",
-    icon: "🎉",
     description:
       "Organisation d'événements à Madagascar. Mariages, fêtes, décoration et animation.",
   },
   {
     name: "Animaux",
     slug: "animaux",
-    icon: "🐾",
     description:
       "Services pour animaux à Madagascar. Garde, promenade, toilettage et soins à domicile.",
   },
   {
     name: "Bricolage",
     slug: "bricolage",
-    icon: "🔨",
     description:
       "Bricoleurs et petits travaux à Madagascar. Montage, réparations et aménagements légers.",
   },
   {
     name: "Déménagement",
     slug: "demenagement",
-    icon: "📦",
     description:
       "Aide au déménagement à Madagascar. Transport de meubles, emballage et manutention.",
   },

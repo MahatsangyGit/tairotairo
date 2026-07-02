@@ -98,7 +98,8 @@ export default async function RequestsCategoryPage({ params }: PageProps) {
         <PublicRequestsExplorer
           lockedCategory={meta.name}
           listBasePath={path}
-          title={`${meta.icon} Demandes ${meta.name}`}
+          title={`Demandes ${meta.name}`}
+          titleIconSlug={meta.slug}
           subtitle={`Missions ${meta.name.toLowerCase()} publiées par des clients à Madagascar`}
         />
       </Suspense>

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/layout/Navbar";
+import { MapPinIcon, StarIcon } from "@/components/ui/app-icons";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import NegotiateServiceButton from "@/components/messages/NegotiateServiceButton";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
@@ -55,7 +56,7 @@ function StarRating({ rating }: { rating: number }) {
           key={star}
           className={star <= rating ? "text-yellow-400" : "text-gray-200"}
         >
-          ★
+          <StarIcon size={15} />
         </span>
       ))}
     </span>
@@ -226,7 +227,7 @@ export default function ServiceDetailPage() {
                 </h1>
 
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-6">
-                  <span>📍 {service.location}</span>
+                  <span><MapPinIcon /> {service.location}</span>
                   {totalReviews > 0 && (
                     <span className="flex items-center gap-1">
                       <StarRating rating={Math.round(averageRating)} />

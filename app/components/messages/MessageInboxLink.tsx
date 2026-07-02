@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useMessagingRealtime } from "@/components/messages/MessagingRealtimeProvider";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { MessageCircle } from "lucide-react";
+import { IconMessageCircle as MessageCircle } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import { isNavLinkActive } from "@/lib/nav-active";
 import { cn } from "@/lib/utils";

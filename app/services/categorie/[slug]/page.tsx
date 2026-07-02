@@ -96,7 +96,8 @@ export default async function ServicesCategoryPage({ params }: PageProps) {
         <PublicServicesExplorer
           lockedCategory={meta.name}
           listBasePath={path}
-          title={`${meta.icon} ${meta.name} à Madagascar`}
+          title={`${meta.name} à Madagascar`}
+          titleIconSlug={meta.slug}
         />
       </Suspense>
     </div>

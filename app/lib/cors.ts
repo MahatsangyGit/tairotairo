@@ -209,7 +209,10 @@ export function attachCorsHeadersOnResponse(
       }
     }
 
-    return originalWriteHead(statusCode, ...(args as Parameters<typeof res.writeHead>));
+    return (originalWriteHead as (...a: unknown[]) => ServerResponse)(
+      statusCode,
+      ...args
+    );
   };
 
   const originalEnd = res.end.bind(res);

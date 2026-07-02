@@ -12,6 +12,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import ListingCoverField from "@/components/listings/ListingCoverField";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { syncListingCover } from "@/lib/listing-cover-sync";
+import { MapPinIcon } from "@/components/ui/app-icons";
 
 interface Service {
   id: string;
@@ -561,7 +562,7 @@ export default function ProviderServicesPage() {
                       <span className="text-brand-600 font-bold">
                         {service.price.toLocaleString("fr-MG")} Ar
                       </span>
-                      <span>📍 {service.location}</span>
+                      <span><MapPinIcon /> {service.location}</span>
                       <Link
                         href={`/services/${service.id}`}
                         className="text-brand-600 hover:underline"

@@ -9,6 +9,7 @@ import { SERVICE_CATEGORIES } from "@/lib/categories";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { MapPinIcon } from "@/components/ui/app-icons";
 import ListingCoverField from "@/components/listings/ListingCoverField";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 
@@ -489,7 +490,7 @@ export default function ClientRequestsPage() {
                   <span className="text-amber-700 font-bold">
                     {request.budget.toLocaleString("fr-MG")} Ar
                   </span>
-                  <span>📍 {request.location}</span>
+                  <span><MapPinIcon /> {request.location}</span>
                   {request.desiredDate && (
                     <span>
                       📅{" "}

@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import { Bell } from "lucide-react";
+import { IconBell as Bell } from "@tabler/icons-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,

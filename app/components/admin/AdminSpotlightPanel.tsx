@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import { Badge } from "@/components/ui/badge";
+import { StarIcon } from "@/components/ui/app-icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -186,7 +187,7 @@ export default function AdminSpotlightPanel() {
                   <TableCell>
                     {p.featuredOnHomepage ? (
                       <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
-                        ★ Oui
+                        <StarIcon /> Oui
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground text-xs">Non</span>
@@ -259,7 +260,7 @@ export default function AdminSpotlightPanel() {
                   <TableCell>
                     {s.featuredOnHomepage ? (
                       <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
-                        ★ Oui
+                        <StarIcon /> Oui
                       </Badge>
                     ) : (
                       <span className="text-muted-foreground text-xs">Non</span>

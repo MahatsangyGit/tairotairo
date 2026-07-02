@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
+import CategoryIcon from "@/components/categories/CategoryIcon";
 import { CATEGORY_META } from "@/lib/categories";
 
 export function HomeHeroBrowseCtas() {
@@ -57,8 +58,11 @@ export function HomeCategoriesBrowse() {
             href={`/services/categorie/${cat.slug}`}
             className="group flex flex-col items-center gap-3 p-5 bg-card border border-border rounded-2xl hover:border-tertiary-400 hover:bg-tertiary-50 dark:hover:bg-tertiary-50 transition-all text-left"
           >
-            <span className="text-2xl" role="img" aria-label={cat.name}>
-              {cat.icon}
+            <span
+              className="flex items-center justify-center w-12 h-12 rounded-full bg-brand-50 text-brand-600 dark:text-brand-400 group-hover:bg-brand-100 transition-colors"
+              aria-hidden
+            >
+              <CategoryIcon slug={cat.slug} size={26} />
             </span>
             <span className="text-sm font-medium text-foreground group-hover:text-brand-700 dark:group-hover:text-brand-300 transition-colors text-center">
               {cat.name}

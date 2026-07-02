@@ -8,6 +8,7 @@ import { buildPageMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderPortfolioPublic from "@/components/portfolio/ProviderPortfolioPublic";
+import { MapPinIcon, StarIcon } from "@/components/ui/app-icons";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
@@ -153,7 +154,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
               </div>
               {totalReviews > 0 && (
                 <p className="text-sm text-muted-foreground mt-1">
-                  ★ {averageRating} ({totalReviews} avis)
+                  <StarIcon className="text-amber-500" /> {averageRating} ({totalReviews} avis)
                 </p>
               )}
               {provider.bio && (
@@ -192,7 +193,7 @@ export default async function ProviderProfilePage({ params }: PageProps) {
                   <p className="text-brand-600 font-bold text-sm mt-2">
                     {service.price.toLocaleString("fr-MG")} Ar
                   </p>
-                  <p className="text-muted-foreground text-xs mt-1">📍 {service.location}</p>
+                  <p className="text-muted-foreground text-xs mt-1"><MapPinIcon /> {service.location}</p>
                 </Link>
               ))}
             </div>
@@ -212,8 +213,10 @@ export default async function ProviderProfilePage({ params }: PageProps) {
                     <span className="font-medium text-foreground text-sm">
                       {review.author.name}
                     </span>
-                    <span className="text-yellow-400 text-sm">
-                      {"★".repeat(review.rating)}
+                    <span className="inline-flex items-center gap-0.5 text-yellow-400">
+                      {Array.from({ length: review.rating }, (_, i) => (
+                        <StarIcon key={i} />
+                      ))}
                     </span>
                   </div>
                   {review.comment && (

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import OpenBookingChatButton from "@/components/messages/OpenBookingChatButton";
+import { MapPinIcon } from "@/components/ui/app-icons";
 
 type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
 
@@ -102,7 +103,7 @@ export default function BookingCard({
             )}
           </div>
           <h3 className="font-semibold text-foreground">{display.title}</h3>
-          <p className="text-muted-foreground text-sm mt-0.5">📍 {display.location}</p>
+          <p className="text-muted-foreground text-sm mt-0.5"><MapPinIcon /> {display.location}</p>
         </div>
         <span
           className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${STATUS_CLASS[booking.status]}`}

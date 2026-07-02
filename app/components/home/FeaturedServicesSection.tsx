@@ -4,6 +4,7 @@ import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import OptimizedImage from "@/components/ui/OptimizedImage";
+import { MapPinIcon } from "@/components/ui/app-icons";
 
 export interface FeaturedServiceCard {
   id: string;
@@ -70,7 +71,7 @@ export default function FeaturedServicesSection({
               <p className="text-brand-600 font-bold text-sm mt-2">
                 {service.price.toLocaleString("fr-MG")} Ar
               </p>
-              <p className="text-muted-foreground text-xs mt-1">📍 {service.location}</p>
+              <p className="text-muted-foreground text-xs mt-1"><MapPinIcon /> {service.location}</p>
               <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-border">
                 <div className="flex items-center gap-2 min-w-0">
                   <UserAvatar

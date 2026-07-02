@@ -249,6 +249,9 @@ body {
 .dark .hover\:bg-brand-100:hover {
   background-color: oklch(0.28 0.06 186.391 / 0.55);
 }
+.dark .group:hover .group-hover\:bg-brand-100 {
+  background-color: oklch(0.28 0.06 186.391 / 0.55);
+}
 
 /* Surfaces tertiaires en mode sombre */
 .dark .bg-tertiary-50 {
