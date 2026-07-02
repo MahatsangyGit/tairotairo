@@ -12,15 +12,35 @@ import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import { notifyAuthChanged } from "@/lib/auth-client";
 import { isNavLinkActive } from "@/lib/nav-active";
 import { SITE_NAME } from "@/lib/site";
+import { cn } from "@/lib/utils";
 
 export default function Navbar() {
   const router = useRouter();
   const pathname = usePathname();
   const { user, setUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isAtTop, setIsAtTop] = useState(true);
   const menuRef = useRef<HTMLDivElement>(null);
 
+  const isHome = pathname === "/";
+  const blendWithHero = isHome && isAtTop;
+
   const showGuestAuth = !user;
+
+  useEffect(() => {
+    if (!isHome) {
+      setIsAtTop(false);
+      return;
+    }
+
+    const handleScroll = () => {
+      setIsAtTop(window.scrollY <= 0);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [isHome]);
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -73,10 +93,15 @@ export default function Navbar() {
   return (
     <nav
       ref={menuRef}
-      className="sticky top-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border shadow-sm"
+      className={cn(
+        "sticky top-0 z-50 transition-[background-color,border-color] duration-200",
+        blendWithHero
+          ? "bg-background"
+          : "bg-card/95 backdrop-blur-sm border-b border-border",
+      )}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 box-content">
+        <div className="flex items-center justify-between h-16 box-content">
 
           {/* Logo */}
           <Link
@@ -97,7 +122,7 @@ export default function Navbar() {
 
           {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
-            {user ? (
+            {user && (
               <>
                 <Link href="/services" className={navLinkClass("/services")}>
                   Services
@@ -105,26 +130,6 @@ export default function Navbar() {
                 <Link href="/requests" className={navLinkClass("/requests")}>
                   Demandes
                 </Link>
-              </>
-            ) : (
-              <>
-                <GuestBrowseTrigger
-                  browse="services"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Voir tous les services
-                </GuestBrowseTrigger>
-                <GuestBrowseTrigger
-                  browse="requests"
-                  className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  Voir toutes les demandes
-                </GuestBrowseTrigger>
-              </>
-            )}
-
-            {user && (
-              <>
                 {user.role === "CLIENT" && (
                   <>
                     <Link href="/dashboard/client" className={navLinkClass("/dashboard/client")}>
