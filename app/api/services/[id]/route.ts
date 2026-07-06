@@ -46,7 +46,7 @@ export async function GET(
       );
     }
 
-    const viewer = getAuthUser(_req);
+    const viewer = await getAuthUser(_req);
     const isOwner =
       viewer?.userId === service.providerId || viewer?.role === "ADMIN";
 

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
 import AdminDashboard from "@/components/admin/AdminDashboard";
 
 export default function AdminDashboardPage() {
@@ -34,7 +33,6 @@ export default function AdminDashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="max-w-6xl mx-auto px-4 py-10">
         <h1 className="text-2xl font-bold text-foreground mb-1">Administration</h1>
         <p className="text-muted-foreground text-sm mb-8">

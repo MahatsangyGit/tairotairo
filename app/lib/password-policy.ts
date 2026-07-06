@@ -1,4 +1,8 @@
-export const MIN_PASSWORD_LENGTH = 8;
+export const MIN_PASSWORD_LENGTH = 12;
+
+const HAS_LOWER = /[a-z]/;
+const HAS_UPPER = /[A-Z]/;
+const HAS_DIGIT = /\d/;
 
 export function validatePassword(
   password: unknown
@@ -11,6 +15,13 @@ export function validatePassword(
     return {
       ok: false,
       error: `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`,
+    };
+  }
+
+  if (!HAS_LOWER.test(password) || !HAS_UPPER.test(password) || !HAS_DIGIT.test(password)) {
+    return {
+      ok: false,
+      error: "Le mot de passe doit contenir une majuscule, une minuscule et un chiffre",
     };
   }
 

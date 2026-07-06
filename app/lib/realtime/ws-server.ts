@@ -3,6 +3,7 @@ import type { Server as HttpServer, IncomingMessage } from "http";
 import { WebSocketServer, type WebSocket } from "ws";
 import { verifyToken } from "@/lib/jwt";
 import prisma from "@/lib/prisma";
+import { runWithRls } from "@/lib/rls";
 import { getMessagingHub } from "@/lib/realtime/hub";
 import type { RealtimeClientEvent } from "@/lib/realtime/types";
 
@@ -35,13 +36,17 @@ function getTokenFromRequest(request: IncomingMessage): string | null {
 }
 
 async function verifyWsAuth(token: string) {
-  const auth = verifyToken(token);
+  const auth = await verifyToken(token);
   if (!auth) return null;
 
-  const user = await prisma.user.findUnique({
-    where: { id: auth.userId },
-    select: { suspendedAt: true, tokenVersion: true },
-  });
+  const user = await runWithRls(
+    { mode: "user", userId: auth.userId, role: auth.role },
+    () =>
+      prisma.user.findUnique({
+        where: { id: auth.userId },
+        select: { suspendedAt: true, tokenVersion: true },
+      })
+  );
 
   if (
     !user ||
@@ -101,20 +106,25 @@ export function attachMessagingWebSocket(
       return;
     }
 
-    void verifyWsAuth(token).then((auth) => {
-      if (!auth) {
-        socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
-        socket.destroy();
-        return;
-      }
+    void verifyWsAuth(token)
+      .then((auth) => {
+        if (!auth) {
+          socket.write("HTTP/1.1 401 Unauthorized\r\n\r\n");
+          socket.destroy();
+          return;
+        }
 
-      wss.handleUpgrade(request, socket, head, (ws) => {
-        const client = ws as ClientSocket;
-        client.userId = auth.userId;
-        client.isAlive = true;
-        wss.emit("connection", client, request);
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          const client = ws as ClientSocket;
+          client.userId = auth.userId;
+          client.isAlive = true;
+          wss.emit("connection", client, request);
+        });
+      })
+      .catch(() => {
+        socket.write("HTTP/1.1 500 Internal Server Error\r\n\r\n");
+        socket.destroy();
       });
-    });
   });
 
   wss.on("connection", (ws: ClientSocket) => {
@@ -150,7 +160,15 @@ export function attachMessagingWebSocket(
     });
   });
 
-  return wss;
+  return {
+    wss,
+    async close() {
+      hub.shutdown();
+      await new Promise<void>((resolve, reject) => {
+        wss.close((err) => (err ? reject(err) : resolve()));
+      });
+    },
+  };
 }
 
 export const MESSAGING_WS_PATH = WS_PATH;

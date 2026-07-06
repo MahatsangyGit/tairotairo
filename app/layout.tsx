@@ -9,6 +9,7 @@ import { GuestBrowseProvider } from "@/components/auth/GuestBrowseProvider";
 import { MessagingRealtimeProvider } from "@/components/messages/MessagingRealtimeProvider";
 import PostHogProvider from "@/components/analytics/PostHogProvider";
 import CsrfProvider from "@/components/auth/CsrfProvider";
+import SiteChrome from "@/components/layout/SiteChrome";
 import { BRAND_PRIMARY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -72,7 +73,9 @@ export default async function RootLayout({
               <Suspense fallback={null}>
                 <GuestBrowseProvider>
                   <PostHogProvider>
-                    <MessagingRealtimeProvider>{children}</MessagingRealtimeProvider>
+                    <MessagingRealtimeProvider>
+                      <SiteChrome>{children}</SiteChrome>
+                    </MessagingRealtimeProvider>
                   </PostHogProvider>
                 </GuestBrowseProvider>
               </Suspense>

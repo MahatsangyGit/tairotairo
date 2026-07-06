@@ -41,3 +41,7 @@ export function publishThreadRefresh(
 export function publishInboxChanged(userId: string) {
   getMessagingHub().publishToUsers([userId], { type: "inbox.changed" });
 }
+
+export function publishNotificationCreated(userId: string) {
+  getMessagingHub().publishToUsers([userId], { type: "notification.created" });
+}

@@ -3,9 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
-import ClientNav from "@/components/layout/ClientNav";
 import {
   RESPONSE_STATUS_CLASS,
   RESPONSE_STATUS_LABEL,
@@ -158,16 +156,12 @@ export default function ClientRequestProposalsPage() {
         : "";
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
+    <>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
           <p className="text-muted-foreground text-sm">Propositions reçues pour votre demande</p>
         </div>
-
-        <ClientNav />
 
         <Link
           href="/dashboard/client/requests"
@@ -339,6 +333,7 @@ export default function ClientRequestProposalsPage() {
             </div>
           </>
         )}
+
       </div>
 
       <ConfirmDialog
@@ -359,6 +354,6 @@ export default function ClientRequestProposalsPage() {
           }
         }}
       />
-    </div>
+    </>
   );
 }

@@ -9,7 +9,6 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { usePathname } from "next/navigation";
 
 export interface AuthUser {
   id: string;
@@ -29,7 +28,6 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const pathname = usePathname();
   const [user, setUser] = useState<AuthUser | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
 
@@ -60,7 +58,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     void refreshUser();
-  }, [pathname, refreshUser]);
+  }, [refreshUser]);
 
   useEffect(() => {
     const onAuthChanged = () => {

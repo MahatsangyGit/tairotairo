@@ -2,8 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ClientNav from "@/components/layout/ClientNav";
 import ProfileForm, { type ProfileUser } from "@/components/profile/ProfileForm";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 
@@ -45,8 +43,6 @@ export default function ClientProfilePage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
@@ -54,7 +50,6 @@ export default function ClientProfilePage() {
             Mon profil, photo et vérification email
           </p>
         </div>
-        <ClientNav />
         {loading && <p className="text-muted-foreground">Chargement...</p>}
         {error && <p className="text-red-500">{error}</p>}
         {user && (
@@ -64,6 +59,5 @@ export default function ClientProfilePage() {
           </>
         )}
       </div>
-    </div>
   );
 }

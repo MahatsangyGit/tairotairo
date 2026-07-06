@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getRedisClient } from "@/lib/redis";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
 
 interface RateLimitConfig {
@@ -27,21 +28,7 @@ function cleanupExpiredBuckets(now: number): void {
   }
 }
 
-export function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
-  }
-
-  const realIp = req.headers.get("x-real-ip");
-  if (realIp) {
-    return realIp.trim();
-  }
-
-  return "unknown";
-}
-
-export function checkRateLimit(
+function checkRateLimitMemory(
   key: string,
   config: RateLimitConfig
 ): { ok: true } | { ok: false; retryAfter: number } {
@@ -66,6 +53,54 @@ export function checkRateLimit(
   return { ok: true };
 }
 
+async function checkRateLimitRedis(
+  key: string,
+  config: RateLimitConfig
+): Promise<{ ok: true } | { ok: false; retryAfter: number }> {
+  const redis = getRedisClient();
+  if (!redis) return checkRateLimitMemory(key, config);
+
+  const windowSec = Math.ceil(config.windowMs / 1000);
+  const redisKey = `ratelimit:${key}`;
+
+  const count = await redis.incr(redisKey);
+  if (count === 1) {
+    await redis.expire(redisKey, windowSec);
+  }
+
+  if (count > config.maxAttempts) {
+    const ttl = await redis.ttl(redisKey);
+    return { ok: false, retryAfter: Math.max(1, ttl) };
+  }
+
+  return { ok: true };
+}
+
+export async function checkRateLimit(
+  key: string,
+  config: RateLimitConfig
+): Promise<{ ok: true } | { ok: false; retryAfter: number }> {
+  try {
+    return await checkRateLimitRedis(key, config);
+  } catch {
+    return checkRateLimitMemory(key, config);
+  }
+}
+
+export function getClientIp(req: NextRequest): string {
+  const forwarded = req.headers.get("x-forwarded-for");
+  if (forwarded) {
+    return forwarded.split(",")[0]?.trim() || "unknown";
+  }
+
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) {
+    return realIp.trim();
+  }
+
+  return "unknown";
+}
+
 export const AUTH_RATE_LIMITS = {
   login: { maxAttempts: 10, windowMs: 15 * 60 * 1000 },
   register: { maxAttempts: 5, windowMs: 60 * 60 * 1000 },
@@ -86,13 +121,13 @@ export function rateLimitResponse(retryAfter: number): NextResponse {
   );
 }
 
-export function enforceRateLimit(
+export async function enforceRateLimit(
   req: NextRequest,
   scope: string,
   config: RateLimitConfig
-): NextResponse | null {
+): Promise<NextResponse | null> {
   const ip = getClientIp(req);
-  const result = checkRateLimit(`${scope}:${ip}`, config);
+  const result = await checkRateLimit(`${scope}:${ip}`, config);
 
   if (!result.ok) {
     logSecurityEventFromRequest("auth.rate_limited", req, {

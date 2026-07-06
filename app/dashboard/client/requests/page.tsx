@@ -3,14 +3,12 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ClientNav from "@/components/layout/ClientNav";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MapPinIcon } from "@/components/ui/app-icons";
-import ListingCoverField from "@/components/listings/ListingCoverField";
+import ListingFormFields from "@/components/listings/ListingFormFields";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 
 interface ServiceRequest {
@@ -272,9 +270,7 @@ export default function ClientRequestsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
+    <>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
@@ -282,8 +278,6 @@ export default function ClientRequestsPage() {
             Publiez une demande pour trouver un prestataire près de chez vous
           </p>
         </div>
-
-        <ClientNav />
 
         {actionError && (
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
@@ -311,54 +305,31 @@ export default function ClientRequestsPage() {
               {editingId ? "Modifier la demande" : "Nouvelle demande de service"}
             </h2>
             <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="Titre (ex: Réparation robinet qui fuit)"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
-              />
-              <textarea
-                placeholder="Décrivez votre besoin en détail"
-                rows={4}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500 resize-none"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Budget proposé (Ar)"
-                  value={form.budget}
-                  onChange={(e) => setForm({ ...form, budget: e.target.value })}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
-                />
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500 bg-card"
-                >
-                  {SERVICE_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <input
-                type="text"
-                placeholder="Ville (ex: Antananarivo)"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
-              />
-              <ListingCoverField
-                currentImageUrl={currentCoverUrl}
-                file={coverFile}
-                onFileChange={setCoverFile}
-                removeExisting={removeCover}
-                onRemoveExistingChange={setRemoveCover}
+              <ListingFormFields
+                kind="request"
+                form={{
+                  title: form.title,
+                  description: form.description,
+                  amount: form.budget,
+                  category: form.category,
+                  location: form.location,
+                }}
+                onChange={(next) =>
+                  setForm({
+                    ...form,
+                    title: next.title,
+                    description: next.description,
+                    budget: next.amount,
+                    category: next.category,
+                    location: next.location,
+                  })
+                }
+                categories={SERVICE_CATEGORIES}
+                currentCoverUrl={currentCoverUrl}
+                coverFile={coverFile}
+                onCoverFileChange={setCoverFile}
+                removeCover={removeCover}
+                onRemoveCoverChange={setRemoveCover}
               />
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -557,6 +528,6 @@ export default function ClientRequestsPage() {
           if (deleteTarget) runDelete(deleteTarget);
         }}
       />
-    </div>
+    </>
   );
 }

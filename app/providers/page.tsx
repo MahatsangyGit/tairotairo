@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import UserAvatar from "@/components/profile/UserAvatar";
 import prisma from "@/lib/prisma";
@@ -58,7 +57,6 @@ export default async function ProvidersPage() {
   return (
     <div className="min-h-screen bg-background">
       <JsonLdScripts paths={SEO_SCHEMA_PATHS.providersList} />
-      <Navbar />
 
       <section className="bg-neutral-950 text-white">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">

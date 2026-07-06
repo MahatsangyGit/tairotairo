@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import OpenUserChatButton from "./OpenUserChatButton";
 
 interface NegotiateServiceButtonProps {
@@ -12,19 +12,9 @@ export default function NegotiateServiceButton({
   serviceId,
   className,
 }: NegotiateServiceButtonProps) {
-  const [canNegotiate, setCanNegotiate] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const { user, authChecked } = useAuth();
 
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        setCanNegotiate(d.user?.role === "CLIENT");
-      })
-      .finally(() => setChecked(true));
-  }, []);
-
-  if (!checked || !canNegotiate) return null;
+  if (!authChecked || user?.role !== "CLIENT") return null;
 
   return (
     <OpenUserChatButton

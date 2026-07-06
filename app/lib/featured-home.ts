@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
 import { withAnonymousRls } from "@/lib/rls";
-import { averageRating } from "@/lib/advanced-search";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { withCoverImageUrl } from "@/lib/listing-cover";
+import { getProviderRatingMap } from "@/lib/rating-sort-search";
 
 export const MAX_FEATURED_PROVIDERS = 8;
 export const MAX_FEATURED_SERVICES = 8;
@@ -43,13 +43,37 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       name: true,
       avatar: true,
       bio: true,
-      reviewsReceived: { select: { rating: true } },
-      _count: { select: { services: { where: { available: true } } } },
+      _count: {
+        select: {
+          services: { where: { available: true } },
+          reviewsReceived: true,
+        },
+      },
     },
   });
 
+  const ratingRows = await prisma.review.groupBy({
+    by: ["targetId"],
+    where: { targetId: { in: rows.map((p) => p.id) } },
+    _avg: { rating: true },
+    _count: { rating: true },
+  });
+  const ratingMap = new Map(
+    ratingRows.map((r) => [
+      r.targetId,
+      {
+        averageRating:
+          r._avg.rating != null ? Math.round(r._avg.rating * 10) / 10 : null,
+        reviewCount: r._count.rating,
+      },
+    ])
+  );
+
   return rows.map((p) => {
-    const rating = averageRating(p.reviewsReceived);
+    const rating = ratingMap.get(p.id) ?? {
+      averageRating: null,
+      reviewCount: 0,
+    };
     return {
       id: p.id,
       name: p.name,
@@ -81,15 +105,18 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
           id: true,
           name: true,
           avatar: true,
-          reviewsReceived: { select: { rating: true } },
         },
       },
     },
   });
 
+  const ratingMap = await getProviderRatingMap(rows.map((s) => s.provider.id));
+
   return rows.map((s) => {
-    const { reviewsReceived, ...provider } = s.provider;
-    const rating = averageRating(reviewsReceived);
+    const rating = ratingMap.get(s.provider.id) ?? {
+      averageRating: null,
+      reviewCount: 0,
+    };
     return withCoverImageUrl("service", {
       id: s.id,
       title: s.title,
@@ -99,7 +126,7 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
       location: s.location,
       coverImageMime: s.coverImageMime,
       updatedAt: s.updatedAt,
-      provider: { ...provider, ...rating },
+      provider: { ...s.provider, ...rating },
     });
   });
   });

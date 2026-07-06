@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
+import { getBcryptRounds } from "@/lib/env";
 import prisma from "../../../lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
 import { parsePublicRegistrationRole } from "@/lib/roles";
@@ -22,7 +23,7 @@ const REGISTRATION_FAILED_MESSAGE =
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimited = enforceRateLimit(req, "register", AUTH_RATE_LIMITS.register);
+    const rateLimited = await enforceRateLimit(req, "register", AUTH_RATE_LIMITS.register);
     if (rateLimited) return rateLimited;
 
     const json = await parseJsonBody(req);
@@ -49,7 +50,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hash(password, getBcryptRounds());
     const safeRole = parsePublicRegistrationRole(role);
 
     const user = await prisma.user.create({

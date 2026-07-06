@@ -1,6 +1,8 @@
 # Row Level Security — Matrice des policies
 
-Policies définies dans `supabase/migrations/20260629120000_010_rls_enforcement.sql`.
+Policies définies dans `supabase/migrations/20260629130000_011_rls_prisma_schema.sql`.
+
+> **Obsolète :** `20260629120000_010_rls_enforcement.sql` (schéma snake_case). Voir [MIGRATIONS.md](./MIGRATIONS.md).
 
 ## Variables de session
 

@@ -8,6 +8,7 @@ import {
   type KycAllowedMime,
   type KycDocumentType,
 } from "@/lib/kyc";
+import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "kyc");
 
@@ -82,7 +83,8 @@ export function validateKycUploadFile(
 }
 
 export function userKycDir(userId: string): string {
-  return path.join(STORAGE_ROOT, userId);
+  assertSafeStorageId(userId);
+  return resolveStoragePath(STORAGE_ROOT, userId);
 }
 
 export async function saveKycFile(

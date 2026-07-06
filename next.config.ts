@@ -78,6 +78,7 @@ const imageLocalPatterns = [
 ];
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   assetPrefix,
   compress: true,
   poweredByHeader: false,

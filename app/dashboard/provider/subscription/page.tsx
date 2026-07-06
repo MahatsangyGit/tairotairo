@@ -3,8 +3,6 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ProviderNav from "@/components/layout/ProviderNav";
 import { Button } from "@/components/ui/button";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import type { SubscriptionPlanId } from "@/lib/subscription-plans";
@@ -141,9 +139,6 @@ export default function ProviderSubscriptionPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
       <div className="max-w-3xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground">Abonnement prestataire</h1>
@@ -151,8 +146,6 @@ export default function ProviderSubscriptionPage() {
             Boostez votre visibilité sur {SUBSCRIPTION_PERIOD_DAYS} jours par période
           </p>
         </div>
-
-        <ProviderNav />
 
         {loading && (
           <div className="bg-card rounded-2xl border border-border p-8 animate-pulse h-48" />
@@ -362,6 +355,5 @@ export default function ProviderSubscriptionPage() {
           </p>
         )}
       </div>
-    </div>
   );
 }

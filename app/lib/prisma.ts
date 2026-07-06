@@ -9,6 +9,9 @@ validateDatabaseUrl();
 function createRlsPool(): pg.Pool {
   const pool = new pg.Pool({
     connectionString: getDatabaseUrl(),
+    max: parseInt(process.env.PG_POOL_MAX ?? "20", 10),
+    idleTimeoutMillis: parseInt(process.env.PG_IDLE_TIMEOUT_MS ?? "30000", 10),
+    connectionTimeoutMillis: parseInt(process.env.PG_CONNECT_TIMEOUT_MS ?? "10000", 10),
   });
 
   const originalConnect = pool.connect.bind(pool);
@@ -39,7 +42,9 @@ function createRlsPool(): pg.Pool {
   return pool;
 }
 
-const adapter = new PrismaPg(createRlsPool());
+const rlsPool = createRlsPool();
+
+const adapter = new PrismaPg(rlsPool);
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
@@ -52,7 +57,7 @@ function createPrismaClient(): PrismaClient {
 }
 
 /** Incrémenter après chaque changement de schéma pour invalider le singleton en dev. */
-const PRISMA_CLIENT_GENERATION = 3;
+const PRISMA_CLIENT_GENERATION = 4;
 
 type PrismaClientWithGeneration = PrismaClient & { __generation?: number };
 
@@ -84,5 +89,10 @@ function getPrismaClient(): PrismaClient {
 }
 
 const prisma = getPrismaClient();
+
+export async function disconnectPrisma(): Promise<void> {
+  await prisma.$disconnect();
+  await rlsPool.end();
+}
 
 export default prisma;

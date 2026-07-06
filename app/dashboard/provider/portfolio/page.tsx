@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ProviderNav from "@/components/layout/ProviderNav";
 import ProviderPortfolioPanel from "@/components/portfolio/ProviderPortfolioPanel";
 
 export default function ProviderPortfolioPage() {
@@ -45,8 +43,6 @@ export default function ProviderPortfolioPage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Mon portfolio</h1>
@@ -55,7 +51,6 @@ export default function ProviderPortfolioPage() {
             possibles par les clients
           </p>
         </div>
-        <ProviderNav />
         {userId && (
           <Link
             href={`/providers/${userId}`}
@@ -68,6 +63,5 @@ export default function ProviderPortfolioPage() {
         {error && <p className="text-red-500">{error}</p>}
         {!loading && !error && <ProviderPortfolioPanel />}
       </div>
-    </div>
   );
 }

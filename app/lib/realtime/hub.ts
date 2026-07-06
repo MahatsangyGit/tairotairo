@@ -1,10 +1,13 @@
 import type { WebSocket } from "ws";
 import type { RealtimeServerEvent } from "@/lib/realtime/types";
+import { getRedisClient, REALTIME_REDIS_CHANNEL } from "@/lib/redis";
 
 type ClientSocket = WebSocket & { isAlive?: boolean };
 
 class MessagingHub {
   private readonly socketsByUser = new Map<string, Set<ClientSocket>>();
+  private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+  private redisSubscribed = false;
 
   addSocket(userId: string, socket: ClientSocket) {
     const set = this.socketsByUser.get(userId) ?? new Set();
@@ -21,7 +24,7 @@ class MessagingHub {
     }
   }
 
-  publishToUsers(userIds: string[], event: RealtimeServerEvent) {
+  private deliverLocal(userIds: string[], event: RealtimeServerEvent) {
     const payload = JSON.stringify(event);
     const delivered = new Set<ClientSocket>();
 
@@ -39,8 +42,26 @@ class MessagingHub {
     }
   }
 
+  publishToUsers(userIds: string[], event: RealtimeServerEvent) {
+    this.deliverLocal(userIds, event);
+
+    const redis = getRedisClient();
+    if (!redis) return;
+
+    void redis
+      .publish(
+        REALTIME_REDIS_CHANNEL,
+        JSON.stringify({ userIds, event })
+      )
+      .catch(() => {
+        // fallback local only
+      });
+  }
+
   startHeartbeat() {
-    const interval = setInterval(() => {
+    if (this.heartbeatInterval) return;
+
+    this.heartbeatInterval = setInterval(() => {
       for (const sockets of this.socketsByUser.values()) {
         for (const socket of sockets) {
           if (socket.isAlive === false) {
@@ -53,7 +74,49 @@ class MessagingHub {
       }
     }, 30_000);
 
-    interval.unref?.();
+    this.heartbeatInterval.unref?.();
+    void this.subscribeRedis();
+  }
+
+  private async subscribeRedis() {
+    if (this.redisSubscribed) return;
+    const redis = getRedisClient();
+    if (!redis) return;
+
+    try {
+      const subscriber = redis.duplicate();
+      await subscriber.subscribe(REALTIME_REDIS_CHANNEL);
+      subscriber.on("message", (_channel, message) => {
+        try {
+          const parsed = JSON.parse(message) as {
+            userIds: string[];
+            event: RealtimeServerEvent;
+          };
+          if (parsed?.userIds && parsed.event) {
+            this.deliverLocal(parsed.userIds, parsed.event);
+          }
+        } catch {
+          // ignore malformed
+        }
+      });
+      this.redisSubscribed = true;
+    } catch {
+      // single-instance mode
+    }
+  }
+
+  shutdown() {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+      this.heartbeatInterval = null;
+    }
+
+    for (const sockets of this.socketsByUser.values()) {
+      for (const socket of sockets) {
+        socket.terminate();
+      }
+    }
+    this.socketsByUser.clear();
   }
 }
 

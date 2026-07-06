@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
+import { useMessagingRealtime } from "@/components/messages/MessagingRealtimeProvider";
 
 interface Notification {
   id: string;
@@ -50,9 +51,16 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30000);
-    return () => clearInterval(interval);
   }, [fetchNotifications, pathname]);
+
+  useMessagingRealtime((event) => {
+    if (
+      event.type === "notification.created" ||
+      event.type === "inbox.changed"
+    ) {
+      void fetchNotifications();
+    }
+  });
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {

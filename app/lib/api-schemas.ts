@@ -2,9 +2,11 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { FIELD_LIMITS } from "@/lib/field-limits";
-import { MIN_PASSWORD_LENGTH } from "@/lib/password-policy";
+import { validatePassword } from "@/lib/password-policy";
 import { PORTFOLIO_MAX_COMMENT_LENGTH, PORTFOLIO_MAX_DESCRIPTION_LENGTH } from "@/lib/portfolio";
 import { PAYMENT_METHOD_OPTIONS } from "@/lib/subscription-plans";
+import { MAX_API_BODY_BYTES } from "@/lib/request-limits";
+import { PAYLOAD_TOO_LARGE_MESSAGE } from "@/lib/request-limits";
 
 /** Rejette les chaînes "false" / "true" — uniquement des booléens JSON natifs. */
 export const strictBoolean = z.boolean();
@@ -62,15 +64,22 @@ const optionalPhoneInput = z
     ])
   );
 
+const cuidSchema = z
+  .string()
+  .trim()
+  .regex(/^c[a-z0-9]{24,}$/, "Identifiant invalide");
+
+const passwordFieldSchema = z.string().superRefine((value, ctx) => {
+  const result = validatePassword(value);
+  if (!result.ok) {
+    ctx.addIssue({ code: "custom", message: result.error });
+  }
+});
+
 export const registerSchema = z.object({
   name: requiredText("Nom", FIELD_LIMITS.USER_NAME),
   email: emailSchema,
-  password: z
-    .string()
-    .min(
-      MIN_PASSWORD_LENGTH,
-      `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`
-    ),
+  password: passwordFieldSchema,
   phone: optionalPhoneInput,
   role: z.string().optional(),
   turnstileToken: z.string().trim().max(2048).optional(),
@@ -160,12 +169,7 @@ export const pushUnsubscribeSchema = z.object({
 
 export const resetPasswordSchema = z.object({
   token: z.string().trim().min(1, "Lien de réinitialisation invalide"),
-  password: z
-    .string()
-    .min(
-      MIN_PASSWORD_LENGTH,
-      `Le mot de passe doit contenir au moins ${MIN_PASSWORD_LENGTH} caractères`
-    ),
+  password: passwordFieldSchema,
 });
 
 export const forgotPasswordSchema = z.object({
@@ -254,6 +258,33 @@ export const adminUserActionSchema = z
     message: "Rôle requis : CLIENT, PROVIDER ou ADMIN",
   });
 
+export const createBookingSchema = z.object({
+  serviceId: cuidSchema,
+  date: z.union([z.string(), z.number(), z.date()]),
+  slotStart: z.string().trim().max(32).optional().nullable(),
+  slotEnd: z.string().trim().max(32).optional().nullable(),
+});
+
+export const openConversationSchema = z
+  .object({
+    bookingId: cuidSchema.optional(),
+    providerId: cuidSchema.optional(),
+    clientId: cuidSchema.optional(),
+    requestResponseId: cuidSchema.optional(),
+    serviceId: cuidSchema.optional(),
+  })
+  .refine(
+    (data) =>
+      Boolean(
+        data.bookingId ||
+          data.providerId ||
+          data.clientId ||
+          data.requestResponseId ||
+          data.serviceId
+      ),
+    { message: "Au moins un identifiant est requis" }
+  );
+
 export const adminKycActionSchema = z.object({
   action: z.enum(["approve", "reject"], {
     error: "Action requise : approve ou reject",
@@ -308,7 +339,20 @@ export async function parseJsonBody(
   { ok: true; body: unknown } | { ok: false; response: NextResponse }
 > {
   try {
-    return { ok: true, body: await req.json() };
+    const raw = await req.text();
+    if (Buffer.byteLength(raw, "utf8") > MAX_API_BODY_BYTES) {
+      return {
+        ok: false,
+        response: NextResponse.json(
+          { error: PAYLOAD_TOO_LARGE_MESSAGE },
+          { status: 413 }
+        ),
+      };
+    }
+    if (!raw.trim()) {
+      return { ok: true, body: {} };
+    }
+    return { ok: true, body: JSON.parse(raw) };
   } catch {
     return {
       ok: false,

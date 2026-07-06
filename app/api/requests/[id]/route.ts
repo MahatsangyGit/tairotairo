@@ -22,7 +22,7 @@ export async function GET(
 ) {
   try {
     const { id } = await params;
-    const viewer = getAuthUser(req);
+    const viewer = await getAuthUser(req);
 
     const request = await prisma.serviceRequest.findUnique({
       where: { id },

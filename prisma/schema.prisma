@@ -51,6 +51,10 @@ model User {
   conversationsAsProvider Conversation[] @relation("ProviderConversations")
   portfolioItems          ProviderPortfolioItem[]
   portfolioComments       PortfolioItemComment[] @relation("PortfolioComments")
+
+  @@index([role])
+  @@index([kycStatus])
+  @@index([featuredOnHomepage])
 }
 
 enum Role {
@@ -198,6 +202,12 @@ model Service {
   providerId  String
   bookings    Booking[]
   priceOffers Message[]
+
+  @@index([providerId])
+  @@index([category])
+  @@index([available])
+  @@index([featuredOnHomepage])
+  @@index([createdAt])
 }
 
 model ServiceRequest {
@@ -218,6 +228,11 @@ model ServiceRequest {
   client      User      @relation(fields: [clientId], references: [id])
   clientId    String
   responses   RequestResponse[]
+
+  @@index([clientId])
+  @@index([category])
+  @@index([open])
+  @@index([createdAt])
 }
 
 enum RequestResponseStatus {
@@ -244,6 +259,9 @@ model RequestResponse {
   priceOffers   Message[]
 
   @@unique([requestId, providerId])
+  @@index([requestId])
+  @@index([providerId])
+  @@index([status])
 }
 
 model Booking {
@@ -273,6 +291,14 @@ model Booking {
   requestResponseId String?  @unique
   transaction Transaction?
   review      Review?
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([date])
+  @@index([clientId, updatedAt])
+  @@index([providerId, updatedAt])
 }
 
 model Conversation {
@@ -401,4 +427,7 @@ model Review {
   targetId    String
   booking     Booking  @relation(fields: [bookingId], references: [id])
   bookingId   String   @unique
+
+  @@index([targetId])
+  @@index([authorId])
 }

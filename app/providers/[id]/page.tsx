@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import prisma from "@/lib/prisma";
 import JsonLdScripts from "@/components/seo/JsonLdScripts";
@@ -13,6 +12,8 @@ import {
   portfolioItemInclude,
   serializePortfolioItem,
 } from "@/lib/portfolio-serialize";
+
+export const revalidate = 300;
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -105,7 +106,6 @@ export default async function ProviderProfilePage({ params }: PageProps) {
   if (!data) {
     return (
       <div className="min-h-screen bg-background">
-        <Navbar />
         <div className="max-w-4xl mx-auto px-4 py-20 text-center">
           <p className="text-red-500 mb-4">Prestataire introuvable</p>
           <Link href="/services" className="text-brand-600 hover:underline">
@@ -128,7 +128,6 @@ export default async function ProviderProfilePage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       <JsonLdScripts paths={SEO_SCHEMA_PATHS.provider(id)} />
-      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="bg-card rounded-2xl border border-border shadow-sm p-8 mb-6">

@@ -3,6 +3,7 @@ import { withBypassRls } from "@/lib/rls";
 import { BRAND_PRIMARY, SITE_NAME } from "@/lib/site";
 import { APP_URL, sendEmail, emailLayout } from "@/lib/email";
 import { sendPushToUser } from "@/lib/push";
+import { publishNotificationCreated } from "@/lib/realtime/publish";
 import {
   sendsNotificationEmail,
   type NotificationType,
@@ -70,6 +71,8 @@ export async function dispatchNotification(
       link: input.link ?? null,
     },
   });
+
+  publishNotificationCreated(input.userId);
 
   const tasks: Promise<unknown>[] = [];
 

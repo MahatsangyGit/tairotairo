@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ClientNav from "@/components/layout/ClientNav";
 import BookingCard, { type BookingCardData } from "@/components/booking/BookingCard";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -149,9 +147,7 @@ export default function ClientDashboardPage() {
   // ── Render ────────────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
+    <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
         <div className="mb-2">
@@ -160,8 +156,6 @@ export default function ClientDashboardPage() {
             Suivez l&apos;état de vos réservations de services
           </p>
         </div>
-
-        <ClientNav />
 
         {actionError && (
           <div className="bg-error-50 border border-red-100 rounded-xl px-4 py-3 mb-4">
@@ -290,6 +284,6 @@ export default function ClientDashboardPage() {
           if (cancelTarget) runCancel(cancelTarget);
         }}
       />
-    </div>
+    </>
   );
 }

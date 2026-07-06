@@ -13,7 +13,8 @@ export type RealtimeServerEvent =
   | { type: "connected" }
   | { type: "message.created"; conversationId: string; message: WireMessage }
   | { type: "thread.refresh"; conversationId: string }
-  | { type: "inbox.changed" };
+  | { type: "inbox.changed" }
+  | { type: "notification.created" };
 
 export type RealtimeClientEvent =
   | { type: "ping" }

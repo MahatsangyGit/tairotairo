@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import FeaturedProvidersSection from "@/components/home/FeaturedProvidersSection";
 import FeaturedServicesSection from "@/components/home/FeaturedServicesSection";
@@ -33,7 +32,6 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-background">
       <JsonLdScripts paths={SEO_SCHEMA_PATHS.home} />
-      <Navbar />
 
       {/* Hero */}
       <section className="bg-background text-foreground border-b border-border">

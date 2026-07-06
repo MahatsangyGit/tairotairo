@@ -27,12 +27,12 @@ export function runWithRls<T>(ctx: RlsContext, fn: () => Promise<T>): Promise<T>
   return rlsStorage.run(ctx, fn);
 }
 
-export function withRequestRls<T>(
+export async function withRequestRls<T>(
   req: NextRequest,
   fn: () => Promise<T>
 ): Promise<T> {
   const token = req.cookies.get("token")?.value;
-  const auth = token ? verifyToken(token) : null;
+  const auth = token ? await verifyToken(token) : null;
   return runWithRls(rlsContextFromAuth(auth), fn);
 }
 
@@ -73,10 +73,10 @@ function parseCookieHeader(header: string | undefined): Record<string, string> {
 }
 
 /** Resolves RLS context from an incoming HTTP request (used by custom server). */
-export function resolveRlsContextFromRequest(
+export async function resolveRlsContextFromRequest(
   url: string | undefined,
   cookieHeader: string | undefined
-): RlsContext {
+): Promise<RlsContext> {
   const pathname = (() => {
     try {
       return new URL(url ?? "/", "http://localhost").pathname;
@@ -96,7 +96,8 @@ export function resolveRlsContextFromRequest(
   const token = parseCookieHeader(cookieHeader).token;
   if (!token) return ANONYMOUS_RLS;
 
-  return rlsContextFromAuth(verifyToken(token));
+  const auth = await verifyToken(token);
+  return rlsContextFromAuth(auth);
 }
 
 /** Applies session variables on a pooled pg client before each query. */

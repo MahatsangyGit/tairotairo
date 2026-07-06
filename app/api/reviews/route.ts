@@ -22,25 +22,43 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const reviews = await prisma.review.findMany({
-      where: { targetId: providerId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        author: {
-          select: { id: true, name: true, avatar: true },
-        },
-      },
-    });
+    const page = Math.max(1, parseInt(searchParams.get("page") ?? "1", 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10) || 20));
+    const skip = (page - 1) * limit;
 
-    const averageRating =
-      reviews.length > 0
-        ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length
-        : 0;
+    const where = { targetId: providerId };
+
+    const [reviews, total, aggregate] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { createdAt: "desc" },
+        include: {
+          author: {
+            select: { id: true, name: true, avatar: true },
+          },
+        },
+      }),
+      prisma.review.count({ where }),
+      prisma.review.aggregate({
+        where,
+        _avg: { rating: true },
+        _count: { rating: true },
+      }),
+    ]);
+
+    const averageRating = aggregate._avg.rating ?? 0;
 
     return NextResponse.json({
       reviews,
       averageRating: Math.round(averageRating * 10) / 10,
-      total: reviews.length,
+      total,
+      pagination: {
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
     });
   } catch (error) {
     return NextResponse.json(

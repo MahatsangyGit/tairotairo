@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getAuthUser, requireAuth } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
 import { notifyNewRequestResponse } from "@/lib/notify-requests";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { assertEmailVerified } from "@/lib/email-verification";
@@ -29,7 +29,7 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const user = getAuthUser(req);
+    const user = await requireAuth(req);
     const { id } = await params;
 
     const request = await prisma.serviceRequest.findUnique({

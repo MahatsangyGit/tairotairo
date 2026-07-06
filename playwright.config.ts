@@ -17,4 +17,12 @@ export default defineConfig({
     trace: "on-first-retry",
   },
   reporter: [["list"]],
+  webServer: process.env.CI
+    ? undefined
+    : {
+        command: "npm run dev",
+        url: baseURL,
+        reuseExistingServer: true,
+        timeout: 120_000,
+      },
 });

@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = getClientIp(req);
-    const rateLimit = checkRateLimit(
+    const rateLimit = await checkRateLimit(
       `verify-otp:${ip}:${auth.userId}`,
       AUTH_RATE_LIMITS.verifyOtp
     );

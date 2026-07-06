@@ -4,6 +4,10 @@ import { NextResponse } from "next/server";
 export const PAGE_REVALIDATE_SECONDS = {
   HOME: 120,
   PROVIDERS: 300,
+  SERVICES: 120,
+  REQUESTS: 120,
+  CATEGORY: 120,
+  PROVIDER_PROFILE: 300,
 } as const;
 
 export const CACHE_CONTROL = {

@@ -1,0 +1,49 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tairo
+      POSTGRES_PASSWORD: tairo
+      POSTGRES_DB: tairo_ampio
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tairo -d tairo_ampio"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://tairo:tairo@postgres:5432/tairo_ampio
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-chars}
+      CRON_SECRET: ${CRON_SECRET:-replace-with-a-long-random-secret}
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - app_storage:/app/storage
+
+volumes:
+  postgres_data:
+  app_storage:

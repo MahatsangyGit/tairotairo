@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ProviderNav from "@/components/layout/ProviderNav";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
@@ -332,9 +330,6 @@ export default function ProviderDashboardPage() {
   const pendingCount = counts.PENDING ?? 0;
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">
@@ -350,8 +345,6 @@ export default function ProviderDashboardPage() {
             </p>
           )}
         </div>
-
-        <ProviderNav />
         <ProviderKycBanner />
 
         {actionError && (
@@ -459,6 +452,5 @@ export default function ProviderDashboardPage() {
           </div>
         )}
       </div>
-    </div>
   );
 }

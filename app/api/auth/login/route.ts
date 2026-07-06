@@ -26,7 +26,7 @@ import { verifyTurnstileToken } from "@/lib/turnstile";
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimited = enforceRateLimit(req, "login", AUTH_RATE_LIMITS.login);
+    const rateLimited = await enforceRateLimit(req, "login", AUTH_RATE_LIMITS.login);
     if (rateLimited) return rateLimited;
 
     const json = await parseJsonBody(req);
@@ -106,7 +106,7 @@ export async function POST(req: NextRequest) {
 
     await resetLoginAttempts(user.id);
 
-    const token = signToken({
+    const token = await signToken({
       userId: user.id,
       email: user.email,
       role: user.role,

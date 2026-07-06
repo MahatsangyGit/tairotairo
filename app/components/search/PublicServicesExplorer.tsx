@@ -349,7 +349,7 @@ export default function PublicServicesExplorer({
                     <div className="relative w-full h-36 bg-muted">
                       <OptimizedImage
                         src={service.coverImageUrl}
-                        alt=""
+                        alt={`Image de couverture : ${service.title}`}
                         fill
                       />
                     </div>

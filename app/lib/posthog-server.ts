@@ -9,8 +9,8 @@ export function getPostHogServer(): PostHog | null {
   if (!client) {
     client = new PostHog(POSTHOG_KEY, {
       host: POSTHOG_API_HOST,
-      flushAt: 1,
-      flushInterval: 0,
+      flushAt: process.env.NODE_ENV === "production" ? 20 : 1,
+      flushInterval: process.env.NODE_ENV === "production" ? 10_000 : 0,
     });
   }
 

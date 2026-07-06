@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import { SITE_NAME } from "@/lib/site";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
 import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
@@ -55,7 +54,6 @@ export default function ForgotPasswordPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="max-w-md mx-auto px-4 py-12">
         <div className="bg-card rounded-2xl shadow-sm p-8 border border-border">
           <h1 className="text-2xl font-bold text-foreground mb-2">

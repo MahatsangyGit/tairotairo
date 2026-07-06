@@ -3,13 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ProviderNav from "@/components/layout/ProviderNav";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import ListingCoverField from "@/components/listings/ListingCoverField";
+import ListingFormFields from "@/components/listings/ListingFormFields";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 import { MapPinIcon } from "@/components/ui/app-icons";
@@ -320,16 +318,12 @@ export default function ProviderServicesPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-
+    <>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Espace prestataire</h1>
           <p className="text-muted-foreground text-sm">Publiez et gérez vos annonces de services</p>
         </div>
-
-        <ProviderNav />
         <ProviderKycBanner />
 
         {subscription?.isActive && spotlight?.canFeature && (
@@ -396,54 +390,30 @@ export default function ProviderServicesPage() {
               {editingId ? "Modifier l'annonce" : "Nouvelle annonce"}
             </h2>
             <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                placeholder="Titre (ex: Réparation fuite d'eau)"
-                value={form.title}
-                onChange={(e) => setForm({ ...form, title: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
-              />
-              <textarea
-                placeholder="Description détaillée"
-                rows={4}
-                value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500 resize-none"
-              />
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  type="number"
-                  min="0"
-                  placeholder="Prix (Ar)"
-                  value={form.price}
-                  onChange={(e) => setForm({ ...form, price: e.target.value })}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
-                />
-                <select
-                  value={form.category}
-                  onChange={(e) => setForm({ ...form, category: e.target.value })}
-                  className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500 bg-card"
-                >
-                  {SERVICE_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <input
-                type="text"
-                placeholder="Ville (ex: Antananarivo)"
-                value={form.location}
-                onChange={(e) => setForm({ ...form, location: e.target.value })}
-                className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
-              />
-              <ListingCoverField
-                currentImageUrl={currentCoverUrl}
-                file={coverFile}
-                onFileChange={setCoverFile}
-                removeExisting={removeCover}
-                onRemoveExistingChange={setRemoveCover}
+              <ListingFormFields
+                kind="service"
+                form={{
+                  title: form.title,
+                  description: form.description,
+                  amount: form.price,
+                  category: form.category,
+                  location: form.location,
+                }}
+                onChange={(next) =>
+                  setForm({
+                    title: next.title,
+                    description: next.description,
+                    price: next.amount,
+                    category: next.category,
+                    location: next.location,
+                  })
+                }
+                categories={SERVICE_CATEGORIES}
+                currentCoverUrl={currentCoverUrl}
+                coverFile={coverFile}
+                onCoverFileChange={setCoverFile}
+                removeCover={removeCover}
+                onRemoveCoverChange={setRemoveCover}
               />
               <div className="flex gap-2 pt-1">
                 <button
@@ -614,6 +584,7 @@ export default function ProviderServicesPage() {
             ))}
           </div>
         )}
+
       </div>
 
       <ConfirmDialog
@@ -629,6 +600,6 @@ export default function ProviderServicesPage() {
           if (deleteTarget) runDelete(deleteTarget);
         }}
       />
-    </div>
+    </>
   );
 }

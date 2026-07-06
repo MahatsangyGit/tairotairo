@@ -1,57 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getAuthUser } from "@/lib/auth";
+import { requireAuth } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 
-export async function GET(req: NextRequest) {
-  try {
-    const auth = getAuthUser(req);
+export const GET = withApiHandler("GET /api/auth/me", async (req) => {
+  const auth = await requireAuth(req);
 
-    if (!auth) {
-      return NextResponse.json(
-        { user: null },
-        { headers: { "Cache-Control": "private, no-store" } }
-      );
-    }
-
-    const user = await prisma.user.findUnique({
-      where: { id: auth.userId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        phone: true,
-        avatar: true,
-        bio: true,
-        emailVerified: true,
-        suspendedAt: true,
-      },
-    });
-
-    if (!user) {
-      return NextResponse.json({ user: null });
-    }
-
-    if (user.suspendedAt) {
-      const response = NextResponse.json(
-        { user: null, suspended: true },
-        { status: 403 }
-      );
-      response.cookies.delete("token");
-      return response;
-    }
-
-    const { suspendedAt: _, ...userWithoutSuspended } = user;
-
+  if (!auth) {
     return NextResponse.json(
-      { user: userWithoutSuspended },
-      {
-        headers: {
-          "Cache-Control": "private, no-store",
-        },
-      }
+      { user: null },
+      { headers: { "Cache-Control": "private, no-store" } }
     );
-  } catch {
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+
+  const user = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      phone: true,
+      avatar: true,
+      bio: true,
+      emailVerified: true,
+    },
+  });
+
+  if (!user) {
+    return NextResponse.json({ user: null });
+  }
+
+  return NextResponse.json(
+    { user },
+    { headers: { "Cache-Control": "private, no-store" } }
+  );
+});

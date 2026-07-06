@@ -20,7 +20,7 @@ const GENERIC_MESSAGE =
 
 export async function POST(req: NextRequest) {
   try {
-    const rateLimited = enforceRateLimit(
+    const rateLimited = await enforceRateLimit(
       req,
       "forgot-password",
       AUTH_RATE_LIMITS.forgotPassword

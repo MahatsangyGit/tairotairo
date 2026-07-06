@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useAuth } from "@/components/auth/AuthProvider";
 import OpenUserChatButton from "./OpenUserChatButton";
 
 interface ContactProviderButtonProps {
@@ -12,19 +12,9 @@ export default function ContactProviderButton({
   providerId,
   className,
 }: ContactProviderButtonProps) {
-  const [canContact, setCanContact] = useState(false);
-  const [checked, setChecked] = useState(false);
+  const { user, authChecked } = useAuth();
 
-  useEffect(() => {
-    fetch("/api/auth/me")
-      .then((r) => r.json())
-      .then((d) => {
-        setCanContact(d.user?.role === "CLIENT");
-      })
-      .finally(() => setChecked(true));
-  }, []);
-
-  if (!checked || !canContact) return null;
+  if (!authChecked || user?.role !== "CLIENT") return null;
 
   return (
     <OpenUserChatButton

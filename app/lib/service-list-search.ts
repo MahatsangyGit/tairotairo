@@ -2,18 +2,20 @@ import prisma from "@/lib/prisma";
 import {
   averageRating,
   buildServiceWhere,
-  paginate,
   serviceOrderBy,
   type ParsedListSearch,
 } from "@/lib/advanced-search";
 import { getSubscribedProviderSuggestions } from "@/lib/provider-list-search";
 import { withCoverImageUrl } from "@/lib/listing-cover";
+import {
+  findServiceIdsByProviderRating,
+  getProviderRatingMap,
+} from "@/lib/rating-sort-search";
 
 const providerSelect = {
   id: true,
   name: true,
   avatar: true,
-  reviewsReceived: { select: { rating: true } },
 } as const;
 
 function serializeService(
@@ -31,12 +33,10 @@ function serializeService(
       id: string;
       name: string;
       avatar: string | null;
-      reviewsReceived: { rating: number }[];
     };
-  }
+  },
+  rating: { averageRating: number | null; reviewCount: number }
 ) {
-  const { reviewsReceived, ...provider } = service.provider;
-  const rating = averageRating(reviewsReceived);
   return withCoverImageUrl("service", {
     id: service.id,
     title: service.title,
@@ -47,7 +47,7 @@ function serializeService(
     coverImageMime: service.coverImageMime,
     updatedAt: service.updatedAt,
     createdAt: service.createdAt,
-    provider,
+    provider: service.provider,
     ...rating,
   });
 }
@@ -60,25 +60,54 @@ export async function searchPublicServices(params: ParsedListSearch) {
   const suggestionsPromise = getSubscribedProviderSuggestions();
 
   if (params.sort === "rating") {
-    const [rows, suggestions] = await Promise.all([
-      prisma.service.findMany({
-        where,
-        include: { provider: { select: providerSelect } },
-      }),
+    const [{ ids, total }, suggestions] = await Promise.all([
+      findServiceIdsByProviderRating(params),
       suggestionsPromise,
     ]);
 
-    const enriched = rows
-      .map(serializeService)
-      .sort((a, b) => {
-        const ra = a.averageRating ?? 0;
-        const rb = b.averageRating ?? 0;
-        if (rb !== ra) return rb - ra;
-        return b.reviewCount - a.reviewCount;
-      });
+    if (ids.length === 0) {
+      return {
+        services: [],
+        suggestions,
+        pagination: {
+          total,
+          page: params.page,
+          limit: params.limit,
+          totalPages: Math.max(1, Math.ceil(total / params.limit)),
+        },
+      };
+    }
 
-    const { items, pagination } = paginate(enriched, params.page, params.limit);
-    return { services: items, suggestions, pagination };
+    const rows = await prisma.service.findMany({
+      where: { id: { in: ids } },
+      include: { provider: { select: providerSelect } },
+    });
+
+    const order = new Map(ids.map((id, index) => [id, index]));
+    rows.sort((a, b) => (order.get(a.id) ?? 0) - (order.get(b.id) ?? 0));
+
+    const ratingMap = await getProviderRatingMap(
+      rows.map((r) => r.provider.id)
+    );
+
+    return {
+      services: rows.map((row) =>
+        serializeService(
+          row,
+          ratingMap.get(row.provider.id) ?? {
+            averageRating: null,
+            reviewCount: 0,
+          }
+        )
+      ),
+      suggestions,
+      pagination: {
+        total,
+        page: params.page,
+        limit: params.limit,
+        totalPages: Math.max(1, Math.ceil(total / params.limit)),
+      },
+    };
   }
 
   const [rows, total, suggestions] = await Promise.all([
@@ -93,8 +122,15 @@ export async function searchPublicServices(params: ParsedListSearch) {
     suggestionsPromise,
   ]);
 
+  const ratingMap = await getProviderRatingMap(rows.map((r) => r.provider.id));
+
   return {
-    services: rows.map(serializeService),
+    services: rows.map((row) =>
+      serializeService(
+        row,
+        ratingMap.get(row.provider.id) ?? { averageRating: null, reviewCount: 0 }
+      )
+    ),
     suggestions,
     pagination: {
       total,
@@ -104,3 +140,6 @@ export async function searchPublicServices(params: ParsedListSearch) {
     },
   };
 }
+
+// Re-export for tests
+export { averageRating };

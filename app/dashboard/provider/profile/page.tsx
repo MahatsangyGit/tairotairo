@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import Navbar from "@/components/layout/Navbar";
-import ProviderNav from "@/components/layout/ProviderNav";
 import ProfileForm, { type ProfileUser } from "@/components/profile/ProfileForm";
 import NotificationPreferences from "@/components/notifications/NotificationPreferences";
 import ProviderKycPanel from "@/components/kyc/ProviderKycPanel";
@@ -47,8 +45,6 @@ export default function ProviderProfilePage() {
   }, [router]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Mon profil</h1>
@@ -56,7 +52,6 @@ export default function ProviderProfilePage() {
             Photo, coordonnées, présentation, vérification email et identité (KYC)
           </p>
         </div>
-        <ProviderNav />
         {user && (
           <Link
             href={`/providers/${user.id}`}
@@ -75,6 +70,5 @@ export default function ProviderProfilePage() {
           </>
         )}
       </div>
-    </div>
   );
 }

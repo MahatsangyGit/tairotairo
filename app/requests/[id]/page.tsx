@@ -3,7 +3,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/components/layout/Navbar";
 import { formatSchedule } from "@/lib/datetime-slot";
 import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
 import {
@@ -192,7 +191,6 @@ export default function RequestDetailPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <Navbar />
 
       <div className="max-w-4xl mx-auto px-4 py-10">
         <Link

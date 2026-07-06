@@ -9,7 +9,7 @@ import {
   parseScheduleInput,
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
-import { parseJsonBody } from "@/lib/api-schemas";
+import { parseJsonBody, parseBody, createBookingSchema } from "@/lib/api-schemas";
 
 export const dynamic = "force-dynamic";
 
@@ -25,14 +25,23 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    const bookings = await prisma.booking.findMany({
-      where: {
-        ...(user.role === "CLIENT"
-          ? { clientId: user.userId }
-          : { providerId: user.userId }),
-      },
-      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-      include: {
+    const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") ?? "1", 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") ?? "20", 10) || 20));
+    const skip = (page - 1) * limit;
+
+    const where = {
+      ...(user.role === "CLIENT"
+        ? { clientId: user.userId }
+        : { providerId: user.userId }),
+    };
+
+    const [bookings, total] = await Promise.all([
+      prisma.booking.findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+        include: {
         service: {
           select: {
             id: true,
@@ -67,11 +76,19 @@ export async function GET(req: NextRequest) {
           select: { id: true, rating: true },
         },
       },
-    });
+      }),
+      prisma.booking.count({ where }),
+    ]);
 
     return NextResponse.json({
       bookings: bookings.map(prepareBookingForApi),
       role: user.role,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.max(1, Math.ceil(total / limit)),
+      },
     });
   } catch (error) {
     return NextResponse.json(
@@ -111,23 +128,25 @@ export async function POST(req: NextRequest) {
     const json = await parseJsonBody(req);
     if (!json.ok) return json.response;
 
-    const body = json.body as Record<string, unknown>;
-    const serviceId =
-      typeof body.serviceId === "string" ? body.serviceId.trim() : "";
-    const schedule = parseScheduleInput(body);
+    const parsed = parseBody(createBookingSchema, json.body);
+    if (!parsed.ok) return parsed.response;
+
+    const { serviceId, date, slotStart, slotEnd } = parsed.data;
+    const schedule = parseScheduleInput({ date, slotStart, slotEnd });
 
     if (schedule.error) {
       return NextResponse.json({ error: schedule.error }, { status: 400 });
     }
 
-    if (!serviceId || !schedule.date) {
+    if (!schedule.date) {
       return NextResponse.json(
-        { error: "serviceId et date sont obligatoires" },
+        { error: "date est obligatoire" },
         { status: 400 }
       );
     }
 
-    const { date, slotStart, slotEnd } = scheduleFieldsForDb(schedule);
+    const { date: bookingDate, slotStart: dbSlotStart, slotEnd: dbSlotEnd } =
+      scheduleFieldsForDb(schedule);
 
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
@@ -145,9 +164,9 @@ export async function POST(req: NextRequest) {
         clientId: user.userId,
         providerId: service.providerId,
         serviceId,
-        date: date!,
-        slotStart,
-        slotEnd,
+        date: bookingDate!,
+        slotStart: dbSlotStart,
+        slotEnd: dbSlotEnd,
         ...snapshotFromService({
           id: service.id,
           title: service.title,

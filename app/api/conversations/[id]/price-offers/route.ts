@@ -97,16 +97,6 @@ export async function POST(
     return NextResponse.json(responseBody);
   } catch (error) {
     console.error("[POST /api/conversations/[id]/price-offers]", error);
-    const detail =
-      error instanceof Error ? error.message : "Erreur serveur";
-    return NextResponse.json(
-      {
-        error:
-          process.env.NODE_ENV === "production"
-            ? "Erreur serveur"
-            : detail,
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
 }

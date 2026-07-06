@@ -4,6 +4,7 @@ import {
   createImageResponse,
   isVersionedImageRequest,
 } from "@/lib/image-response";
+import { InvalidStorageIdError } from "@/lib/storage-path";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -25,6 +26,9 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
       versioned: isVersionedImageRequest(req),
     });
   } catch (error) {
+    if (error instanceof InvalidStorageIdError) {
+      return NextResponse.json({ error: "Photo introuvable" }, { status: 404 });
+    }
     console.error("[GET /api/users/[id]/avatar]", error);
     return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }

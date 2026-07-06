@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { Suspense } from "react";
-import Navbar from "@/components/layout/Navbar";
 import Breadcrumbs from "@/components/seo/Breadcrumbs";
 import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import PublicRequestsExplorer from "@/components/search/PublicRequestsExplorer";
@@ -73,7 +72,6 @@ export default async function RequestsCategoryPage({ params }: PageProps) {
   return (
     <div className="min-h-screen bg-background">
       <JsonLdScripts paths={SEO_SCHEMA_PATHS.requestsCategory(slug)} />
-      <Navbar />
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
         <Breadcrumbs
           items={[

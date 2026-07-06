@@ -321,7 +321,7 @@ export default function PublicRequestsExplorer({
                     <div className="relative w-full h-36 bg-muted">
                       <OptimizedImage
                         src={request.coverImageUrl}
-                        alt=""
+                        alt={`Image de couverture : ${request.title}`}
                         fill
                       />
                     </div>

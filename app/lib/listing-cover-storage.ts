@@ -9,42 +9,14 @@ import {
   LISTING_COVER_MAX_FILE_BYTES,
   type ListingCoverKind,
 } from "@/lib/listing-cover";
+import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
+import {
+  detectImageMime,
+  extensionForImageMime,
+} from "@/lib/image-upload-validation";
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "listings");
 const COVER_BASENAME = "cover";
-
-function extensionForMime(mime: AvatarAllowedMime): string {
-  switch (mime) {
-    case "image/jpeg":
-      return ".jpg";
-    case "image/png":
-      return ".png";
-    case "image/webp":
-      return ".webp";
-  }
-}
-
-function detectMime(buffer: Buffer, fileName: string): AvatarAllowedMime | null {
-  if (buffer.length >= 4 && buffer[0] === 0x89 && buffer[1] === 0x50) {
-    return "image/png";
-  }
-  if (buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8) {
-    return "image/jpeg";
-  }
-  if (
-    buffer.length >= 12 &&
-    buffer.slice(0, 4).toString("utf8") === "RIFF" &&
-    buffer.slice(8, 12).toString("utf8") === "WEBP"
-  ) {
-    return "image/webp";
-  }
-
-  const ext = path.extname(fileName).toLowerCase();
-  if (ext === ".jpg" || ext === ".jpeg") return "image/jpeg";
-  if (ext === ".png") return "image/png";
-  if (ext === ".webp") return "image/webp";
-  return null;
-}
 
 export function validateListingCoverFile(
   file: File,
@@ -73,7 +45,7 @@ export function validateListingCoverFile(
     };
   }
 
-  const mime = detectMime(buffer, file.name);
+  const mime = detectImageMime(buffer, file.name);
   if (!mime || !AVATAR_ALLOWED_MIME_TYPES.includes(mime)) {
     return {
       ok: false,
@@ -89,8 +61,9 @@ export function validateListingCoverFile(
 }
 
 function listingDir(kind: ListingCoverKind, id: string): string {
+  assertSafeStorageId(id);
   const folder = kind === "service" ? "services" : "requests";
-  return path.join(STORAGE_ROOT, folder, id);
+  return resolveStoragePath(STORAGE_ROOT, folder, id);
 }
 
 export async function saveListingCoverFile(
@@ -113,7 +86,7 @@ export async function saveListingCoverFile(
     // dossier vide
   }
 
-  const fileName = `${COVER_BASENAME}${extensionForMime(mime)}`;
+  const fileName = `${COVER_BASENAME}${extensionForImageMime(mime)}`;
   await writeFile(path.join(dir, fileName), buffer);
 }
 

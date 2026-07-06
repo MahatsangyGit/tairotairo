@@ -1,5 +1,4 @@
-import { NextResponse } from "next/server";
-import type { NextRequest } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import {
   applyCspToResponse,
@@ -10,6 +9,7 @@ import {
   guestBrowseIntentFromPath,
   isGuestBrowsePath,
 } from "@/lib/guest-browse";
+import { getJwtSecret } from "@/lib/jwt-secret";
 
 interface TokenPayload {
   userId: string;
@@ -17,18 +17,13 @@ interface TokenPayload {
   role: string;
 }
 
-function getSecretKey(): Uint8Array | null {
-  const secret = process.env.JWT_SECRET;
-  if (!secret) return null;
-  return new TextEncoder().encode(secret);
+function getSecretKey(): Uint8Array {
+  return new TextEncoder().encode(getJwtSecret());
 }
 
 async function verifyAuthToken(token: string): Promise<TokenPayload | null> {
-  const secretKey = getSecretKey();
-  if (!secretKey) return null;
-
   try {
-    const { payload } = await jwtVerify(token, secretKey);
+    const { payload } = await jwtVerify(token, getSecretKey());
     const { userId, email, role } = payload;
 
     if (
