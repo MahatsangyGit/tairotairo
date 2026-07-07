@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
@@ -75,6 +75,9 @@ const FILTERS: { label: string; value: BookingStatus | "ALL" }[] = [
   { label: "Terminées", value: "COMPLETED" },
   { label: "Annulées", value: "CANCELLED" },
 ];
+
+const REQUEST_TIMEOUT_MS =
+  process.env.NODE_ENV === "production" ? 20_000 : null;
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
 
@@ -225,6 +228,8 @@ function BookingCard({
 
 export default function ProviderDashboardPage() {
   const router = useRouter();
+  const fetchSeqRef = useRef(0);
+  const activeFetchControllerRef = useRef<AbortController | null>(null);
 
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
@@ -233,15 +238,35 @@ export default function ProviderDashboardPage() {
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [actionError, setActionError] = useState("");
 
-  const fetchBookings = useCallback(async (options?: { silent?: boolean }) => {
+  const fetchBookings = async (options?: { silent?: boolean }) => {
+    const fetchSeq = ++fetchSeqRef.current;
+    activeFetchControllerRef.current?.abort();
+    const controller = new AbortController();
+    activeFetchControllerRef.current = controller;
+
     if (!options?.silent) {
       setLoading(true);
     }
-    setError("");
+    if (!options?.silent) {
+      setError("");
+    }
 
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
     try {
-      const res = await fetch("/api/bookings", { cache: "no-store" });
-      const data = await res.json();
+      if (REQUEST_TIMEOUT_MS != null) {
+        timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+      }
+      const res = await fetch("/api/bookings?limit=12", {
+        cache: "no-store",
+        signal: controller.signal,
+      });
+      if (timeoutId) clearTimeout(timeoutId);
+
+      const data = await res
+        .json()
+        .catch(() => ({ error: "Réponse serveur invalide" }));
+
+      if (fetchSeq !== fetchSeqRef.current) return;
 
       if (!res.ok) {
         if (res.status === 401) {
@@ -258,26 +283,42 @@ export default function ProviderDashboardPage() {
       }
 
       setBookings(data.bookings);
-    } catch {
-      setError("Une erreur est survenue");
+    } catch (error) {
+      if (fetchSeq !== fetchSeqRef.current) return;
+      if (error instanceof DOMException && error.name === "AbortError") {
+        // Ignore cancellations caused by a newer request
+        if (controller.signal.aborted && fetchSeq < fetchSeqRef.current) return;
+        setError("Le serveur met trop de temps à répondre. Réessayez.");
+      } else {
+        setError("Une erreur est survenue");
+      }
     } finally {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (activeFetchControllerRef.current === controller) {
+        activeFetchControllerRef.current = null;
+      }
       if (!options?.silent) {
         setLoading(false);
       }
     }
-  }, [router]);
+  };
 
   useEffect(() => {
     fetchBookings();
-  }, [fetchBookings]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState === "visible") fetchBookings({ silent: true });
     };
     document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [fetchBookings]);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      activeFetchControllerRef.current?.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleStatusChange = async (id: string, status: BookingStatus) => {
     setUpdatingId(id);
@@ -323,8 +364,11 @@ export default function ProviderDashboardPage() {
       : bookings.filter((b) => b.status === activeFilter);
 
   const counts = bookings.reduce<Record<string, number>>(
-    (acc, b) => ({ ...acc, [b.status]: (acc[b.status] ?? 0) + 1 }),
-    {}
+    (acc, b) => {
+      acc[b.status] = (acc[b.status] ?? 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
   );
 
   const pendingCount = counts.PENDING ?? 0;

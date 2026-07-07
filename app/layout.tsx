@@ -1,6 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
-import { connection } from "next/server";
 import { Suspense } from "react";
 import "./globals.css";
 import ThemeProvider from "@/components/theme/ThemeProvider";
@@ -58,8 +57,6 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  await connection();
-
   return (
     <html
       lang="fr"

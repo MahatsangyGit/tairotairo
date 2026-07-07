@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
     const page = Math.max(1, parseInt(req.nextUrl.searchParams.get("page") ?? "1", 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.nextUrl.searchParams.get("limit") ?? "20", 10) || 20));
     const skip = (page - 1) * limit;
+    const withTotal = req.nextUrl.searchParams.get("withTotal") === "1";
 
     const where = {
       ...(user.role === "CLIENT"
@@ -35,60 +36,92 @@ export async function GET(req: NextRequest) {
         : { providerId: user.userId }),
     };
 
-    const [bookings, total] = await Promise.all([
-      prisma.booking.findMany({
-        where,
-        skip,
-        take: limit,
-        orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
-        include: {
-        service: {
-          select: {
-            id: true,
-            title: true,
-            price: true,
-            category: true,
-            location: true,
-          },
-        },
-        requestResponse: {
-          select: {
-            proposedPrice: true,
-            status: true,
-            request: {
+    const bookingInclude =
+      user.role === "CLIENT"
+        ? {
+            service: {
               select: {
                 id: true,
                 title: true,
-                budget: true,
+                price: true,
                 category: true,
                 location: true,
               },
             },
-          },
-        },
-        client: {
-          select: { id: true, name: true, phone: true, email: true },
-        },
-        provider: {
-          select: { id: true, name: true, phone: true },
-        },
-        review: {
-          select: { id: true, rating: true },
-        },
-      },
-      }),
-      prisma.booking.count({ where }),
-    ]);
+            requestResponse: {
+              select: {
+                proposedPrice: true,
+                status: true,
+                request: {
+                  select: {
+                    id: true,
+                    title: true,
+                    budget: true,
+                    category: true,
+                    location: true,
+                  },
+                },
+              },
+            },
+            provider: {
+              select: { id: true, name: true, phone: true },
+            },
+            // review only needed on client/admin pages showing rating state
+            review: {
+              select: { id: true, rating: true },
+            },
+          }
+        : {
+            service: {
+              select: {
+                id: true,
+                title: true,
+                price: true,
+                category: true,
+                location: true,
+              },
+            },
+            requestResponse: {
+              select: {
+                proposedPrice: true,
+                status: true,
+                request: {
+                  select: {
+                    id: true,
+                    title: true,
+                    budget: true,
+                    category: true,
+                    location: true,
+                  },
+                },
+              },
+            },
+            client: {
+              select: { id: true, name: true, phone: true, email: true },
+            },
+          };
+
+    const bookings = await prisma.booking.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      include: bookingInclude,
+    });
+
+    const total = withTotal ? await prisma.booking.count({ where }) : null;
 
     return NextResponse.json({
       bookings: bookings.map(prepareBookingForApi),
       role: user.role,
-      pagination: {
-        total,
-        page,
-        limit,
-        totalPages: Math.max(1, Math.ceil(total / limit)),
-      },
+      pagination: withTotal
+        ? {
+            total,
+            page,
+            limit,
+            totalPages: Math.max(1, Math.ceil((total ?? 0) / limit)),
+          }
+        : null,
     });
   } catch (error) {
     return NextResponse.json(
