@@ -239,6 +239,9 @@ export default function ProviderDashboardPage() {
   const [actionError, setActionError] = useState("");
 
   const fetchBookings = async (options?: { silent?: boolean }) => {
+    // Un rafraîchissement silencieux ne doit jamais interrompre un chargement en cours.
+    if (options?.silent && activeFetchControllerRef.current) return;
+
     const fetchSeq = ++fetchSeqRef.current;
     activeFetchControllerRef.current?.abort();
     const controller = new AbortController();
@@ -246,8 +249,6 @@ export default function ProviderDashboardPage() {
 
     if (!options?.silent) {
       setLoading(true);
-    }
-    if (!options?.silent) {
       setError("");
     }
 
@@ -260,7 +261,6 @@ export default function ProviderDashboardPage() {
         cache: "no-store",
         signal: controller.signal,
       });
-      if (timeoutId) clearTimeout(timeoutId);
 
       const data = await res
         .json()
@@ -273,7 +273,9 @@ export default function ProviderDashboardPage() {
           router.push("/auth/login");
           return;
         }
-        setError(data.error ?? "Erreur lors du chargement");
+        if (!options?.silent) {
+          setError(data.error ?? "Erreur lors du chargement");
+        }
         return;
       }
 
@@ -283,21 +285,21 @@ export default function ProviderDashboardPage() {
       }
 
       setBookings(data.bookings);
-    } catch (error) {
+      setError("");
+    } catch (err) {
       if (fetchSeq !== fetchSeqRef.current) return;
-      if (error instanceof DOMException && error.name === "AbortError") {
-        // Ignore cancellations caused by a newer request
-        if (controller.signal.aborted && fetchSeq < fetchSeqRef.current) return;
+      if (options?.silent) return;
+      if (err instanceof DOMException && err.name === "AbortError") {
         setError("Le serveur met trop de temps à répondre. Réessayez.");
       } else {
         setError("Une erreur est survenue");
       }
     } finally {
       if (timeoutId) clearTimeout(timeoutId);
-      if (activeFetchControllerRef.current === controller) {
+      // Seule la requête la plus récente contrôle l'état de chargement :
+      // on coupe toujours le skeleton quand elle se termine, silencieuse ou non.
+      if (fetchSeq === fetchSeqRef.current) {
         activeFetchControllerRef.current = null;
-      }
-      if (!options?.silent) {
         setLoading(false);
       }
     }
