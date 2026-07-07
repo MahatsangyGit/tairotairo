@@ -224,6 +224,50 @@ function BookingCard({
   );
 }
 
+function StatCard({
+  label,
+  value,
+  tone = "default",
+}: {
+  label: string;
+  value: number;
+  tone?: "default" | "warning" | "success";
+}) {
+  const toneClass =
+    tone === "warning"
+      ? "text-amber-700 bg-amber-50 border-amber-200"
+      : tone === "success"
+        ? "text-brand-700 bg-brand-50 border-brand-200"
+        : "text-foreground bg-card border-border";
+
+  return (
+    <div className={`rounded-2xl border px-4 py-4 ${toneClass}`}>
+      <p className="text-xs font-medium opacity-80">{label}</p>
+      <p className="text-2xl font-bold mt-1">{value}</p>
+    </div>
+  );
+}
+
+function QuickAction({
+  href,
+  title,
+  description,
+}: {
+  href: string;
+  title: string;
+  description: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="rounded-xl border border-border bg-card px-4 py-3 hover:border-brand-300 hover:shadow-sm transition-all"
+    >
+      <p className="text-sm font-semibold text-foreground">{title}</p>
+      <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
+    </Link>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function ProviderDashboardPage() {
@@ -376,21 +420,50 @@ export default function ProviderDashboardPage() {
   const pendingCount = counts.PENDING ?? 0;
 
   return (
-      <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-foreground mb-1">
-            Espace prestataire
-          </h1>
-          <p className="text-muted-foreground text-sm">
-            Gérez les demandes de réservation pour vos services
-          </p>
-          {pendingCount > 0 && (
-            <p className="mt-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 inline-block">
-              {pendingCount} demande{pendingCount > 1 ? "s" : ""} en attente de
-              réponse
-            </p>
-          )}
-        </div>
+      <div className="max-w-5xl mx-auto px-4 py-8 md:py-10">
+        <section className="mb-6 rounded-2xl border border-border bg-card p-5 md:p-6">
+          <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+            <div>
+              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground mb-1">
+                Dashboard prestataire
+              </p>
+              <h1 className="text-2xl font-bold text-foreground">
+                Espace prestataire
+              </h1>
+              <p className="text-muted-foreground text-sm mt-1">
+                Gérez vos réservations, messages et annonces depuis un seul endroit.
+              </p>
+              {pendingCount > 0 && (
+                <p className="mt-3 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 inline-block">
+                  {pendingCount} demande{pendingCount > 1 ? "s" : ""} en attente de réponse
+                </p>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 md:w-[360px]">
+              <QuickAction
+                href="/dashboard/provider/services"
+                title="Mes annonces"
+                description="Créer, modifier, publier"
+              />
+              <QuickAction
+                href="/dashboard/provider/messages"
+                title="Messages"
+                description="Répondre rapidement"
+              />
+              <QuickAction
+                href="/dashboard/provider/profile"
+                title="Mon profil"
+                description="Infos & visibilité"
+              />
+              <QuickAction
+                href="/requests"
+                title="Demandes publiques"
+                description="Parcourir les demandes"
+              />
+            </div>
+          </div>
+        </section>
+
         <ProviderKycBanner />
 
         {actionError && (
@@ -399,23 +472,22 @@ export default function ProviderDashboardPage() {
           </p>
         )}
 
-        {!loading && !error && bookings.length > 0 && (
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
-            {(["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"] as BookingStatus[]).map(
-              (s) => (
-                <div
-                  key={s}
-                  className="bg-card rounded-xl border border-border p-4 text-center"
-                >
-                  <p className="text-2xl font-bold text-foreground">{counts[s] ?? 0}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5">{STATUS_LABEL[s]}</p>
-                </div>
-              )
-            )}
+        {!loading && !error && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+            <StatCard
+              label={STATUS_LABEL.PENDING}
+              value={counts.PENDING ?? 0}
+              tone={pendingCount > 0 ? "warning" : "default"}
+            />
+            <StatCard label={STATUS_LABEL.CONFIRMED} value={counts.CONFIRMED ?? 0} />
+            <StatCard label={STATUS_LABEL.COMPLETED} value={counts.COMPLETED ?? 0} tone="success" />
+            <StatCard label={STATUS_LABEL.CANCELLED} value={counts.CANCELLED ?? 0} />
           </div>
         )}
 
         {!loading && !error && bookings.length > 0 && (
+          <div className="mb-3">
+            <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Filtrer les réservations</p>
           <div className="flex flex-wrap gap-2 mb-6">
             {FILTERS.map((f) => (
               <button
@@ -433,6 +505,7 @@ export default function ProviderDashboardPage() {
                   : ""}
               </button>
             ))}
+          </div>
           </div>
         )}
 
@@ -465,7 +538,7 @@ export default function ProviderDashboardPage() {
         )}
 
         {!loading && !error && bookings.length === 0 && (
-          <div className="text-center py-20">
+          <div className="text-center py-20 rounded-2xl border border-border bg-card">
             <p className="text-muted-foreground text-lg mb-2">Aucune réservation pour l&apos;instant</p>
             <p className="text-muted-foreground text-sm mb-6">
               Publiez un service pour recevoir des demandes de clients
@@ -486,6 +559,11 @@ export default function ProviderDashboardPage() {
         )}
 
         {!loading && !error && filtered.length > 0 && (
+          <section>
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-foreground">Activité récente</h2>
+              <span className="text-xs text-muted-foreground">{filtered.length} élément{filtered.length > 1 ? "s" : ""}</span>
+            </div>
           <div className="flex flex-col gap-4">
             {filtered.map((booking) => (
               <BookingCard
@@ -496,6 +574,7 @@ export default function ProviderDashboardPage() {
               />
             ))}
           </div>
+          </section>
         )}
       </div>
   );
