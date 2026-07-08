@@ -268,7 +268,8 @@ model RequestResponse {
 model Booking {
   id          String        @id @default(cuid())
   status      BookingStatus @default(PENDING)
-  date        DateTime
+  /// Null si le client n'a pas encore fixé de date de prestation.
+  date        DateTime?
   slotStart   String?
   slotEnd     String?
   createdAt   DateTime      @default(now())

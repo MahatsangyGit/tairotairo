@@ -61,6 +61,7 @@ export default function ClientDashboardPage() {
   const [payTarget, setPayTarget] = useState<string | null>(null);
   const [payingId, setPayingId] = useState<string | null>(null);
   const [validatingId, setValidatingId] = useState<string | null>(null);
+  const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
   const fetchBookings = useCallback(async (options?: { silent?: boolean }) => {
     if (!options?.silent) {
@@ -229,6 +230,46 @@ export default function ClientDashboardPage() {
     }
   };
 
+  const handleScheduleChange = async (
+    id: string,
+    schedule: { date: string; slotStart?: string | null; slotEnd?: string | null }
+  ) => {
+    setSchedulingId(id);
+    setActionError("");
+
+    try {
+      const res = await fetch(`/api/bookings/${id}/schedule`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(schedule),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (res.status === 401) {
+          router.push("/auth/login");
+          return;
+        }
+        setActionError(data.error ?? "Impossible d'enregistrer la date");
+        return;
+      }
+
+      const updated = data.booking;
+      if (updated) {
+        updateBookingInState(id, {
+          date: updated.date ?? null,
+          slotStart: updated.slotStart ?? null,
+          slotEnd: updated.slotEnd ?? null,
+        });
+      }
+    } catch {
+      setActionError("Une erreur est survenue");
+    } finally {
+      setSchedulingId(null);
+    }
+  };
+
   // ── Filtrage local ────────────────────────────────────────────────────────
 
   const filtered =
@@ -363,7 +404,8 @@ export default function ClientDashboardPage() {
                     cancellingId={cancellingId}
                     onPay={handlePay}
                     onValidate={handleValidate}
-                    busyId={payingId ?? validatingId}
+                    onScheduleChange={handleScheduleChange}
+                    busyId={payingId ?? validatingId ?? schedulingId}
                   />
                   {booking.status === "COMPLETED" && !booking.review && paidViaApp && (
                     <ReviewForm

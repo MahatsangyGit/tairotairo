@@ -37,7 +37,7 @@ interface BookingClient {
 interface Booking {
   id: string;
   status: BookingStatus;
-  date: string;
+  date: string | null;
   slotStart?: string | null;
   slotEnd?: string | null;
   createdAt: string;

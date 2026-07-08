@@ -87,11 +87,15 @@ export function parseScheduleInput(body: {
 }
 
 export function formatSchedule(
-  date: Date | string,
+  date: Date | string | null | undefined,
   slotStart?: string | null,
   slotEnd?: string | null
 ): string {
+  if (!date) return "Date à définir";
+
   const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "Date à définir";
+
   const day = d.toLocaleDateString("fr-MG", {
     day: "numeric",
     month: "long",

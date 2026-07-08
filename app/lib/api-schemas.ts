@@ -216,6 +216,12 @@ export const bookingStatusPatchSchema = z.object({
   ),
 });
 
+export const bookingSchedulePatchSchema = z.object({
+  date: z.union([z.string().min(1, "Date requise"), z.null()]),
+  slotStart: z.string().optional().nullable(),
+  slotEnd: z.string().optional().nullable(),
+});
+
 export const bookingPaySchema = z.object({
   paymentMethod: z.enum(["ORANGE_MONEY", "MVOLA", "AIRTEL_MONEY"], {
     error: "Mode de paiement invalide",

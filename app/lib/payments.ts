@@ -9,7 +9,10 @@ import { withBypassRls } from "@/lib/rls";
 export function bookingAmount(booking: {
   displayPrice?: number | null;
   service?: { price?: number | null } | null;
-  requestResponse?: { proposedPrice?: number | null } | null;
+  requestResponse?: {
+    proposedPrice?: number | null;
+    request?: { budget?: number | null } | null;
+  } | null;
 }): number {
   if (typeof booking.displayPrice === "number" && booking.displayPrice > 0) {
     return booking.displayPrice;
@@ -17,6 +20,10 @@ export function bookingAmount(booking: {
   const proposed = booking.requestResponse?.proposedPrice;
   if (typeof proposed === "number" && proposed > 0) {
     return proposed;
+  }
+  const budget = booking.requestResponse?.request?.budget;
+  if (typeof budget === "number" && budget > 0) {
+    return budget;
   }
   const servicePrice = booking.service?.price;
   if (typeof servicePrice === "number" && servicePrice > 0) {
@@ -44,7 +51,12 @@ export async function capturePaymentToEscrow(
         status: true,
         displayPrice: true,
         service: { select: { price: true } },
-        requestResponse: { select: { proposedPrice: true } },
+        requestResponse: {
+          select: {
+            proposedPrice: true,
+            request: { select: { budget: true } },
+          },
+        },
         transaction: true,
       },
     });

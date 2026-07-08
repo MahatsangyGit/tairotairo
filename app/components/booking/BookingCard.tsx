@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
@@ -55,7 +56,7 @@ const PAYMENT_LABEL: Partial<Record<TransactionStatus, string>> = {
 export interface BookingCardData {
   id: string;
   status: BookingStatus;
-  date: string;
+  date: string | null;
   slotStart?: string | null;
   slotEnd?: string | null;
   service: {
@@ -100,7 +101,22 @@ interface BookingCardProps {
   onPay?: (id: string) => void;
   /** Client : valider la fin de prestation (statut DONE_PENDING_VALIDATION). */
   onValidate?: (id: string) => void;
+  /** Client : définir / modifier la date de prestation. */
+  onScheduleChange?: (
+    id: string,
+    schedule: { date: string; slotStart?: string | null; slotEnd?: string | null }
+  ) => Promise<void> | void;
   busyId?: string | null;
+}
+
+function toDateInputValue(iso: string | null | undefined): string {
+  if (!iso) return "";
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 export default function BookingCard({
@@ -110,17 +126,29 @@ export default function BookingCard({
   cancellingId,
   onPay,
   onValidate,
+  onScheduleChange,
   busyId,
 }: BookingCardProps) {
   const viewer =
     counterpartyLabel === "Prestataire" ? ("client" as const) : ("provider" as const);
   const display = getBookingDisplayInfo(booking, { viewer });
 
-  const date = formatSchedule(
+  const dateLabel = formatSchedule(
     booking.date,
     booking.slotStart,
     booking.slotEnd
   );
+
+  const [editingSchedule, setEditingSchedule] = useState(false);
+  const [draftDate, setDraftDate] = useState(toDateInputValue(booking.date));
+  const [draftSlotStart, setDraftSlotStart] = useState(booking.slotStart ?? "");
+  const [draftSlotEnd, setDraftSlotEnd] = useState(booking.slotEnd ?? "");
+
+  useEffect(() => {
+    setDraftDate(toDateInputValue(booking.date));
+    setDraftSlotStart(booking.slotStart ?? "");
+    setDraftSlotEnd(booking.slotEnd ?? "");
+  }, [booking.date, booking.slotStart, booking.slotEnd]);
 
   const counterparty =
     counterpartyLabel === "Prestataire" ? booking.provider : booking.client;
@@ -137,6 +165,24 @@ export default function BookingCard({
     booking.status === "PAID" ||
     booking.status === "IN_PROGRESS" ||
     booking.status === "DONE_PENDING_VALIDATION";
+
+  const canEditSchedule =
+    viewer === "client" &&
+    !!onScheduleChange &&
+    booking.status !== "COMPLETED" &&
+    booking.status !== "CANCELLED";
+
+  const needsDate = canEditSchedule && !booking.date;
+
+  const saveSchedule = async () => {
+    if (!onScheduleChange || !draftDate) return;
+    await onScheduleChange(booking.id, {
+      date: draftDate,
+      slotStart: draftSlotStart || null,
+      slotEnd: draftSlotEnd || null,
+    });
+    setEditingSchedule(false);
+  };
 
   return (
     <div className="bg-card rounded-2xl border border-border p-5">
@@ -167,7 +213,13 @@ export default function BookingCard({
       <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-border mb-4">
         <div>
           <p className="text-xs text-muted-foreground mb-0.5">Date prévue</p>
-          <p className="text-sm font-medium text-foreground">{date}</p>
+          <p
+            className={`text-sm font-medium ${
+              booking.date ? "text-foreground" : "text-amber-700"
+            }`}
+          >
+            {dateLabel}
+          </p>
         </div>
         <div>
           <p className="text-xs text-muted-foreground mb-0.5">Prix</p>
@@ -196,6 +248,73 @@ export default function BookingCard({
         )}
       </div>
 
+      {canEditSchedule && (needsDate || editingSchedule) && (
+        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-3 space-y-3">
+          <p className="text-xs font-medium text-amber-900">
+            {needsDate
+              ? "Aucune date prévue — choisissez quand la prestation aura lieu."
+              : "Modifier la date de prestation"}
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            <div>
+              <label htmlFor={`booking-date-${booking.id}`} className="sr-only">
+                Date
+              </label>
+              <input
+                id={`booking-date-${booking.id}`}
+                type="date"
+                value={draftDate}
+                onChange={(e) => setDraftDate(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card"
+              />
+            </div>
+            <div>
+              <label htmlFor={`booking-start-${booking.id}`} className="sr-only">
+                Début
+              </label>
+              <input
+                id={`booking-start-${booking.id}`}
+                type="time"
+                value={draftSlotStart}
+                onChange={(e) => setDraftSlotStart(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card"
+              />
+            </div>
+            <div>
+              <label htmlFor={`booking-end-${booking.id}`} className="sr-only">
+                Fin
+              </label>
+              <input
+                id={`booking-end-${booking.id}`}
+                type="time"
+                value={draftSlotEnd}
+                onChange={(e) => setDraftSlotEnd(e.target.value)}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card"
+              />
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={saveSchedule}
+              disabled={isBusy || !draftDate}
+              className="text-sm bg-brand-600 text-white font-medium px-3 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50"
+            >
+              {isBusy ? "..." : "Enregistrer la date"}
+            </button>
+            {editingSchedule && booking.date && (
+              <button
+                type="button"
+                onClick={() => setEditingSchedule(false)}
+                className="text-sm text-muted-foreground px-3 py-1.5"
+              >
+                Annuler
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {booking.transaction && PAYMENT_LABEL[booking.transaction.status] && (
         <p className="text-xs text-muted-foreground mb-3">
           {PAYMENT_LABEL[booking.transaction.status]}
@@ -208,6 +327,7 @@ export default function BookingCard({
         )}
         {onPay && booking.status === "CONFIRMED" && (
           <button
+            type="button"
             onClick={() => onPay(booking.id)}
             disabled={isBusy}
             className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
@@ -217,6 +337,7 @@ export default function BookingCard({
         )}
         {onValidate && booking.status === "DONE_PENDING_VALIDATION" && (
           <button
+            type="button"
             onClick={() => onValidate(booking.id)}
             disabled={isBusy}
             className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
@@ -224,8 +345,18 @@ export default function BookingCard({
             {isBusy ? "Validation..." : "Valider la prestation"}
           </button>
         )}
+        {canEditSchedule && booking.date && !editingSchedule && (
+          <button
+            type="button"
+            onClick={() => setEditingSchedule(true)}
+            className="text-sm text-brand-600 font-medium border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-colors"
+          >
+            Modifier la date
+          </button>
+        )}
         {onCancel && canCancel && (
           <button
+            type="button"
             onClick={() => onCancel(booking.id)}
             disabled={cancellingId === booking.id}
             className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"

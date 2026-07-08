@@ -74,6 +74,17 @@ export function snapshotFromService(
   };
 }
 
+/** Prix effectif d'une prestation issue d'une demande (0 / null = fallback budget). */
+export function effectiveRequestPrice(
+  proposedPrice: number | null | undefined,
+  budget: number,
+  displayPrice?: number | null
+): number {
+  if (typeof displayPrice === "number" && displayPrice > 0) return displayPrice;
+  if (typeof proposedPrice === "number" && proposedPrice > 0) return proposedPrice;
+  return typeof budget === "number" && budget > 0 ? budget : 0;
+}
+
 export function snapshotFromRequest(
   request: {
     id: string;
@@ -86,7 +97,7 @@ export function snapshotFromRequest(
 ): BookingDisplaySnapshot {
   return {
     displayTitle: request.title,
-    displayPrice: proposedPrice ?? request.budget,
+    displayPrice: effectiveRequestPrice(proposedPrice, request.budget),
     displayCategory: request.category,
     displayLocation: request.location,
     displaySource: "request",
@@ -156,10 +167,14 @@ export function getBookingDisplayInfo(
       return {
         source: "request",
         id: request.id,
-        title: request.title,
-        price: booking.requestResponse.proposedPrice ?? request.budget,
-        category: request.category,
-        location: request.location,
+        title: booking.displayTitle ?? request.title,
+        price: effectiveRequestPrice(
+          booking.requestResponse.proposedPrice,
+          request.budget,
+          booking.displayPrice
+        ),
+        category: booking.displayCategory ?? request.category,
+        location: booking.displayLocation ?? request.location,
         href: `/requests/${request.id}`,
       };
     }
@@ -171,7 +186,11 @@ export function getBookingDisplayInfo(
       source: "request",
       id: "request",
       title: "Prestation via demande client",
-      price: booking.requestResponse.proposedPrice ?? 0,
+      price: effectiveRequestPrice(
+        booking.requestResponse.proposedPrice,
+        0,
+        booking.displayPrice
+      ),
       category: "Demande",
       location: "—",
       href: archivedRequestHref(viewer),
@@ -193,25 +212,27 @@ export function getBookingDisplayInfo(
   };
 }
 
-export function resolveBookingDate(desiredDate: Date | null): Date {
-  if (desiredDate && desiredDate > new Date()) {
-    return desiredDate;
-  }
-
-  const fallback = new Date();
-  fallback.setDate(fallback.getDate() + 7);
-  fallback.setHours(9, 0, 0, 0);
-  return fallback;
+/**
+ * Ne crée pas de date inventée : si le client n'a pas indiqué de date souhaitée,
+ * la réservation reste sans date (à définir ensuite).
+ */
+export function resolveBookingDate(desiredDate: Date | null): Date | null {
+  if (!desiredDate) return null;
+  return desiredDate;
 }
 
 export function resolveBookingSchedule(request: {
   desiredDate: Date | null;
   desiredSlotStart?: string | null;
   desiredSlotEnd?: string | null;
-}): { date: Date; slotStart: string | null; slotEnd: string | null } {
+}): { date: Date | null; slotStart: string | null; slotEnd: string | null } {
   const base = resolveBookingDate(request.desiredDate);
   const slotStart = request.desiredSlotStart ?? null;
   const slotEnd = request.desiredSlotEnd ?? null;
+
+  if (!base) {
+    return { date: null, slotStart: null, slotEnd: null };
+  }
 
   return {
     date: applySlotToDate(base, slotStart),
