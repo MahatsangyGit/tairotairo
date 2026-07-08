@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import OpenUserChatButton from "@/components/messages/OpenUserChatButton";
+import UserAvatar from "@/components/profile/UserAvatar";
 import {
   RESPONSE_STATUS_CLASS,
   RESPONSE_STATUS_LABEL,
@@ -249,9 +250,12 @@ export default function ClientRequestProposalsPage() {
                 >
                   <div className="flex items-start justify-between gap-4 mb-4">
                     <div className="flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold shrink-0">
-                        {response.provider.name.charAt(0).toUpperCase()}
-                      </div>
+                      <UserAvatar
+                        name={response.provider.name}
+                        avatar={response.provider.avatar}
+                        userId={response.provider.id}
+                        size="md"
+                      />
                       <div>
                         <p className="font-semibold text-foreground">
                           {response.provider.name}

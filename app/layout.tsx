@@ -9,6 +9,7 @@ import { MessagingRealtimeProvider } from "@/components/messages/MessagingRealti
 import PostHogProvider from "@/components/analytics/PostHogProvider";
 import CsrfProvider from "@/components/auth/CsrfProvider";
 import SiteChrome from "@/components/layout/SiteChrome";
+import { getCurrentAuthUser } from "@/lib/current-auth-user";
 import { BRAND_PRIMARY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -57,6 +58,9 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Snapshot auth côté serveur → Navbar hydratée sans mismatch SSR/client.
+  const initialUser = await getCurrentAuthUser();
+
   return (
     <html
       lang="fr"
@@ -66,7 +70,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <ThemeProvider>
           <CsrfProvider>
-            <AuthProvider>
+            <AuthProvider initialUser={initialUser}>
               <Suspense fallback={null}>
                 <GuestBrowseProvider>
                   <PostHogProvider>

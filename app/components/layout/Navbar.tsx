@@ -19,15 +19,18 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, setUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  // false jusqu'au mount pour que le 1er paint SSR/CSR soit identique
+  // (évite mismatch lié au scroll / blend hero).
   const [isAtTop, setIsAtTop] = useState(true);
+  const [scrollReady, setScrollReady] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isHome = pathname === "/";
-  const blendWithHero = isHome && isAtTop;
-
+  const blendWithHero = isHome && (!scrollReady || isAtTop);
   const showGuestAuth = !user;
 
   useEffect(() => {
+    setScrollReady(true);
     if (!isHome) {
       setIsAtTop(false);
       return;
@@ -97,13 +100,11 @@ export default function Navbar() {
         "sticky top-0 z-50 transition-[background-color,border-color] duration-200",
         blendWithHero
           ? "bg-background"
-          : "bg-card/95 backdrop-blur-sm border-b border-border",
+          : "bg-card/95 backdrop-blur-sm border-b border-border"
       )}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 box-content">
         <div className="flex items-center justify-between h-16 box-content">
-
-          {/* Logo */}
           <Link
             href="/"
             className="flex items-center gap-2 shrink-0"
@@ -120,7 +121,6 @@ export default function Navbar() {
             </span>
           </Link>
 
-          {/* Desktop nav */}
           <div className="hidden md:flex items-center gap-6">
             {user && (
               <>
@@ -165,10 +165,9 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Desktop right side */}
           <div className="hidden md:flex items-center gap-3">
             <ThemeToggle />
-            {user && (
+            {user ? (
               <>
                 <NotificationBell />
                 {messagesHref && <MessageInboxLink href={messagesHref} />}
@@ -189,6 +188,7 @@ export default function Navbar() {
                     </div>
                   )}
                   <button
+                    type="button"
                     onClick={handleLogout}
                     className="text-xs text-muted-foreground hover:text-foreground transition-colors px-1"
                   >
@@ -196,28 +196,28 @@ export default function Navbar() {
                   </button>
                 </div>
               </>
-            )}
-
-            {showGuestAuth && (
-              <>
-                <Link
-                  href="/auth/login"
-                  className="text-sm font-medium text-muted-foreground px-3 py-2 rounded-lg transition-colors hover:bg-primary/30 hover:text-primary dark:hover:bg-tertiary-400/30 dark:hover:text-white"
-                >
-                  Connexion
-                </Link>
-                <Link
-                  href="/auth/register"
-                  className="text-sm font-semibold bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors"
-                >
-                  S&apos;inscrire
-                </Link>
-              </>
+            ) : (
+              showGuestAuth && (
+                <>
+                  <Link
+                    href="/auth/login"
+                    className="text-sm font-medium text-muted-foreground px-3 py-2 rounded-lg transition-colors hover:bg-primary/30 hover:text-primary dark:hover:bg-tertiary-400/30 dark:hover:text-white"
+                  >
+                    Connexion
+                  </Link>
+                  <Link
+                    href="/auth/register"
+                    className="text-sm font-semibold bg-brand-600 text-white px-4 py-2 rounded-lg hover:bg-brand-700 transition-colors"
+                  >
+                    S&apos;inscrire
+                  </Link>
+                </>
+              )
             )}
           </div>
 
-          {/* Mobile hamburger */}
           <button
+            type="button"
             onClick={() => setIsMenuOpen((o) => !o)}
             className="md:hidden p-2 rounded-lg text-muted-foreground hover:bg-muted transition-colors"
             aria-label={isMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
@@ -236,7 +236,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile menu */}
       {isMenuOpen && (
         <div className="md:hidden border-t border-border bg-card">
           <div className="px-4 py-4 flex flex-col gap-1">
@@ -325,6 +324,7 @@ export default function Navbar() {
                   <MobileNavLink href={adminHref} label="Administration" active={isActive(adminHref)} onClick={close} />
                 )}
                 <button
+                  type="button"
                   onClick={handleLogout}
                   className="text-left px-3 py-2.5 rounded-lg text-sm font-medium text-red-500 hover:bg-red-50 transition-colors"
                 >

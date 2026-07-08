@@ -9,14 +9,9 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import type { AuthUser } from "@/lib/auth-user";
 
-export interface AuthUser {
-  id: string;
-  name: string;
-  email: string;
-  role: "CLIENT" | "PROVIDER" | "ADMIN";
-  avatar: string | null;
-}
+export type { AuthUser };
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -27,9 +22,17 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+export function AuthProvider({
+  children,
+  initialUser = null,
+}: {
+  children: ReactNode;
+  /** Snapshot SSR — doit être identique au premier rendu client. */
+  initialUser?: AuthUser | null;
+}) {
+  const [user, setUser] = useState<AuthUser | null>(initialUser);
+  // true dès le départ : le snapshot SSR est déjà la source de vérité pour l'hydratation
+  const [authChecked, setAuthChecked] = useState(true);
 
   const refreshUser = useCallback(async () => {
     const controller = new AbortController();
