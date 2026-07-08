@@ -10,7 +10,22 @@ import { MapPinIcon } from "@/components/ui/app-icons";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type BookingStatus = "PENDING" | "CONFIRMED" | "COMPLETED" | "CANCELLED";
+type BookingStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "PAID"
+  | "IN_PROGRESS"
+  | "DONE_PENDING_VALIDATION"
+  | "COMPLETED"
+  | "CANCELLED";
+
+type TransactionStatus =
+  | "PENDING"
+  | "ESCROWED"
+  | "RELEASED"
+  | "REFUNDED"
+  | "FAILED"
+  | "SUCCESS";
 
 interface BookingClient {
   id: string;
@@ -50,13 +65,21 @@ interface Booking {
   displaySource?: string | null;
   displayTargetId?: string | null;
   client: BookingClient;
+  transaction?: {
+    id: string;
+    amount: number;
+    status: TransactionStatus;
+  } | null;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL: Record<BookingStatus, string> = {
   PENDING: "En attente",
-  CONFIRMED: "Confirmé",
+  CONFIRMED: "Confirmé — en attente de paiement",
+  PAID: "Payé — à démarrer",
+  IN_PROGRESS: "En cours",
+  DONE_PENDING_VALIDATION: "Terminée — en attente de validation client",
   COMPLETED: "Terminé",
   CANCELLED: "Annulé",
 };
@@ -64,14 +87,29 @@ const STATUS_LABEL: Record<BookingStatus, string> = {
 const STATUS_CLASS: Record<BookingStatus, string> = {
   PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
   CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
+  PAID: "bg-brand-50 text-brand-700 border-brand-200",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
+  DONE_PENDING_VALIDATION: "bg-amber-50 text-amber-800 border-amber-200",
   COMPLETED: "bg-brand-50 text-brand-700 border-brand-200",
   CANCELLED: "bg-red-50 text-red-700 border-red-200",
+};
+
+const PAYMENT_LABEL: Partial<Record<TransactionStatus, string>> = {
+  ESCROWED: "Paiement sécurisé (séquestre) — fonds débloqués à la validation client",
+  RELEASED: "Fonds versés sur votre compte",
+  SUCCESS: "Paiement sécurisé (séquestre)",
+  REFUNDED: "Paiement remboursé au client",
+  FAILED: "Paiement échoué",
+  PENDING: "Paiement en attente",
 };
 
 const FILTERS: { label: string; value: BookingStatus | "ALL" }[] = [
   { label: "Toutes", value: "ALL" },
   { label: "En attente", value: "PENDING" },
-  { label: "Confirmées", value: "CONFIRMED" },
+  { label: "À payer", value: "CONFIRMED" },
+  { label: "À démarrer", value: "PAID" },
+  { label: "En cours", value: "IN_PROGRESS" },
+  { label: "À valider", value: "DONE_PENDING_VALIDATION" },
   { label: "Terminées", value: "COMPLETED" },
   { label: "Annulées", value: "CANCELLED" },
 ];
@@ -172,6 +210,12 @@ function BookingCard({
         </div>
       </div>
 
+      {booking.transaction && PAYMENT_LABEL[booking.transaction.status] && (
+        <p className="text-xs text-muted-foreground mb-3">
+          {PAYMENT_LABEL[booking.transaction.status]}
+        </p>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
         {booking.status === "PENDING" && (
           <>
@@ -192,9 +236,32 @@ function BookingCard({
           </>
         )}
         {booking.status === "CONFIRMED" && (
+          <p className="text-xs text-muted-foreground">
+            En attente du paiement du client. Vous serez notifié dès réception.
+          </p>
+        )}
+        {booking.status === "PAID" && (
           <>
             <button
-              onClick={() => onStatusChange(booking.id, "COMPLETED")}
+              onClick={() => onStatusChange(booking.id, "IN_PROGRESS")}
+              disabled={isUpdating}
+              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
+            >
+              {isUpdating ? "..." : "Démarrer la prestation"}
+            </button>
+            <button
+              onClick={() => onStatusChange(booking.id, "CANCELLED")}
+              disabled={isUpdating}
+              className="bg-card text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              Annuler
+            </button>
+          </>
+        )}
+        {booking.status === "IN_PROGRESS" && (
+          <>
+            <button
+              onClick={() => onStatusChange(booking.id, "DONE_PENDING_VALIDATION")}
               disabled={isUpdating}
               className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
             >
@@ -208,6 +275,12 @@ function BookingCard({
               Annuler
             </button>
           </>
+        )}
+        {booking.status === "DONE_PENDING_VALIDATION" && (
+          <p className="text-xs text-amber-700">
+            Prestation terminée de votre côté. Le versement sera déclenché après
+            validation du client.
+          </p>
         )}
         <Link
           href={display.href}
@@ -479,9 +552,15 @@ export default function ProviderDashboardPage() {
               value={counts.PENDING ?? 0}
               tone={pendingCount > 0 ? "warning" : "default"}
             />
-            <StatCard label={STATUS_LABEL.CONFIRMED} value={counts.CONFIRMED ?? 0} />
+            <StatCard
+              label="À payer / à démarrer"
+              value={(counts.CONFIRMED ?? 0) + (counts.PAID ?? 0)}
+            />
+            <StatCard
+              label="En cours"
+              value={(counts.IN_PROGRESS ?? 0) + (counts.DONE_PENDING_VALIDATION ?? 0)}
+            />
             <StatCard label={STATUS_LABEL.COMPLETED} value={counts.COMPLETED ?? 0} tone="success" />
-            <StatCard label={STATUS_LABEL.CANCELLED} value={counts.CANCELLED ?? 0} />
           </div>
         )}
 

@@ -193,7 +193,12 @@ export async function getProviderRatingMap(providerIds: string[]) {
 
   const rows = await prisma.review.groupBy({
     by: ["targetId"],
-    where: { targetId: { in: providerIds } },
+    where: {
+      targetId: { in: providerIds },
+      booking: {
+        transaction: { status: { in: ["ESCROWED", "RELEASED"] } },
+      },
+    },
     _avg: { rating: true },
     _count: { rating: true },
   });

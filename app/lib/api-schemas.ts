@@ -207,9 +207,20 @@ export const patchUserProfileSchema = z.object({
 });
 
 export const bookingStatusPatchSchema = z.object({
-  status: z.enum(["CONFIRMED", "CANCELLED", "COMPLETED"], {
-    error: "Statut invalide (CONFIRMED, CANCELLED ou COMPLETED)",
+  status: z.enum(
+    ["CONFIRMED", "CANCELLED", "COMPLETED", "IN_PROGRESS", "DONE_PENDING_VALIDATION"],
+    {
+      error:
+        "Statut invalide (CONFIRMED, CANCELLED, COMPLETED, IN_PROGRESS ou DONE_PENDING_VALIDATION)",
+    }
+  ),
+});
+
+export const bookingPaySchema = z.object({
+  paymentMethod: z.enum(["ORANGE_MONEY", "MVOLA", "AIRTEL_MONEY"], {
+    error: "Mode de paiement invalide",
   }),
+  phone: z.string().trim().min(1, "Numéro de téléphone requis"),
 });
 
 export const responseStatusPatchSchema = z.object({

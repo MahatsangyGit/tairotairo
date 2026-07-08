@@ -70,6 +70,17 @@ export async function GET(req: NextRequest) {
             review: {
               select: { id: true, rating: true },
             },
+            transaction: {
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                paymentMethod: true,
+                escrowedAt: true,
+                releasedAt: true,
+                refundedAt: true,
+              },
+            },
           }
         : {
             service: {
@@ -98,6 +109,17 @@ export async function GET(req: NextRequest) {
             },
             client: {
               select: { id: true, name: true, phone: true, email: true },
+            },
+            transaction: {
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                paymentMethod: true,
+                escrowedAt: true,
+                releasedAt: true,
+                refundedAt: true,
+              },
             },
           };
 

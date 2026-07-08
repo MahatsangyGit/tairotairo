@@ -8,6 +8,10 @@ import {
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
+import {
+  canReviewBooking,
+  isBookingPaidViaApp,
+} from "@/lib/booking-status";
 
 // GET - Lister les avis d'un prestataire
 export async function GET(req: NextRequest) {
@@ -26,7 +30,16 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(50, Math.max(1, parseInt(searchParams.get("limit") ?? "20", 10) || 20));
     const skip = (page - 1) * limit;
 
-    const where = { targetId: providerId };
+    // Seuls les avis liés à une réservation payée via l'app sont visibles publiquement.
+    const paidStatuses: ("ESCROWED" | "RELEASED")[] = ["ESCROWED", "RELEASED"];
+    const where = {
+      targetId: providerId,
+      booking: {
+        is: {
+          transaction: { is: { status: { in: paidStatuses } } },
+        },
+      },
+    };
 
     const [reviews, total, aggregate] = await Promise.all([
       prisma.review.findMany({
@@ -48,7 +61,7 @@ export async function GET(req: NextRequest) {
       }),
     ]);
 
-    const averageRating = aggregate._avg.rating ?? 0;
+    const averageRating = aggregate._avg?.rating ?? 0;
 
     return NextResponse.json({
       reviews,
@@ -107,6 +120,13 @@ export async function POST(req: NextRequest) {
 
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId },
+      select: {
+        id: true,
+        clientId: true,
+        providerId: true,
+        status: true,
+        transaction: { select: { status: true } },
+      },
     });
 
     if (!booking) {
@@ -123,9 +143,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (booking.status !== "COMPLETED") {
+    if (!canReviewBooking(booking)) {
+      if (!isBookingPaidViaApp(booking.transaction)) {
+        return NextResponse.json(
+          {
+            error:
+              "Les avis ne sont disponibles que pour les prestations payées via l'app",
+          },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
-        { error: "La prestation doit être terminée avant de laisser un avis" },
+        { error: "La prestation doit être validée avant de laisser un avis" },
         { status: 400 }
       );
     }

@@ -51,6 +51,7 @@ model User {
   conversationsAsProvider Conversation[] @relation("ProviderConversations")
   portfolioItems          ProviderPortfolioItem[]
   portfolioComments       PortfolioItemComment[] @relation("PortfolioComments")
+  providerPayouts         ProviderPayout[]
 
   @@index([role])
   @@index([kycStatus])
@@ -355,6 +356,9 @@ model Message {
 enum BookingStatus {
   PENDING
   CONFIRMED
+  PAID
+  IN_PROGRESS
+  DONE_PENDING_VALIDATION
   COMPLETED
   CANCELLED
 }
@@ -366,16 +370,53 @@ model Transaction {
   status        TransactionStatus @default(PENDING)
   paymentMethod PaymentMethod
   referenceId   String?
+  /// Date à laquelle le paiement client a été capturé et mis sous séquestre.
+  escrowedAt    DateTime?
+  /// Date à laquelle les fonds ont été débloqués vers le prestataire.
+  releasedAt    DateTime?
+  /// Date à laquelle le paiement a été remboursé au client (annulation).
+  refundedAt    DateTime?
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
   booking       Booking           @relation(fields: [bookingId], references: [id])
   bookingId     String            @unique
+  payout        ProviderPayout?
+
+  @@index([status])
 }
 
 enum TransactionStatus {
   PENDING
-  SUCCESS
+  ESCROWED
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+/// Enregistre le versement des fonds séquestrés vers le compte du prestataire.
+/// Le prestataire de Mobile Money réel sera branché plus tard ; ce modèle
+/// trace pour l'instant le solde et l'historique des versements.
+model ProviderPayout {
+  id           String              @id @default(cuid())
+  provider     User                @relation(fields: [providerId], references: [id])
+  providerId   String
+  transaction  Transaction         @relation(fields: [transactionId], references: [id])
+  transactionId String             @unique
+  amount       Float
+  currency     String              @default("MGA")
+  status       PayoutStatus        @default(PENDING)
+  reference    String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([providerId])
+  @@index([status])
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
   FAILED
 }
 

@@ -5,12 +5,18 @@ import {
   BookingStatus,
   canTransitionStatus,
   prepareBookingForApi,
+  normalizeBookingStatus,
 } from "@/lib/booking-status";
 import {
   notifyBookingCancelled,
   notifyBookingCompleted,
   notifyBookingConfirmed,
 } from "@/lib/notify-booking";
+import {
+  refundEscrowToClient,
+  releaseEscrowToProvider,
+  PaymentError,
+} from "@/lib/payments";
 import {
   bookingStatusPatchSchema,
   parseBody,
@@ -50,9 +56,20 @@ const bookingInclude = {
   provider: {
     select: { id: true, name: true, phone: true },
   },
+  transaction: {
+    select: {
+      id: true,
+      amount: true,
+      status: true,
+      paymentMethod: true,
+      escrowedAt: true,
+      releasedAt: true,
+      refundedAt: true,
+    },
+  },
 };
 
-// PATCH - Mettre à jour le statut d'une réservation
+// PATCH - Mettre à jour le statut d'une réservation (workflow paiement inclus)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -72,10 +89,17 @@ export async function PATCH(
     const parsed = parseBody(bookingStatusPatchSchema, json.body);
     if (!parsed.ok) return parsed.response;
 
-    const { status } = parsed.data;
+    const nextStatus = parsed.data.status as BookingStatus;
 
     const booking = await prisma.booking.findUnique({
       where: { id },
+      select: {
+        id: true,
+        status: true,
+        providerId: true,
+        clientId: true,
+        requestResponseId: true,
+      },
     });
 
     if (!booking) {
@@ -95,8 +119,7 @@ export async function PATCH(
       );
     }
 
-    const currentStatus = booking.status as BookingStatus;
-    const nextStatus = status as BookingStatus;
+    const currentStatus = normalizeBookingStatus(booking.status);
 
     if (
       !canTransitionStatus(
@@ -113,40 +136,112 @@ export async function PATCH(
       );
     }
 
-    const updated = await prisma.$transaction(async (tx) => {
-      const bookingRow = await tx.booking.update({
-        where: { id },
-        data: { status: nextStatus },
-        include: bookingInclude,
-      });
-
-      if (nextStatus === "COMPLETED" && booking.requestResponseId) {
-        await tx.requestResponse.update({
-          where: { id: booking.requestResponseId },
-          data: { status: "COMPLETED" },
-        });
+    // Validation client -> COMPLETED : libérer les fonds vers le prestataire.
+    if (nextStatus === "COMPLETED") {
+      if (currentStatus !== "DONE_PENDING_VALIDATION" && user.role !== "ADMIN") {
+        return NextResponse.json(
+          {
+            error:
+              "La prestation doit être marquée terminée par le prestataire avant validation",
+          },
+          { status: 400 }
+        );
       }
 
-      return bookingRow;
+      try {
+        const result = await prisma.$transaction(async (tx) => {
+          const updated = await tx.booking.update({
+            where: { id },
+            data: { status: nextStatus },
+            include: bookingInclude,
+          });
+
+          if (booking.requestResponseId) {
+            await tx.requestResponse.update({
+              where: { id: booking.requestResponseId },
+              data: { status: "COMPLETED" },
+            });
+          }
+
+          return updated;
+        });
+
+        // Libérer le séquestre vers le prestataire (hors transaction Prisma pour
+        // éviter les conflits de connexion RLS).
+        if (result.transaction?.status === "ESCROWED") {
+          await releaseEscrowToProvider(id).catch((err) => {
+            console.error("[releaseEscrowToProvider]", err);
+          });
+        }
+
+        notifyBookingCompleted(id).catch(console.error);
+
+        return NextResponse.json({
+          message: "Prestation validée. Versement au prestataire déclenché.",
+          booking: prepareBookingForApi(result),
+        });
+      } catch (err) {
+        if (err instanceof PaymentError) {
+          return NextResponse.json({ error: err.message }, { status: err.status });
+        }
+        throw err;
+      }
+    }
+
+    // Annulation : rembourser le client si les fonds étaient sous séquestre.
+    if (nextStatus === "CANCELLED") {
+      const result = await prisma.$transaction(async (tx) => {
+        const updated = await tx.booking.update({
+          where: { id },
+          data: { status: nextStatus },
+          include: bookingInclude,
+        });
+
+        if (booking.requestResponseId) {
+          await tx.requestResponse.update({
+            where: { id: booking.requestResponseId },
+            data: { status: "REJECTED" },
+          }).catch(() => {
+            // la proposition peut avoir déjà changé de statut
+          });
+        }
+
+        return updated;
+      });
+
+      // Rembourser le séquestre (hors transaction Prisma).
+      await refundEscrowToClient(id).catch((err) => {
+        console.error("[refundEscrowToClient]", err);
+      });
+
+      notifyBookingCancelled(id).catch(console.error);
+
+      return NextResponse.json({
+        message: "Réservation annulée",
+        booking: prepareBookingForApi(result),
+      });
+    }
+
+    // Transitions simples (CONFIRMED, IN_PROGRESS, DONE_PENDING_VALIDATION)
+    const updated = await prisma.booking.update({
+      where: { id },
+      data: { status: nextStatus },
+      include: bookingInclude,
     });
 
     if (nextStatus === "CONFIRMED") {
       notifyBookingConfirmed(id).catch(console.error);
-    } else if (nextStatus === "COMPLETED") {
-      notifyBookingCompleted(id).catch(console.error);
-    } else if (nextStatus === "CANCELLED") {
-      notifyBookingCancelled(id).catch(console.error);
     }
 
-    const messages: Record<BookingStatus, string> = {
+    const messages: Partial<Record<BookingStatus, string>> = {
       CONFIRMED: "Réservation confirmée",
-      CANCELLED: "Réservation annulée",
-      COMPLETED: "Prestation marquée comme terminée",
-      PENDING: "",
+      IN_PROGRESS: "Prestation démarrée",
+      DONE_PENDING_VALIDATION:
+        "Prestation marquée terminée — en attente de validation client",
     };
 
     return NextResponse.json({
-      message: messages[nextStatus],
+      message: messages[nextStatus] ?? "Réservation mise à jour",
       booking: prepareBookingForApi(updated),
     });
   } catch (error) {

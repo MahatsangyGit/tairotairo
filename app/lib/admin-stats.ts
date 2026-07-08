@@ -79,9 +79,11 @@ export async function getAdminStats() {
     prisma.review.aggregate({ _count: true, _avg: { rating: true } }),
     prisma.conversation.count(),
     prisma.message.count(),
-    prisma.transaction.count({ where: { status: "SUCCESS" } }),
+    prisma.transaction.count({
+      where: { status: { in: ["ESCROWED", "RELEASED"] } },
+    }),
     prisma.transaction.aggregate({
-      where: { status: "SUCCESS" },
+      where: { status: { in: ["ESCROWED", "RELEASED"] } },
       _sum: { amount: true },
     }),
   ]);
@@ -144,7 +146,7 @@ export async function getAdminStats() {
     reviews: {
       total: reviewsAgg._count,
       averageRating:
-        reviewsAgg._avg.rating != null
+        reviewsAgg._avg?.rating != null
           ? Math.round(reviewsAgg._avg.rating * 10) / 10
           : null,
     },
@@ -154,7 +156,7 @@ export async function getAdminStats() {
     },
     transactions: {
       successful: transactionsSuccess,
-      totalRevenue: revenueAgg._sum.amount ?? 0,
+      totalRevenue: revenueAgg._sum?.amount ?? 0,
     },
   };
 }
