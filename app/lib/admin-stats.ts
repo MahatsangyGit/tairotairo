@@ -249,7 +249,7 @@ export async function exportBookingsCsv() {
   return rows.map((b) => [
     b.id,
     b.status,
-    b.date.toISOString(),
+    b.date?.toISOString() ?? "",
     b.slotStart ?? "",
     b.slotEnd ?? "",
     b.displayTitle ?? b.service?.title ?? "",

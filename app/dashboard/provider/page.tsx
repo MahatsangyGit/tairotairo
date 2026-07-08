@@ -69,6 +69,7 @@ interface Booking {
     id: string;
     amount: number;
     status: TransactionStatus;
+    releasedAt?: string | null;
   } | null;
 }
 
@@ -282,6 +283,17 @@ function BookingCard({
             validation du client.
           </p>
         )}
+        {booking.status === "COMPLETED" &&
+          booking.transaction?.status === "RELEASED" && (
+            <a
+              href={`/api/bookings/${booking.id}/invoice`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+            >
+              Facture (PDF)
+            </a>
+          )}
         <Link
           href={display.href}
           className="text-sm text-brand-600 font-medium hover:underline ml-auto"
@@ -492,6 +504,17 @@ export default function ProviderDashboardPage() {
 
   const pendingCount = counts.PENDING ?? 0;
 
+  const invoicedBookings = bookings
+    .filter(
+      (b) =>
+        b.status === "COMPLETED" && b.transaction?.status === "RELEASED"
+    )
+    .sort((a, b) =>
+      (b.transaction?.releasedAt ?? "").localeCompare(
+        a.transaction?.releasedAt ?? ""
+      )
+    );
+
   return (
       <div className="max-w-5xl mx-auto px-4 py-8 md:py-10">
         <section className="mb-6 rounded-2xl border border-border bg-card p-5 md:p-6">
@@ -653,6 +676,53 @@ export default function ProviderDashboardPage() {
               />
             ))}
           </div>
+          </section>
+        )}
+
+        {!loading && !error && invoicedBookings.length > 0 && (
+          <section className="mt-8">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-base font-semibold text-foreground">Factures</h2>
+              <span className="text-xs text-muted-foreground">{invoicedBookings.length} facture{invoicedBookings.length > 1 ? "s" : ""}</span>
+            </div>
+            <div className="bg-card rounded-2xl border border-border shadow-sm divide-y divide-border">
+              {invoicedBookings.map((booking) => {
+                const title =
+                  booking.displayTitle ??
+                  booking.service?.title ??
+                  booking.requestResponse?.request?.title ??
+                  "Prestation";
+                const amount = booking.transaction?.amount ?? booking.displayPrice ?? 0;
+                const dateLabel = booking.transaction?.releasedAt
+                  ? new Date(booking.transaction.releasedAt).toLocaleDateString("fr-FR", {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    })
+                  : "—";
+                return (
+                  <div
+                    key={booking.id}
+                    className="flex items-center justify-between gap-4 p-4"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        {dateLabel} · {amount.toLocaleString("fr-MG")} Ar · {booking.client.name}
+                      </p>
+                    </div>
+                    <a
+                      href={`/api/bookings/${booking.id}/invoice`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-sm bg-brand-600 text-white font-medium px-3 py-1.5 rounded-lg hover:bg-brand-700 transition-colors shrink-0"
+                    >
+                      Télécharger (PDF)
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
           </section>
         )}
       </div>
