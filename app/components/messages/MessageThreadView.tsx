@@ -56,7 +56,15 @@ export default function MessageThreadView({
   const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [error, setError] = useState("");
   const bottomRef = useRef<HTMLDivElement>(null);
+  const sendingRef = useRef(false);
   const { userId } = useMessagingRealtimeContext() ?? { userId: null };
+
+  const appendMessageUnique = useCallback((msg: SerializedMessage) => {
+    setMessages((prev) => {
+      if (prev.some((m) => m.id === msg.id)) return prev;
+      return [...prev, msg];
+    });
+  }, []);
 
   const apiUrl = (() => {
     const base = `/api/conversations/${conversationId}`;
@@ -100,13 +108,7 @@ export default function MessageThreadView({
 
   useMessagingRealtime((event) => {
     if (event.type === "message.created" && event.conversationId === conversationId) {
-      setMessages((prev) => {
-        if (prev.some((m) => m.id === event.message.id)) return prev;
-        return [
-          ...prev,
-          wireToSerializedMessage(event.message, userId),
-        ];
-      });
+      appendMessageUnique(wireToSerializedMessage(event.message, userId));
       return;
     }
 
@@ -144,8 +146,9 @@ export default function MessageThreadView({
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
     const text = draft.trim();
-    if (!text || sending) return;
+    if (!text || sendingRef.current) return;
 
+    sendingRef.current = true;
     setSending(true);
     setError("");
 
@@ -166,12 +169,13 @@ export default function MessageThreadView({
         return;
       }
 
-      setMessages((prev) => [...prev, data.message]);
+      appendMessageUnique(data.message);
       setDraft("");
     } catch {
       setError("Une erreur est survenue");
     } finally {
       setSending(false);
+      sendingRef.current = false;
     }
   };
 
