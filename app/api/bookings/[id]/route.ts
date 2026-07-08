@@ -167,11 +167,10 @@ export async function PATCH(
         });
 
         // Libérer le séquestre vers le prestataire (hors transaction Prisma pour
-        // éviter les conflits de connexion RLS).
+        // éviter les conflits de connexion RLS). On fait remonter l'erreur pour
+        // ne pas laisser la réservation COMPLETED avec un paiement bloqué.
         if (result.transaction?.status === "ESCROWED") {
-          await releaseEscrowToProvider(id).catch((err) => {
-            console.error("[releaseEscrowToProvider]", err);
-          });
+          await releaseEscrowToProvider(id);
         }
 
         notifyBookingCompleted(id).catch(console.error);

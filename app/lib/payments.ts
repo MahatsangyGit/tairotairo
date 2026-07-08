@@ -130,7 +130,13 @@ export async function releaseEscrowToProvider(
       throw new PaymentError("Réservation introuvable", 404);
     }
 
-    if (booking.status !== "DONE_PENDING_VALIDATION") {
+    // La libération peut être déclenchée soit depuis l'état
+    // DONE_PENDING_VALIDATION (validation client en cours), soit juste après
+    // la transition vers COMPLETED (le statut a déjà bougé avant l'appel).
+    if (
+      booking.status !== "DONE_PENDING_VALIDATION" &&
+      booking.status !== "COMPLETED"
+    ) {
       throw new PaymentError(
         "La prestation doit être terminée et en attente de validation client",
         409
@@ -138,7 +144,17 @@ export async function releaseEscrowToProvider(
     }
 
     const transaction = booking.transaction;
-    if (!transaction || transaction.status !== "ESCROWED") {
+    if (!transaction) {
+      throw new PaymentError(
+        "Aucun paiement sous séquestre à débloquer",
+        409
+      );
+    }
+    // Idempotent : si les fonds sont déjà libérés, on ne plante pas.
+    if (transaction.status === "RELEASED") {
+      return { transaction, payoutId: "" };
+    }
+    if (transaction.status !== "ESCROWED") {
       throw new PaymentError(
         "Aucun paiement sous séquestre à débloquer",
         409
