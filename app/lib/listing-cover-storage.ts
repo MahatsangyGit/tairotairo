@@ -10,10 +10,8 @@ import {
   type ListingCoverKind,
 } from "@/lib/listing-cover";
 import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
-import {
-  detectImageMime,
-  extensionForImageMime,
-} from "@/lib/image-upload-validation";
+import { detectImageMime } from "@/lib/image-upload-validation";
+import { optimizeUploadImage } from "@/lib/image-optimize";
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "listings");
 const COVER_BASENAME = "cover";
@@ -70,7 +68,7 @@ export async function saveListingCoverFile(
   kind: ListingCoverKind,
   id: string,
   buffer: Buffer,
-  mime: AvatarAllowedMime
+  _mime: AvatarAllowedMime
 ): Promise<void> {
   const dir = listingDir(kind, id);
   await mkdir(dir, { recursive: true });
@@ -86,8 +84,10 @@ export async function saveListingCoverFile(
     // dossier vide
   }
 
-  const fileName = `${COVER_BASENAME}${extensionForImageMime(mime)}`;
-  await writeFile(path.join(dir, fileName), buffer);
+  // Toujours WebP compressé (1920×1080 max) — le mime d'entrée n'est plus conservé.
+  const optimized = await optimizeUploadImage(buffer, "cover");
+  const fileName = `${COVER_BASENAME}${optimized.extension}`;
+  await writeFile(path.join(dir, fileName), optimized.buffer);
 }
 
 export async function deleteListingCoverFiles(

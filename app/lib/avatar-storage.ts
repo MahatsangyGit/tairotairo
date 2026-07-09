@@ -7,10 +7,8 @@ import {
   type AvatarAllowedMime,
 } from "@/lib/avatar";
 import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
-import {
-  detectImageMime,
-  extensionForImageMime,
-} from "@/lib/image-upload-validation";
+import { detectImageMime } from "@/lib/image-upload-validation";
+import { optimizeUploadImage } from "@/lib/image-optimize";
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "avatars");
 const AVATAR_BASENAME = "avatar";
@@ -65,7 +63,7 @@ export function userAvatarDir(userId: string): string {
 export async function saveAvatarFile(
   userId: string,
   buffer: Buffer,
-  mime: AvatarAllowedMime
+  _mime: AvatarAllowedMime
 ): Promise<void> {
   const dir = userAvatarDir(userId);
   await mkdir(dir, { recursive: true });
@@ -81,8 +79,10 @@ export async function saveAvatarFile(
     // dossier vide
   }
 
-  const fileName = `${AVATAR_BASENAME}${extensionForImageMime(mime)}`;
-  await writeFile(path.join(dir, fileName), buffer);
+  // Toujours WebP compressé (512×512 max) — le mime d'entrée n'est plus conservé.
+  const optimized = await optimizeUploadImage(buffer, "avatar");
+  const fileName = `${AVATAR_BASENAME}${optimized.extension}`;
+  await writeFile(path.join(dir, fileName), optimized.buffer);
 }
 
 export async function deleteAvatarFiles(userId: string): Promise<void> {

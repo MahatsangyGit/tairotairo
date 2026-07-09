@@ -114,9 +114,9 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    let storedName: string;
+    let saved: Awaited<ReturnType<typeof savePortfolioImage>>;
     try {
-      storedName = await savePortfolioImage(item.id, buffer, validation.mime);
+      saved = await savePortfolioImage(item.id, buffer, validation.mime);
     } catch (saveError) {
       await prisma.providerPortfolioItem.delete({ where: { id: item.id } });
       throw saveError;
@@ -124,7 +124,11 @@ export async function POST(req: NextRequest) {
 
     const updated = await prisma.providerPortfolioItem.update({
       where: { id: item.id },
-      data: { storedName },
+      data: {
+        storedName: saved.storedName,
+        mimeType: saved.mime,
+        sizeBytes: saved.sizeBytes,
+      },
       include: portfolioItemInclude,
     });
 

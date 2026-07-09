@@ -85,9 +85,10 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         if (!validation.ok) {
           return NextResponse.json({ error: validation.error }, { status: 400 });
         }
-        data.storedName = await savePortfolioImage(id, buffer, validation.mime);
-        data.mimeType = validation.mime;
-        data.sizeBytes = file.size;
+        const saved = await savePortfolioImage(id, buffer, validation.mime);
+        data.storedName = saved.storedName;
+        data.mimeType = saved.mime;
+        data.sizeBytes = saved.sizeBytes;
       }
 
       const updated = await prisma.providerPortfolioItem.update({
