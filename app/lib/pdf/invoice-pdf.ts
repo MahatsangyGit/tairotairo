@@ -12,12 +12,6 @@ const MARGIN = 48;
 
 type Op = string;
 
-/**
- * Encode une chaîne pour une literal PDF avec WinAnsiEncoding.
- * Les accents Latin-1 (é, É, à, °, ·…) sont écrits en échappements octaux
- * `\xxx` pour que le flux reste ASCII — sinon TextEncoder (UTF-8) produit
- * `Ã©` / `Ã‰` à l'affichage.
- */
 function escapePdfString(s: string): string {
   let out = "";
   for (const ch of s) {
