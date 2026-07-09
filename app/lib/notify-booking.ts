@@ -97,13 +97,11 @@ export async function notifyBookingCompleted(bookingId: string) {
   const display = getBookingDisplayInfo(booking);
   if (!display) return;
 
-  const body = `La prestation « ${display.title} » est marquée comme terminée. Vous pouvez laisser un avis.`;
-
   await dispatchNotification({
     userId: booking.clientId,
     type: NOTIFICATION_TYPES.BOOKING_COMPLETED,
     title: "Prestation terminée",
-    body,
+    body: `La prestation « ${display.title} » est marquée comme terminée. Vous pouvez laisser un avis.`,
     link: "/dashboard/client",
   });
 
@@ -111,7 +109,7 @@ export async function notifyBookingCompleted(bookingId: string) {
     userId: booking.providerId,
     type: NOTIFICATION_TYPES.BOOKING_COMPLETED,
     title: "Prestation terminée",
-    body,
+    body: `La prestation « ${display.title} » est marquée comme terminée. Votre facture peut être téléchargée.`,
     link: "/dashboard/provider",
   });
 }
