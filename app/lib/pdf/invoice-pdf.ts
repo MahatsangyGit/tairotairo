@@ -12,20 +12,62 @@ const MARGIN = 48;
 
 type Op = string;
 
+/**
+ * Encode une chaîne pour une literal PDF avec WinAnsiEncoding.
+ * Les accents Latin-1 (é, É, à, °, ·…) sont écrits en échappements octaux
+ * `\xxx` pour que le flux reste ASCII — sinon TextEncoder (UTF-8) produit
+ * `Ã©` / `Ã‰` à l'affichage.
+ */
 function escapePdfString(s: string): string {
-  // WinAnsiEncoding couvre Latin-1 ; on remplace juste les caractères non
-  // Latin-1 pour éviter des glyphes absents, et on échappe ( ) \.
-  const cleaned = s.replace(/[^\x20-\x7E\xA0-\xFF]/g, (ch) => {
+  let out = "";
+  for (const ch of s) {
     const cp = ch.codePointAt(0) ?? 0;
-    if (cp === 0x2019 || cp === 0x2018) return "'"; // apostrophes typographiques
-    if (cp === 0x2013 || cp === 0x2014) return "-"; // tirets
-    if (cp === 0x2026) return "...";
-    if (cp === 0x0153) return "oe"; // œ
-    if (cp === 0x0152) return "OE";
-    if (cp === 0x00A0) return " ";
-    return "";
-  });
-  return cleaned.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
+
+    // Remplacements hors WinAnsi / typographiques
+    if (cp === 0x2019 || cp === 0x2018) {
+      out += "'";
+      continue;
+    }
+    if (cp === 0x2013 || cp === 0x2014) {
+      out += "-";
+      continue;
+    }
+    if (cp === 0x2026) {
+      out += "...";
+      continue;
+    }
+    if (cp === 0x0153) {
+      out += "oe";
+      continue;
+    }
+    if (cp === 0x0152) {
+      out += "OE";
+      continue;
+    }
+    if (cp === 0x00A0) {
+      out += " ";
+      continue;
+    }
+
+    // ASCII imprimable
+    if (cp >= 0x20 && cp <= 0x7e) {
+      if (ch === "\\" || ch === "(" || ch === ")") {
+        out += `\\${ch}`;
+      } else {
+        out += ch;
+      }
+      continue;
+    }
+
+    // Latin-1 / WinAnsi (0xA0–0xFF) : échappement octal PDF
+    if (cp >= 0xa0 && cp <= 0xff) {
+      out += `\\${cp.toString(8).padStart(3, "0")}`;
+      continue;
+    }
+
+    // Caractère non supporté : ignoré
+  }
+  return out;
 }
 
 class PdfBuilder {
