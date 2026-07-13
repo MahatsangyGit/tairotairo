@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getAuthUser, requireAuth } from "@/lib/auth";
+import { getAuthUser, requireAuthOrThrow } from "@/lib/auth";
+import {
+  withApiHandler,
+  throwForbidden,
+  throwNotFound,
+} from "@/lib/api-handler";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { assertEmailVerified } from "@/lib/email-verification";
 import { isKycApproved } from "@/lib/kyc";
@@ -16,11 +21,9 @@ import {
 
 // ─── GET /api/services/[id] ───────────────────────────────────────────────────
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+export const GET = withApiHandler(
+  "GET /api/services/[id]",
+  async (req, { params }) => {
     const { id } = await params;
 
     const service = await prisma.service.findUnique({
@@ -28,11 +31,11 @@ export async function GET(
       include: {
         provider: {
           select: {
-            id:     true,
-            name:   true,
+            id: true,
+            name: true,
             avatar: true,
-            bio:    true,
-            phone:  true,
+            bio: true,
+            phone: true,
             kycStatus: true,
           },
         },
@@ -40,13 +43,10 @@ export async function GET(
     });
 
     if (!service) {
-      return NextResponse.json(
-        { error: "Service introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Service introuvable");
     }
 
-    const viewer = await getAuthUser(_req);
+    const viewer = await getAuthUser(req);
     const isOwner =
       viewer?.userId === service.providerId || viewer?.role === "ADMIN";
 
@@ -54,10 +54,7 @@ export async function GET(
       !service.available ||
       (!isOwner && !isKycApproved(service.provider.kycStatus))
     ) {
-      return NextResponse.json(
-        { error: "Service introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Service introuvable");
     }
 
     // Avis du prestataire
@@ -74,7 +71,8 @@ export async function GET(
     const averageRating =
       reviews.length > 0
         ? Math.round(
-            (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10
+            (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) *
+              10
           ) / 10
         : 0;
 
@@ -87,25 +85,15 @@ export async function GET(
       averageRating,
       totalReviews: reviews.length,
     });
-  } catch (error) {
-    console.error("[GET /api/services/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
 // ─── PATCH /api/services/[id] ───────────────────────────────────────────────────
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const PATCH = withApiHandler(
+  "PATCH /api/services/[id]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
     const { id } = await params;
 
     const json = await parseJsonBody(req);
@@ -117,11 +105,11 @@ export async function PATCH(
     const service = await prisma.service.findUnique({ where: { id } });
 
     if (!service) {
-      return NextResponse.json({ error: "Service introuvable" }, { status: 404 });
+      throwNotFound("Service introuvable");
     }
 
     if (service.providerId !== user.userId && user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+      throwForbidden("Accès refusé");
     }
 
     if (user.role === "PROVIDER") {
@@ -167,35 +155,25 @@ export async function PATCH(
       message: "Service mis à jour",
       service: withCoverImageUrl("service", updated),
     });
-  } catch (error) {
-    console.error("[PATCH /api/services/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
 // ─── DELETE /api/services/[id] ──────────────────────────────────────────────────
 
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const DELETE = withApiHandler(
+  "DELETE /api/services/[id]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
     const { id } = await params;
 
     const service = await prisma.service.findUnique({ where: { id } });
 
     if (!service) {
-      return NextResponse.json({ error: "Service introuvable" }, { status: 404 });
+      throwNotFound("Service introuvable");
     }
 
     if (service.providerId !== user.userId && user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+      throwForbidden("Accès refusé");
     }
 
     const activeBookings = await prisma.booking.count({
@@ -219,8 +197,5 @@ export async function DELETE(
     await prisma.service.delete({ where: { id } });
 
     return NextResponse.json({ message: "Service supprimé" });
-  } catch (error) {
-    console.error("[DELETE /api/services/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

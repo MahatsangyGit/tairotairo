@@ -1,11 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import {
   generateCsrfToken,
   getCsrfCookieName,
   getCsrfCookieOptions,
 } from "@/lib/csrf";
+import { withApiHandler } from "@/lib/api-handler";
 
-export async function GET(_req: NextRequest) {
+export const GET = withApiHandler("GET /api/auth/csrf", async () => {
   const csrfToken = generateCsrfToken();
   const response = NextResponse.json({ csrfToken });
 
@@ -16,4 +17,4 @@ export async function GET(_req: NextRequest) {
   );
 
   return response;
-}
+});

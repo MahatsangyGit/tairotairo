@@ -1,14 +1,14 @@
-import { mkdir, writeFile, unlink, readFile } from "fs/promises";
+import { mkdir, writeFile, readFile } from "fs/promises";
 import path from "path";
-import {
-  AVATAR_ALLOWED_EXTENSIONS,
-  AVATAR_ALLOWED_MIME_TYPES,
-  type AvatarAllowedMime,
-} from "@/lib/avatar";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
+import type { AvatarAllowedMime } from "@/lib/avatar";
 import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
-import { detectImageMime } from "@/lib/image-upload-validation";
 import { optimizeUploadImage } from "@/lib/image-optimize";
+import {
+  deleteFilesWithBasename,
+  mimeFromStoredExtension,
+  validateImageUpload,
+} from "@/lib/image-storage";
 
 const STORAGE_ROOT = path.join(process.cwd(), "storage", "portfolio");
 const IMAGE_BASENAME = "image";
@@ -17,38 +17,10 @@ export function validatePortfolioImageFile(
   file: File,
   buffer: Buffer
 ): { ok: true; mime: AvatarAllowedMime } | { ok: false; error: string } {
-  if (!file || file.size === 0) {
-    return { ok: false, error: "Image requise" };
-  }
-
-  if (file.size > PORTFOLIO_MAX_FILE_BYTES) {
-    return {
-      ok: false,
-      error: `Image trop volumineuse (max ${PORTFOLIO_MAX_FILE_BYTES / (1024 * 1024)} Mo)`,
-    };
-  }
-
-  const ext = path.extname(file.name).toLowerCase();
-  if (
-    !AVATAR_ALLOWED_EXTENSIONS.includes(
-      ext as (typeof AVATAR_ALLOWED_EXTENSIONS)[number]
-    )
-  ) {
-    return {
-      ok: false,
-      error: "Format non autorisé. Utilisez JPEG, PNG ou WebP",
-    };
-  }
-
-  const mime = detectImageMime(buffer, file.name);
-  if (!mime || !AVATAR_ALLOWED_MIME_TYPES.includes(mime)) {
-    return {
-      ok: false,
-      error: "Le fichier doit être une image JPEG, PNG ou WebP valide",
-    };
-  }
-
-  return { ok: true, mime };
+  return validateImageUpload(file, buffer, {
+    maxBytes: PORTFOLIO_MAX_FILE_BYTES,
+    label: "Image",
+  });
 }
 
 export function portfolioItemDir(itemId: string): string {
@@ -69,15 +41,7 @@ export async function savePortfolioImage(
 ): Promise<SavedPortfolioImage> {
   const dir = portfolioItemDir(itemId);
   await mkdir(dir, { recursive: true });
-
-  // Nettoie d'éventuels anciens formats (jpg/png) avant d'écrire le WebP.
-  for (const ext of [".jpg", ".jpeg", ".png", ".webp"] as const) {
-    try {
-      await unlink(path.join(dir, `${IMAGE_BASENAME}${ext}`));
-    } catch {
-      // absent
-    }
-  }
+  await deleteFilesWithBasename(dir, IMAGE_BASENAME);
 
   const optimized = await optimizeUploadImage(buffer, "portfolio");
   const storedName = `${IMAGE_BASENAME}${optimized.extension}`;
@@ -91,19 +55,7 @@ export async function savePortfolioImage(
 }
 
 export async function deletePortfolioItemFiles(itemId: string): Promise<void> {
-  try {
-    const dir = portfolioItemDir(itemId);
-    const storedNames = [`${IMAGE_BASENAME}.jpg`, `${IMAGE_BASENAME}.png`, `${IMAGE_BASENAME}.webp`];
-    for (const name of storedNames) {
-      try {
-        await unlink(path.join(dir, name));
-      } catch {
-        // ignore
-      }
-    }
-  } catch {
-    // dossier absent
-  }
+  await deleteFilesWithBasename(portfolioItemDir(itemId), IMAGE_BASENAME);
 }
 
 export async function readPortfolioImage(
@@ -113,11 +65,7 @@ export async function readPortfolioImage(
   try {
     const safeName = path.basename(storedName);
     const buffer = await readFile(path.join(portfolioItemDir(itemId), safeName));
-    const ext = path.extname(safeName).toLowerCase();
-    let mime: AvatarAllowedMime | null = null;
-    if (ext === ".jpg" || ext === ".jpeg") mime = "image/jpeg";
-    else if (ext === ".png") mime = "image/png";
-    else if (ext === ".webp") mime = "image/webp";
+    const mime = mimeFromStoredExtension(path.extname(safeName));
     if (!mime) return null;
     return { buffer, mime };
   } catch {

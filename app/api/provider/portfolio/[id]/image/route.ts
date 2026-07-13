@@ -1,21 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { readPortfolioImage } from "@/lib/portfolio-storage";
 import {
   createImageResponse,
   isVersionedImageRequest,
 } from "@/lib/image-response";
+import { withApiHandler } from "@/lib/api-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  try {
-    const { id } = await params;
+export const GET = withApiHandler(
+  "GET /api/provider/portfolio/[id]/image",
+  async (req, ctx) => {
+    const { id } = await ctx.params;
 
     const item = await prisma.providerPortfolioItem.findUnique({
       where: { id },
@@ -34,8 +32,5 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
     return createImageResponse(req, file.buffer, file.mime, {
       versioned: isVersionedImageRequest(req),
     });
-  } catch (error) {
-    console.error("[GET /api/provider/portfolio/[id]/image]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 import { PORTFOLIO_MAX_DESCRIPTION_LENGTH } from "@/lib/portfolio";
 import {
   portfolioItemInclude,
@@ -20,28 +21,19 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
 async function getOwnedItem(itemId: string, providerId: string) {
   return prisma.providerPortfolioItem.findFirst({
     where: { id: itemId, providerId },
   });
 }
 
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const PATCH = withApiHandler(
+  "PATCH /api/provider/portfolio/[id]",
+  async (req, ctx) => {
+    const auth = await requireAuthOrThrow(req);
+    requireRole(auth, ["PROVIDER", "ADMIN"], "Réservé aux prestataires");
 
-    if (auth.role !== "PROVIDER" && auth.role !== "ADMIN") {
-      return NextResponse.json({ error: "Réservé aux prestataires" }, { status: 403 });
-    }
-
-    const { id } = await params;
+    const { id } = await ctx.params;
     const existing = await getOwnedItem(id, auth.userId);
 
     if (!existing) {
@@ -132,24 +124,16 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       message: "Réalisation mise à jour",
       item: serializePortfolioItem(updated),
     });
-  } catch (error) {
-    console.error("[PATCH /api/provider/portfolio/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const DELETE = withApiHandler(
+  "DELETE /api/provider/portfolio/[id]",
+  async (req, ctx) => {
+    const auth = await requireAuthOrThrow(req);
+    requireRole(auth, ["PROVIDER", "ADMIN"], "Réservé aux prestataires");
 
-    if (auth.role !== "PROVIDER" && auth.role !== "ADMIN") {
-      return NextResponse.json({ error: "Réservé aux prestataires" }, { status: 403 });
-    }
-
-    const { id } = await params;
+    const { id } = await ctx.params;
     const existing = await getOwnedItem(id, auth.userId);
 
     if (!existing) {
@@ -160,8 +144,5 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     await deletePortfolioItemFiles(id);
 
     return NextResponse.json({ message: "Réalisation supprimée" });
-  } catch (error) {
-    console.error("[DELETE /api/provider/portfolio/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

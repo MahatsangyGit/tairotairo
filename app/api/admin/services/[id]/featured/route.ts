@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withApiHandler } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/admin-auth";
 import { providerHasActiveSubscription } from "@/lib/featured-home";
 import {
@@ -10,14 +11,10 @@ import {
 
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  try {
-    const admin = await requireAdmin(req);
-    if (!admin.ok) return admin.response;
+export const PATCH = withApiHandler(
+  "PATCH /api/admin/services/[id]/featured",
+  async (req, { params }) => {
+    const auth = await requireAdmin(req);
 
     const { id } = await params;
 
@@ -90,8 +87,5 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
         featuredOnHomepageAt: updated.featuredOnHomepageAt?.toISOString() ?? null,
       },
     });
-  } catch (error) {
-    console.error("[PATCH /api/admin/services/[id]/featured]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

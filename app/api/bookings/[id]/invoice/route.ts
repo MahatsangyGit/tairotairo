@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
 import { getInvoiceData } from "@/lib/invoice";
 import { generateInvoicePdf } from "@/lib/pdf/invoice-pdf";
 
@@ -8,15 +9,10 @@ export const dynamic = "force-dynamic";
 
 // GET — Télécharger la facture PDF d'une réservation (après validation + paiement).
 // Accessible au prestataire de la réservation, au client, et à l'admin.
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const GET = withApiHandler(
+  "GET /api/bookings/[id]/invoice",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
 
     const { id } = await params;
 
@@ -37,10 +33,7 @@ export async function GET(
     });
 
     if (!booking) {
-      return NextResponse.json(
-        { error: "Réservation introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Réservation introuvable");
     }
 
     const isClient = booking.clientId === user.userId;
@@ -48,10 +41,7 @@ export async function GET(
     const isAdmin = user.role === "ADMIN";
 
     if (!isClient && !isProvider && !isAdmin) {
-      return NextResponse.json(
-        { error: "Vous n'avez pas accès à cette facture" },
-        { status: 403 }
-      );
+      throwForbidden("Vous n'avez pas accès à cette facture");
     }
 
     const data = await getInvoiceData(id);
@@ -76,8 +66,5 @@ export async function GET(
         "Cache-Control": "private, no-store",
       },
     });
-  } catch (error) {
-    console.error("[GET /api/bookings/[id]/invoice]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

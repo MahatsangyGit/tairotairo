@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import {
   conversationPath,
   getConversationForParticipant,
@@ -12,24 +13,15 @@ import { notifyMessageReceived } from "@/lib/notify-messages";
 import { publishThreadRefresh } from "@/lib/realtime/publish";
 
 // POST — Accepter une proposition de prix
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; messageId: string }> }
-) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const POST = withApiHandler(
+  "POST /api/conversations/[id]/price-offers/[messageId]/accept",
+  async (req, { params }) => {
+    const auth = await requireAuthOrThrow(req);
     const { id, messageId } = await params;
 
     const conversation = await getConversationForParticipant(id, auth.userId);
     if (!conversation) {
-      return NextResponse.json(
-        { error: "Conversation introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Conversation introuvable");
     }
 
     const result = await acceptPriceOffer({
@@ -76,11 +68,5 @@ export async function POST(
       price: result.price,
       negotiation: result.negotiation,
     });
-  } catch (error) {
-    console.error(
-      "[POST /api/conversations/[id]/price-offers/[messageId]/accept]",
-      error
-    );
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

@@ -1,18 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withApiHandler } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/admin-auth";
 import { getAdminStats } from "@/lib/admin-stats";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
-  try {
-    const admin = await requireAdmin(req);
-    if (!admin.ok) return admin.response;
+export const GET = withApiHandler("GET /api/admin/stats", async (req) => {
+  const auth = await requireAdmin(req);
 
-    const stats = await getAdminStats();
-    return NextResponse.json(stats);
-  } catch (error) {
-    console.error("[GET /api/admin/stats]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
-}
+  const stats = await getAdminStats();
+  return NextResponse.json(stats);
+});

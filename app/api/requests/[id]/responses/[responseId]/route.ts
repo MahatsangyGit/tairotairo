@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import {
   RequestResponseStatus,
   canTransitionResponseStatus,
@@ -33,17 +34,10 @@ const responseInclude = {
 };
 
 // PATCH - Accepter / refuser / retirer une proposition
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string; responseId: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const PATCH = withApiHandler(
+  "PATCH /api/requests/[id]/responses/[responseId]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
     const { id, responseId } = await params;
 
     const json = await parseJsonBody(req);
@@ -72,10 +66,7 @@ export async function PATCH(
     });
 
     if (!response || response.requestId !== id) {
-      return NextResponse.json(
-        { error: "Proposition introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Proposition introuvable");
     }
 
     const isClientOwner = response.request.clientId === user.userId;
@@ -221,8 +212,5 @@ export async function PATCH(
       message: messages[nextStatus],
       response: updated,
     });
-  } catch (error) {
-    console.error("[PATCH /api/requests/[id]/responses/[responseId]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

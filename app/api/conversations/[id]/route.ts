@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import {
   getConversationContext,
   getConversationForParticipant,
@@ -11,16 +12,10 @@ import { serializeMessage } from "@/lib/message-serialize";
 import { publishInboxChanged } from "@/lib/realtime/publish";
 
 // GET — Détail d'une conversation et ses messages
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const GET = withApiHandler(
+  "GET /api/conversations/[id]",
+  async (req, { params }) => {
+    const auth = await requireAuthOrThrow(req);
     const { id } = await params;
     const requestResponseId =
       req.nextUrl.searchParams.get("response") ?? undefined;
@@ -29,10 +24,7 @@ export async function GET(
     const conversation = await getConversationForParticipant(id, auth.userId);
 
     if (!conversation) {
-      return NextResponse.json(
-        { error: "Conversation introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Conversation introuvable");
     }
 
     const markedRead = await prisma.message.updateMany({
@@ -94,8 +86,5 @@ export async function GET(
       },
       messages: messages.map((m) => serializeMessage(m, auth.userId)),
     });
-  } catch (error) {
-    console.error("[GET /api/conversations/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

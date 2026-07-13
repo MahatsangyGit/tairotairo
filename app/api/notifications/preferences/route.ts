@@ -1,58 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
 import {
   notificationPreferencesSchema,
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
+import { withApiHandler } from "@/lib/api-handler";
 
-export async function GET(req: NextRequest) {
-  try {
-    const user = await requireAuth(req);
+export const GET = withApiHandler("GET /api/notifications/preferences", async (req) => {
+  const user = await requireAuthOrThrow(req);
 
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  const prefs = await prisma.user.findUnique({
+    where: { id: user.userId },
+    select: { notifyEmail: true, notifyPush: true },
+  });
 
-    const prefs = await prisma.user.findUnique({
-      where: { id: user.userId },
-      select: { notifyEmail: true, notifyPush: true },
-    });
+  return NextResponse.json({ preferences: prefs });
+});
 
-    return NextResponse.json({ preferences: prefs });
-  } catch {
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
-}
+export const PATCH = withApiHandler("PATCH /api/notifications/preferences", async (req) => {
+  const user = await requireAuthOrThrow(req);
 
-export async function PATCH(req: NextRequest) {
-  try {
-    const user = await requireAuth(req);
+  const json = await parseJsonBody(req);
+  if (!json.ok) return json.response;
 
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  const parsed = parseBody(notificationPreferencesSchema, json.body);
+  if (!parsed.ok) return parsed.response;
 
-    const json = await parseJsonBody(req);
-    if (!json.ok) return json.response;
+  const { notifyEmail, notifyPush } = parsed.data;
 
-    const parsed = parseBody(notificationPreferencesSchema, json.body);
-    if (!parsed.ok) return parsed.response;
+  const preferences = await prisma.user.update({
+    where: { id: user.userId },
+    data: {
+      ...(notifyEmail !== undefined && { notifyEmail }),
+      ...(notifyPush !== undefined && { notifyPush }),
+    },
+    select: { notifyEmail: true, notifyPush: true },
+  });
 
-    const { notifyEmail, notifyPush } = parsed.data;
-
-    const preferences = await prisma.user.update({
-      where: { id: user.userId },
-      data: {
-        ...(notifyEmail !== undefined && { notifyEmail }),
-        ...(notifyPush !== undefined && { notifyPush }),
-      },
-      select: { notifyEmail: true, notifyPush: true },
-    });
-
-    return NextResponse.json({ message: "Préférences mises à jour", preferences });
-  } catch {
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
-}
+  return NextResponse.json({ message: "Préférences mises à jour", preferences });
+});

@@ -1,11 +1,13 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(req: NextRequest) {
-  try {
+export const GET = withApiHandler(
+  "GET /api/conversations/unread-count",
+  async (req) => {
     const auth = await requireAuth(req);
     if (!auth) {
       return NextResponse.json({ unreadTotal: 0 });
@@ -22,8 +24,5 @@ export async function GET(req: NextRequest) {
     });
 
     return NextResponse.json({ unreadTotal });
-  } catch (error) {
-    console.error("[GET /api/conversations/unread-count]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

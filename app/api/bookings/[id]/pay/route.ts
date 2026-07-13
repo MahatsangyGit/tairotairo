@@ -1,27 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
 import {
   parseBody,
   parseJsonBody,
   bookingPaySchema,
 } from "@/lib/api-schemas";
-import { capturePaymentToEscrow, PaymentError } from "@/lib/payments";
+import { bookingMutationInclude } from "@/lib/booking-include";
+import { capturePaymentToEscrow } from "@/lib/payments";
 import { prepareBookingForApi } from "@/lib/booking-status";
 
 export const dynamic = "force-dynamic";
 
 // POST - Client paie la réservation (fonds capturés sous séquestre Tairo ampio)
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const POST = withApiHandler(
+  "POST /api/bookings/[id]/pay",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
 
     const { id } = await params;
 
@@ -31,20 +27,14 @@ export async function POST(
     });
 
     if (!booking) {
-      return NextResponse.json(
-        { error: "Réservation introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Réservation introuvable");
     }
 
     const isClient = booking.clientId === user.userId;
     const isAdmin = user.role === "ADMIN";
 
     if (!isClient && !isAdmin) {
-      return NextResponse.json(
-        { error: "Seul le client peut payer cette réservation" },
-        { status: 403 }
-      );
+      throwForbidden("Seul le client peut payer cette réservation");
     }
 
     const json = await parseJsonBody(req);
@@ -61,49 +51,7 @@ export async function POST(
     const updated = await prisma.booking.update({
       where: { id },
       data: { status: "PAID" },
-      include: {
-        service: {
-          select: {
-            id: true,
-            title: true,
-            price: true,
-            category: true,
-            location: true,
-          },
-        },
-        requestResponse: {
-          select: {
-            proposedPrice: true,
-            status: true,
-            request: {
-              select: {
-                id: true,
-                title: true,
-                budget: true,
-                category: true,
-                location: true,
-              },
-            },
-          },
-        },
-        client: {
-          select: { id: true, name: true, phone: true, email: true },
-        },
-        provider: {
-          select: { id: true, name: true, phone: true },
-        },
-        transaction: {
-          select: {
-            id: true,
-            amount: true,
-            status: true,
-            paymentMethod: true,
-            escrowedAt: true,
-            releasedAt: true,
-            refundedAt: true,
-          },
-        },
-      },
+      include: bookingMutationInclude,
     });
 
     return NextResponse.json({
@@ -111,14 +59,5 @@ export async function POST(
       booking: prepareBookingForApi(updated),
       transaction,
     });
-  } catch (error) {
-    if (error instanceof PaymentError) {
-      return NextResponse.json(
-        { error: error.message },
-        { status: error.status }
-      );
-    }
-    console.error("[POST /api/bookings/[id]/pay]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

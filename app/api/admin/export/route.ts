@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withApiHandler } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/admin-auth";
 import { rowsToCsv, csvResponse } from "@/lib/csv-export";
 import {
@@ -105,57 +106,51 @@ function isExportType(value: string | null): value is ExportType {
   return value != null && value in EXPORT_TYPES;
 }
 
-export async function GET(req: NextRequest) {
-  try {
-    const admin = await requireAdmin(req);
-    if (!admin.ok) return admin.response;
+export const GET = withApiHandler("GET /api/admin/export", async (req) => {
+  const auth = await requireAdmin(req);
 
-    const type = req.nextUrl.searchParams.get("type");
+  const type = req.nextUrl.searchParams.get("type");
 
-    if (type === "stats") {
-      const stats = await getAdminStats();
-      const rows: unknown[][] = [
-        ["utilisateurs_clients", stats.users.clients],
-        ["utilisateurs_prestataires", stats.users.providers],
-        ["nouveaux_clients_30j", stats.users.newClients30],
-        ["nouveaux_prestataires_30j", stats.users.newProviders30],
-        ["kyc_approuves", stats.kyc.approved],
-        ["kyc_en_attente", stats.kyc.pending],
-        ["abonnements_actifs", stats.subscriptions.active],
-        ["abonnements_expire_bientot", stats.subscriptions.expiringSoon],
-        ["annonces_total", stats.services.total],
-        ["annonces_disponibles", stats.services.available],
-        ["reservations_total", stats.bookings.total],
-        ["reservations_30j", stats.bookings.last30Days],
-        ["demandes_ouvertes", stats.requests.open],
-        ["avis_total", stats.reviews.total],
-        ["note_moyenne", stats.reviews.averageRating ?? ""],
-        ["conversations", stats.messaging.conversations],
-        ["messages", stats.messaging.messages],
-        ["transactions_reussies", stats.transactions.successful],
-        ["revenu_total_mga", stats.transactions.totalRevenue],
-        ["genere_le", stats.generatedAt],
-      ];
-      const csv = rowsToCsv(["indicateur", "valeur"], rows);
-      return csvResponse(csv, "statistiques.csv");
-    }
-
-    if (!isExportType(type)) {
-      return NextResponse.json(
-        {
-          error:
-            "Type d'export invalide. Valeurs : providers, services, bookings, clients, subscriptions, stats",
-        },
-        { status: 400 }
-      );
-    }
-
-    const config = EXPORT_TYPES[type];
-    const rows = await config.rows();
-    const csv = rowsToCsv([...config.headers], rows);
-    return csvResponse(csv, config.filename);
-  } catch (error) {
-    console.error("[GET /api/admin/export]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+  if (type === "stats") {
+    const stats = await getAdminStats();
+    const rows: unknown[][] = [
+      ["utilisateurs_clients", stats.users.clients],
+      ["utilisateurs_prestataires", stats.users.providers],
+      ["nouveaux_clients_30j", stats.users.newClients30],
+      ["nouveaux_prestataires_30j", stats.users.newProviders30],
+      ["kyc_approuves", stats.kyc.approved],
+      ["kyc_en_attente", stats.kyc.pending],
+      ["abonnements_actifs", stats.subscriptions.active],
+      ["abonnements_expire_bientot", stats.subscriptions.expiringSoon],
+      ["annonces_total", stats.services.total],
+      ["annonces_disponibles", stats.services.available],
+      ["reservations_total", stats.bookings.total],
+      ["reservations_30j", stats.bookings.last30Days],
+      ["demandes_ouvertes", stats.requests.open],
+      ["avis_total", stats.reviews.total],
+      ["note_moyenne", stats.reviews.averageRating ?? ""],
+      ["conversations", stats.messaging.conversations],
+      ["messages", stats.messaging.messages],
+      ["transactions_reussies", stats.transactions.successful],
+      ["revenu_total_mga", stats.transactions.totalRevenue],
+      ["genere_le", stats.generatedAt],
+    ];
+    const csv = rowsToCsv(["indicateur", "valeur"], rows);
+    return csvResponse(csv, "statistiques.csv");
   }
-}
+
+  if (!isExportType(type)) {
+    return NextResponse.json(
+      {
+        error:
+          "Type d'export invalide. Valeurs : providers, services, bookings, clients, subscriptions, stats",
+      },
+      { status: 400 }
+    );
+  }
+
+  const config = EXPORT_TYPES[type];
+  const rows = await config.rows();
+  const csv = rowsToCsv([...config.headers], rows);
+  return csvResponse(csv, config.filename);
+});

@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
@@ -14,25 +15,17 @@ import {
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
+export const POST = withApiHandler(
+  "POST /api/provider/portfolio/[id]/comments",
+  async (req, ctx) => {
+    const auth = await requireAuthOrThrow(req);
+    requireRole(
+      auth,
+      ["CLIENT", "ADMIN"],
+      "Seuls les clients connectés peuvent commenter le portfolio"
+    );
 
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    if (auth.role !== "CLIENT" && auth.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Seuls les clients connectés peuvent commenter le portfolio" },
-        { status: 403 }
-      );
-    }
-
-    const { id } = await params;
+    const { id } = await ctx.params;
 
     const json = await parseJsonBody(req);
     if (!json.ok) return json.response;
@@ -82,8 +75,5 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("[POST /api/provider/portfolio/[id]/comments]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

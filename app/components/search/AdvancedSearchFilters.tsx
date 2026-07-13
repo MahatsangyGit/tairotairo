@@ -5,7 +5,7 @@ import {
   type SearchSort,
 } from "@/lib/advanced-search";
 
-interface AdvancedSearchFiltersProps {
+export interface AdvancedSearchFiltersProps {
   variant?: "brand" | "amber";
   location: string;
   minPrice: string;

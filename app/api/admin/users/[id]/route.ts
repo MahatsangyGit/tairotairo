@@ -1,4 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { withApiHandler } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/admin-auth";
 import {
   setUserRole,
@@ -14,14 +15,10 @@ import {
 
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-export async function PATCH(req: NextRequest, { params }: RouteParams) {
-  try {
-    const admin = await requireAdmin(req);
-    if (!admin.ok) return admin.response;
+export const PATCH = withApiHandler(
+  "PATCH /api/admin/users/[id]",
+  async (req, { params }) => {
+    const auth = await requireAdmin(req);
 
     const { id } = await params;
 
@@ -34,7 +31,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     const { action, role } = parsed.data;
 
     if (action === "suspend") {
-      const result = await suspendUser(id, admin.auth.userId);
+      const result = await suspendUser(id, auth.userId);
       if (!result.ok) {
         return NextResponse.json({ error: result.error }, { status: result.status });
       }
@@ -62,7 +59,7 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
     }
 
     if (action === "setRole") {
-      const result = await setUserRole(id, admin.auth.userId, role!);
+      const result = await setUserRole(id, auth.userId, role!);
       if (!result.ok) {
         return NextResponse.json({ error: result.error }, { status: result.status });
       }
@@ -73,8 +70,5 @@ export async function PATCH(req: NextRequest, { params }: RouteParams) {
       { error: "Action requise : suspend, unsuspend, unlockLogin ou setRole" },
       { status: 400 }
     );
-  } catch (error) {
-    console.error("[PATCH /api/admin/users/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

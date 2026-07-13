@@ -6,52 +6,13 @@ import { getBookingDisplayInfo } from "@/lib/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import OpenBookingChatButton from "@/components/messages/OpenBookingChatButton";
 import { MapPinIcon } from "@/components/ui/app-icons";
-
-type BookingStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "PAID"
-  | "IN_PROGRESS"
-  | "DONE_PENDING_VALIDATION"
-  | "COMPLETED"
-  | "CANCELLED";
-
-type TransactionStatus =
-  | "PENDING"
-  | "ESCROWED"
-  | "RELEASED"
-  | "REFUNDED"
-  | "FAILED"
-  | "SUCCESS";
-
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  PENDING: "En attente",
-  CONFIRMED: "Confirmé",
-  PAID: "Payé — en attente de démarrage",
-  IN_PROGRESS: "En cours",
-  DONE_PENDING_VALIDATION: "Terminée — à valider",
-  COMPLETED: "Terminé",
-  CANCELLED: "Annulé",
-};
-
-const STATUS_CLASS: Record<BookingStatus, string> = {
-  PENDING: "bg-warning-50 text-warning-700 border-warning-500/20",
-  CONFIRMED: "bg-brand-50 text-brand-700 border-brand-200",
-  PAID: "bg-brand-50 text-brand-700 border-brand-200",
-  IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
-  DONE_PENDING_VALIDATION: "bg-amber-50 text-amber-800 border-amber-200",
-  COMPLETED: "bg-success-50 text-success-700 border-success-500/20",
-  CANCELLED: "bg-error-50 text-error-700 border-red-200",
-};
-
-const PAYMENT_LABEL: Partial<Record<TransactionStatus, string>> = {
-  ESCROWED: "Paiement sécurisé (séquestre)",
-  RELEASED: "Versement au prestataire déclenché",
-  SUCCESS: "Paiement sécurisé (séquestre)",
-  REFUNDED: "Remboursé",
-  FAILED: "Paiement échoué",
-  PENDING: "Paiement en attente",
-};
+import {
+  type BookingStatus,
+  type TransactionStatus,
+  BOOKING_STATUS_CLASS,
+  bookingStatusLabel,
+  paymentStatusLabel,
+} from "@/lib/booking-status";
 
 export interface BookingCardData {
   id: string;
@@ -107,6 +68,9 @@ interface BookingCardProps {
     schedule: { date: string; slotStart?: string | null; slotEnd?: string | null }
   ) => Promise<void> | void;
   busyId?: string | null;
+  /** Prestataire : changer le statut de la réservation. */
+  onStatusChange?: (id: string, status: BookingStatus) => void;
+  updatingId?: string | null;
 }
 
 function toDateInputValue(iso: string | null | undefined): string {
@@ -128,6 +92,8 @@ export default function BookingCard({
   onValidate,
   onScheduleChange,
   busyId,
+  onStatusChange,
+  updatingId,
 }: BookingCardProps) {
   const viewer =
     counterpartyLabel === "Prestataire" ? ("client" as const) : ("provider" as const);
@@ -159,6 +125,7 @@ export default function BookingCard({
       : "bg-brand-50 text-brand-700";
 
   const isBusy = busyId === booking.id;
+  const isUpdating = updatingId === booking.id;
   const canCancel =
     booking.status === "PENDING" ||
     booking.status === "CONFIRMED" ||
@@ -204,9 +171,9 @@ export default function BookingCard({
           <p className="text-muted-foreground text-sm mt-0.5"><MapPinIcon /> {display.location}</p>
         </div>
         <span
-          className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${STATUS_CLASS[booking.status]}`}
+          className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${BOOKING_STATUS_CLASS[booking.status]}`}
         >
-          {STATUS_LABEL[booking.status]}
+          {bookingStatusLabel(booking.status, viewer)}
         </span>
       </div>
 
@@ -235,12 +202,25 @@ export default function BookingCard({
             </div>
             {counterparty.phone && (
               <div>
-                <p className="text-xs text-muted-foreground mb-0.5">Contact</p>
+                <p className="text-xs text-muted-foreground mb-0.5">
+                  {viewer === "provider" ? "Téléphone" : "Contact"}
+                </p>
                 <a
                   href={`tel:${counterparty.phone}`}
                   className="text-sm font-medium text-brand-600 hover:underline"
                 >
                   {counterparty.phone}
+                </a>
+              </div>
+            )}
+            {viewer === "provider" && booking.client?.email && (
+              <div className="col-span-2">
+                <p className="text-xs text-muted-foreground mb-0.5">Email</p>
+                <a
+                  href={`mailto:${booking.client.email}`}
+                  className="text-sm font-medium text-foreground hover:text-brand-600"
+                >
+                  {booking.client.email}
                 </a>
               </div>
             )}
@@ -315,9 +295,10 @@ export default function BookingCard({
         </div>
       )}
 
-      {booking.transaction && PAYMENT_LABEL[booking.transaction.status] && (
+      {booking.transaction &&
+        paymentStatusLabel(booking.transaction.status, viewer) && (
         <p className="text-xs text-muted-foreground mb-3">
-          {PAYMENT_LABEL[booking.transaction.status]}
+          {paymentStatusLabel(booking.transaction.status, viewer)}
         </p>
       )}
 
@@ -325,6 +306,90 @@ export default function BookingCard({
         {booking.status !== "CANCELLED" && (
           <OpenBookingChatButton bookingId={booking.id} />
         )}
+        {onStatusChange && viewer === "provider" && booking.status === "PENDING" && (
+          <>
+            <button
+              type="button"
+              onClick={() => onStatusChange(booking.id, "CONFIRMED")}
+              disabled={isUpdating}
+              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
+            >
+              {isUpdating ? "..." : "Confirmer"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onStatusChange(booking.id, "CANCELLED")}
+              disabled={isUpdating}
+              className="text-sm text-red-600 font-medium border border-red-200 px-4 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              Refuser
+            </button>
+          </>
+        )}
+        {onStatusChange && viewer === "provider" && booking.status === "CONFIRMED" && (
+          <p className="text-xs text-muted-foreground">
+            En attente du paiement du client. Vous serez notifié dès réception.
+          </p>
+        )}
+        {onStatusChange && viewer === "provider" && booking.status === "PAID" && (
+          <>
+            <button
+              type="button"
+              onClick={() => onStatusChange(booking.id, "IN_PROGRESS")}
+              disabled={isUpdating}
+              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
+            >
+              {isUpdating ? "..." : "Démarrer la prestation"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onStatusChange(booking.id, "CANCELLED")}
+              disabled={isUpdating}
+              className="text-sm text-red-600 font-medium border border-red-200 px-4 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              Annuler
+            </button>
+          </>
+        )}
+        {onStatusChange && viewer === "provider" && booking.status === "IN_PROGRESS" && (
+          <>
+            <button
+              type="button"
+              onClick={() => onStatusChange(booking.id, "DONE_PENDING_VALIDATION")}
+              disabled={isUpdating}
+              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
+            >
+              {isUpdating ? "..." : "Marquer terminé"}
+            </button>
+            <button
+              type="button"
+              onClick={() => onStatusChange(booking.id, "CANCELLED")}
+              disabled={isUpdating}
+              className="text-sm text-red-600 font-medium border border-red-200 px-4 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
+            >
+              Annuler
+            </button>
+          </>
+        )}
+        {onStatusChange && viewer === "provider" && booking.status === "DONE_PENDING_VALIDATION" && (
+          <p className="text-xs text-amber-700">
+            Prestation terminée de votre côté. Le versement sera déclenché après
+            validation du client.
+          </p>
+        )}
+        {onStatusChange &&
+          viewer === "provider" &&
+          booking.status === "COMPLETED" &&
+          booking.transaction?.status === "RELEASED" && (
+            <a
+              href={`/api/bookings/${booking.id}/invoice`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 transition-colors"
+            >
+              Facture (PDF)
+            </a>
+          )}
         {onPay && booking.status === "CONFIRMED" && (
           <button
             type="button"
@@ -354,7 +419,7 @@ export default function BookingCard({
             Modifier la date
           </button>
         )}
-        {onCancel && canCancel && (
+        {onCancel && canCancel && viewer === "client" && (
           <button
             type="button"
             onClick={() => onCancel(booking.id)}
@@ -370,9 +435,13 @@ export default function BookingCard({
         >
           {display.source === "request"
             ? display.archived
-              ? "Historique →"
+              ? viewer === "provider"
+                ? "Historique des propositions →"
+                : "Historique →"
               : "Voir la demande →"
-            : "Voir le service →"}
+            : viewer === "provider"
+              ? "Voir l'annonce →"
+              : "Voir le service →"}
         </Link>
       </div>
     </div>

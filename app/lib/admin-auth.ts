@@ -1,21 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { NextRequest } from "next/server";
+import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import type { JwtPayload } from "@/lib/jwt";
 
-export async function requireAdmin(req: NextRequest) {
-  const auth = await requireAuth(req);
-  if (!auth) {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Non autorisé" }, { status: 401 }),
-    };
-  }
-  if (auth.role !== "ADMIN") {
-    return {
-      ok: false as const,
-      response: NextResponse.json({ error: "Accès réservé aux administrateurs" }, {
-        status: 403,
-      }),
-    };
-  }
-  return { ok: true as const, auth };
+/** Requires an authenticated ADMIN; throws AppError 401/403 otherwise. */
+export async function requireAdmin(req: NextRequest): Promise<JwtPayload> {
+  const auth = await requireAuthOrThrow(req);
+  requireRole(auth, "ADMIN", "Accès réservé aux administrateurs");
+  return auth;
 }

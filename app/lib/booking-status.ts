@@ -139,3 +139,116 @@ export function canReviewBooking(booking: {
   if (status !== "COMPLETED") return false;
   return isBookingPaidViaApp(booking.transaction);
 }
+
+// ── UI labels / filters (source of truth for dashboards & cards) ───────────────
+
+export type BookingViewer = "client" | "provider";
+
+/** Libellés courts (client / badge générique). */
+export const BOOKING_STATUS_LABEL: Record<BookingStatus, string> = {
+  PENDING: "En attente",
+  CONFIRMED: "Confirmé",
+  PAID: "Payé",
+  IN_PROGRESS: "En cours",
+  DONE_PENDING_VALIDATION: "À valider",
+  COMPLETED: "Terminé",
+  CANCELLED: "Annulé",
+};
+
+/** Libellés contextuels côté prestataire. */
+export const BOOKING_STATUS_LABEL_PROVIDER: Record<BookingStatus, string> = {
+  PENDING: "En attente",
+  CONFIRMED: "Confirmé — en attente de paiement",
+  PAID: "Payé — à démarrer",
+  IN_PROGRESS: "En cours",
+  DONE_PENDING_VALIDATION: "Terminée — en attente de validation client",
+  COMPLETED: "Terminé",
+  CANCELLED: "Annulé",
+};
+
+/** Libellés contextuels côté client (carte). */
+export const BOOKING_STATUS_LABEL_CLIENT: Record<BookingStatus, string> = {
+  PENDING: "En attente",
+  CONFIRMED: "Confirmé",
+  PAID: "Payé — en attente de démarrage",
+  IN_PROGRESS: "En cours",
+  DONE_PENDING_VALIDATION: "Terminée — à valider",
+  COMPLETED: "Terminé",
+  CANCELLED: "Annulé",
+};
+
+export function bookingStatusLabel(
+  status: BookingStatus,
+  viewer: BookingViewer = "client"
+): string {
+  if (viewer === "provider") return BOOKING_STATUS_LABEL_PROVIDER[status];
+  return BOOKING_STATUS_LABEL_CLIENT[status];
+}
+
+export const BOOKING_STATUS_CLASS: Record<BookingStatus, string> = {
+  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
+  CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
+  PAID: "bg-brand-50 text-brand-700 border-brand-200",
+  IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
+  DONE_PENDING_VALIDATION: "bg-amber-50 text-amber-800 border-amber-200",
+  COMPLETED: "bg-brand-50 text-brand-700 border-brand-200",
+  CANCELLED: "bg-red-50 text-red-700 border-red-200",
+};
+
+export const PAYMENT_STATUS_LABEL: Partial<Record<TransactionStatus, string>> = {
+  ESCROWED: "Paiement sécurisé (séquestre)",
+  RELEASED: "Versement au prestataire déclenché",
+  SUCCESS: "Paiement sécurisé (séquestre)",
+  REFUNDED: "Remboursé",
+  FAILED: "Paiement échoué",
+  PENDING: "Paiement en attente",
+};
+
+export const PAYMENT_STATUS_LABEL_PROVIDER: Partial<
+  Record<TransactionStatus, string>
+> = {
+  ESCROWED:
+    "Paiement sécurisé (séquestre) — fonds débloqués à la validation client",
+  RELEASED: "Fonds versés sur votre compte",
+  SUCCESS: "Paiement sécurisé (séquestre)",
+  REFUNDED: "Paiement remboursé au client",
+  FAILED: "Paiement échoué",
+  PENDING: "Paiement en attente",
+};
+
+export function paymentStatusLabel(
+  status: TransactionStatus,
+  viewer: BookingViewer = "client"
+): string | undefined {
+  if (viewer === "provider") return PAYMENT_STATUS_LABEL_PROVIDER[status];
+  return PAYMENT_STATUS_LABEL[status];
+}
+
+export const CLIENT_BOOKING_FILTERS: {
+  label: string;
+  value: BookingStatus | "ALL";
+}[] = [
+  { label: "Toutes", value: "ALL" },
+  { label: "En attente", value: "PENDING" },
+  { label: "À payer", value: "CONFIRMED" },
+  { label: "Payées", value: "PAID" },
+  { label: "En cours", value: "IN_PROGRESS" },
+  { label: "À valider", value: "DONE_PENDING_VALIDATION" },
+  { label: "Terminées", value: "COMPLETED" },
+  { label: "Annulées", value: "CANCELLED" },
+];
+
+export const PROVIDER_BOOKING_FILTERS: {
+  label: string;
+  value: BookingStatus | "ALL";
+}[] = [
+  { label: "Toutes", value: "ALL" },
+  { label: "En attente", value: "PENDING" },
+  { label: "À payer", value: "CONFIRMED" },
+  { label: "À démarrer", value: "PAID" },
+  { label: "En cours", value: "IN_PROGRESS" },
+  { label: "À valider", value: "DONE_PENDING_VALIDATION" },
+  { label: "Terminées", value: "COMPLETED" },
+  { label: "Annulées", value: "CANCELLED" },
+];
+

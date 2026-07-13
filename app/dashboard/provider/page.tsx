@@ -4,67 +4,20 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
-import { getBookingDisplayInfo } from "@/lib/booking-display";
-import { formatSchedule } from "@/lib/datetime-slot";
-import { MapPinIcon } from "@/components/ui/app-icons";
+import BookingCard, { type BookingCardData } from "@/components/booking/BookingCard";
+import {
+  type BookingStatus,
+  type TransactionStatus,
+  bookingStatusLabel,
+  PROVIDER_BOOKING_FILTERS,
+} from "@/lib/booking-status";
+import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type BookingStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "PAID"
-  | "IN_PROGRESS"
-  | "DONE_PENDING_VALIDATION"
-  | "COMPLETED"
-  | "CANCELLED";
-
-type TransactionStatus =
-  | "PENDING"
-  | "ESCROWED"
-  | "RELEASED"
-  | "REFUNDED"
-  | "FAILED"
-  | "SUCCESS";
-
-interface BookingClient {
-  id: string;
-  name: string;
-  phone: string | null;
-  email: string;
-}
-
-interface Booking {
-  id: string;
-  status: BookingStatus;
-  date: string | null;
-  slotStart?: string | null;
-  slotEnd?: string | null;
+interface Booking extends BookingCardData {
   createdAt: string;
-  service: {
-    id: string;
-    title: string;
-    price: number;
-    category: string;
-    location: string;
-  } | null;
-  requestResponse: {
-    proposedPrice: number | null;
-    request: {
-      id: string;
-      title: string;
-      budget: number;
-      category: string;
-      location: string;
-    } | null;
-  } | null;
-  displayTitle?: string | null;
-  displayPrice?: number | null;
-  displayCategory?: string | null;
-  displayLocation?: string | null;
-  displaySource?: string | null;
-  displayTargetId?: string | null;
-  client: BookingClient;
+  client: { id: string; name: string; phone: string | null; email: string };
   transaction?: {
     id: string;
     amount: number;
@@ -73,241 +26,10 @@ interface Booking {
   } | null;
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  PENDING: "En attente",
-  CONFIRMED: "Confirmé — en attente de paiement",
-  PAID: "Payé — à démarrer",
-  IN_PROGRESS: "En cours",
-  DONE_PENDING_VALIDATION: "Terminée — en attente de validation client",
-  COMPLETED: "Terminé",
-  CANCELLED: "Annulé",
-};
-
-const STATUS_CLASS: Record<BookingStatus, string> = {
-  PENDING: "bg-yellow-50 text-yellow-700 border-yellow-200",
-  CONFIRMED: "bg-blue-50 text-blue-700 border-blue-200",
-  PAID: "bg-brand-50 text-brand-700 border-brand-200",
-  IN_PROGRESS: "bg-blue-50 text-blue-700 border-blue-200",
-  DONE_PENDING_VALIDATION: "bg-amber-50 text-amber-800 border-amber-200",
-  COMPLETED: "bg-brand-50 text-brand-700 border-brand-200",
-  CANCELLED: "bg-red-50 text-red-700 border-red-200",
-};
-
-const PAYMENT_LABEL: Partial<Record<TransactionStatus, string>> = {
-  ESCROWED: "Paiement sécurisé (séquestre) — fonds débloqués à la validation client",
-  RELEASED: "Fonds versés sur votre compte",
-  SUCCESS: "Paiement sécurisé (séquestre)",
-  REFUNDED: "Paiement remboursé au client",
-  FAILED: "Paiement échoué",
-  PENDING: "Paiement en attente",
-};
-
-const FILTERS: { label: string; value: BookingStatus | "ALL" }[] = [
-  { label: "Toutes", value: "ALL" },
-  { label: "En attente", value: "PENDING" },
-  { label: "À payer", value: "CONFIRMED" },
-  { label: "À démarrer", value: "PAID" },
-  { label: "En cours", value: "IN_PROGRESS" },
-  { label: "À valider", value: "DONE_PENDING_VALIDATION" },
-  { label: "Terminées", value: "COMPLETED" },
-  { label: "Annulées", value: "CANCELLED" },
-];
-
 const REQUEST_TIMEOUT_MS =
   process.env.NODE_ENV === "production" ? 20_000 : null;
 
 // ─── Sous-composants ──────────────────────────────────────────────────────────
-
-function StatusBadge({ status }: { status: BookingStatus }) {
-  return (
-    <span
-      className={`text-xs font-medium px-2.5 py-1 rounded-full border ${STATUS_CLASS[status]}`}
-    >
-      {STATUS_LABEL[status]}
-    </span>
-  );
-}
-
-function BookingCard({
-  booking,
-  onStatusChange,
-  updatingId,
-}: {
-  booking: Booking;
-  onStatusChange: (id: string, status: BookingStatus) => void;
-  updatingId: string | null;
-}) {
-  const display = getBookingDisplayInfo(booking, { viewer: "provider" });
-  const date = formatSchedule(
-    booking.date,
-    booking.slotStart,
-    booking.slotEnd
-  );
-  const isUpdating = updatingId === booking.id;
-
-  const categoryClass =
-    display.source === "request"
-      ? "bg-amber-50 text-amber-800"
-      : "bg-brand-50 text-brand-700";
-
-  return (
-    <div className="bg-card rounded-2xl border border-border shadow-sm p-6">
-      <div className="flex items-start justify-between gap-4 mb-4">
-        <div>
-          <div className="flex flex-wrap items-center gap-2 mb-2">
-            <span
-              className={`inline-block text-xs font-medium px-2.5 py-1 rounded-full ${categoryClass}`}
-            >
-              {display.category}
-            </span>
-            {display.source === "request" && (
-              <span className="text-xs text-amber-700 font-medium">
-                {display.archived ? "Demande supprimée" : "Via demande"}
-              </span>
-            )}
-          </div>
-          <h3 className="font-semibold text-foreground">{display.title}</h3>
-          <p className="text-muted-foreground text-sm mt-0.5"><MapPinIcon /> {display.location}</p>
-        </div>
-        <StatusBadge status={booking.status} />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4 py-4 border-t border-b border-gray-100 mb-4">
-        <div>
-          <p className="text-xs text-muted-foreground mb-0.5">Date prévue</p>
-          <p className="text-sm font-medium text-foreground">{date}</p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-0.5">Prix</p>
-          <p className="text-sm font-medium text-brand-600">
-            {display.price.toLocaleString("fr-MG")} Ar
-          </p>
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-0.5">Client</p>
-          <p className="text-sm font-medium text-foreground">{booking.client.name}</p>
-        </div>
-        {booking.client.phone && (
-          <div>
-            <p className="text-xs text-muted-foreground mb-0.5">Téléphone</p>
-            <a
-              href={`tel:${booking.client.phone}`}
-              className="text-sm font-medium text-brand-600 hover:underline"
-            >
-              {booking.client.phone}
-            </a>
-          </div>
-        )}
-        <div className="col-span-2">
-          <p className="text-xs text-muted-foreground mb-0.5">Email</p>
-          <a
-            href={`mailto:${booking.client.email}`}
-            className="text-sm font-medium text-foreground hover:text-brand-600"
-          >
-            {booking.client.email}
-          </a>
-        </div>
-      </div>
-
-      {booking.transaction && PAYMENT_LABEL[booking.transaction.status] && (
-        <p className="text-xs text-muted-foreground mb-3">
-          {PAYMENT_LABEL[booking.transaction.status]}
-        </p>
-      )}
-
-      <div className="flex flex-wrap items-center gap-2">
-        {booking.status === "PENDING" && (
-          <>
-            <button
-              onClick={() => onStatusChange(booking.id, "CONFIRMED")}
-              disabled={isUpdating}
-              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
-            >
-              {isUpdating ? "..." : "Confirmer"}
-            </button>
-            <button
-              onClick={() => onStatusChange(booking.id, "CANCELLED")}
-              disabled={isUpdating}
-              className="bg-card text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              Refuser
-            </button>
-          </>
-        )}
-        {booking.status === "CONFIRMED" && (
-          <p className="text-xs text-muted-foreground">
-            En attente du paiement du client. Vous serez notifié dès réception.
-          </p>
-        )}
-        {booking.status === "PAID" && (
-          <>
-            <button
-              onClick={() => onStatusChange(booking.id, "IN_PROGRESS")}
-              disabled={isUpdating}
-              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
-            >
-              {isUpdating ? "..." : "Démarrer la prestation"}
-            </button>
-            <button
-              onClick={() => onStatusChange(booking.id, "CANCELLED")}
-              disabled={isUpdating}
-              className="bg-card text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              Annuler
-            </button>
-          </>
-        )}
-        {booking.status === "IN_PROGRESS" && (
-          <>
-            <button
-              onClick={() => onStatusChange(booking.id, "DONE_PENDING_VALIDATION")}
-              disabled={isUpdating}
-              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 disabled:opacity-50 transition-colors"
-            >
-              {isUpdating ? "..." : "Marquer terminé"}
-            </button>
-            <button
-              onClick={() => onStatusChange(booking.id, "CANCELLED")}
-              disabled={isUpdating}
-              className="bg-card text-red-600 px-4 py-2 rounded-lg text-sm font-medium border border-red-200 hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              Annuler
-            </button>
-          </>
-        )}
-        {booking.status === "DONE_PENDING_VALIDATION" && (
-          <p className="text-xs text-amber-700">
-            Prestation terminée de votre côté. Le versement sera déclenché après
-            validation du client.
-          </p>
-        )}
-        {booking.status === "COMPLETED" &&
-          booking.transaction?.status === "RELEASED" && (
-            <a
-              href={`/api/bookings/${booking.id}/invoice`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-brand-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
-            >
-              Facture (PDF)
-            </a>
-          )}
-        <Link
-          href={display.href}
-          className="text-sm text-brand-600 font-medium hover:underline ml-auto"
-        >
-          {display.source === "request"
-            ? display.archived
-              ? "Historique des propositions →"
-              : "Voir la demande →"
-            : "Voir l'annonce →"}
-        </Link>
-      </div>
-    </div>
-  );
-}
 
 function StatCard({
   label,
@@ -386,27 +108,16 @@ export default function ProviderDashboardPage() {
       if (REQUEST_TIMEOUT_MS != null) {
         timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
       }
-      const res = await fetch("/api/bookings?limit=12", {
+      const data = await apiFetch<{
+        role?: string;
+        bookings: Booking[];
+      }>("/api/bookings?limit=12", {
         cache: "no-store",
         signal: controller.signal,
+        router,
       });
 
-      const data = await res
-        .json()
-        .catch(() => ({ error: "Réponse serveur invalide" }));
-
       if (fetchSeq !== fetchSeqRef.current) return;
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        if (!options?.silent) {
-          setError(data.error ?? "Erreur lors du chargement");
-        }
-        return;
-      }
 
       if (data.role !== "PROVIDER" && data.role !== "ADMIN") {
         router.push("/dashboard/client");
@@ -420,6 +131,8 @@ export default function ProviderDashboardPage() {
       if (options?.silent) return;
       if (err instanceof DOMException && err.name === "AbortError") {
         setError("Le serveur met trop de temps à répondre. Réessayez.");
+      } else if (err instanceof ApiClientError) {
+        if (err.status !== 401) setError(err.message);
       } else {
         setError("Une erreur est survenue");
       }
@@ -456,22 +169,10 @@ export default function ProviderDashboardPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/bookings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setActionError(data.error ?? "Impossible de mettre à jour le statut");
-        return;
-      }
+      const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
+        `/api/bookings/${id}`,
+        { method: "PATCH", body: { status }, router }
+      );
 
       if (data.booking) {
         setBookings((prev) =>
@@ -482,8 +183,12 @@ export default function ProviderDashboardPage() {
           prev.map((b) => (b.id === id ? { ...b, status } : b))
         );
       }
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setUpdatingId(null);
     }
@@ -571,7 +276,7 @@ export default function ProviderDashboardPage() {
         {!loading && !error && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
             <StatCard
-              label={STATUS_LABEL.PENDING}
+              label={bookingStatusLabel("PENDING", "provider")}
               value={counts.PENDING ?? 0}
               tone={pendingCount > 0 ? "warning" : "default"}
             />
@@ -583,7 +288,11 @@ export default function ProviderDashboardPage() {
               label="En cours"
               value={(counts.IN_PROGRESS ?? 0) + (counts.DONE_PENDING_VALIDATION ?? 0)}
             />
-            <StatCard label={STATUS_LABEL.COMPLETED} value={counts.COMPLETED ?? 0} tone="success" />
+            <StatCard
+              label={bookingStatusLabel("COMPLETED", "provider")}
+              value={counts.COMPLETED ?? 0}
+              tone="success"
+            />
           </div>
         )}
 
@@ -591,7 +300,7 @@ export default function ProviderDashboardPage() {
           <div className="mb-3">
             <p className="text-xs uppercase tracking-wide text-muted-foreground mb-2">Filtrer les réservations</p>
           <div className="flex flex-wrap gap-2 mb-6">
-            {FILTERS.map((f) => (
+            {PROVIDER_BOOKING_FILTERS.map((f) => (
               <button
                 key={f.value}
                 onClick={() => setActiveFilter(f.value)}
@@ -671,6 +380,7 @@ export default function ProviderDashboardPage() {
               <BookingCard
                 key={booking.id}
                 booking={booking}
+                counterpartyLabel="Client"
                 onStatusChange={handleStatusChange}
                 updatingId={updatingId}
               />

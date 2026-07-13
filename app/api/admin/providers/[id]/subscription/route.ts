@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withApiHandler } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/admin-auth";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import { activateProviderSubscription } from "@/lib/activate-provider-subscription";
@@ -12,14 +13,10 @@ import {
 
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-export async function POST(req: NextRequest, { params }: RouteParams) {
-  try {
-    const admin = await requireAdmin(req);
-    if (!admin.ok) return admin.response;
+export const POST = withApiHandler(
+  "POST /api/admin/providers/[id]/subscription",
+  async (req, { params }) => {
+    const auth = await requireAdmin(req);
 
     const { id } = await params;
 
@@ -51,16 +48,13 @@ export async function POST(req: NextRequest, { params }: RouteParams) {
       subscription: activation.subscription,
       spotlightEnabled: activation.spotlightEnabled,
     });
-  } catch (error) {
-    console.error("[POST /api/admin/providers/[id]/subscription]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    const admin = await requireAdmin(req);
-    if (!admin.ok) return admin.response;
+export const DELETE = withApiHandler(
+  "DELETE /api/admin/providers/[id]/subscription",
+  async (req, { params }) => {
+    const auth = await requireAdmin(req);
 
     const { id } = await params;
 
@@ -68,8 +62,5 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
     await disableProviderHomepageSpotlight(id);
 
     return NextResponse.json({ message: "Abonnement retiré et mises en avant désactivées" });
-  } catch (error) {
-    console.error("[DELETE /api/admin/providers/[id]/subscription]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

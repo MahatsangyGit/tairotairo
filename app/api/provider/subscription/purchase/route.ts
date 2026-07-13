@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 import { assertEmailVerified } from "@/lib/email-verification";
 import { activateProviderSubscription } from "@/lib/activate-provider-subscription";
 import {
@@ -9,7 +10,6 @@ import {
   isValidMgPhone,
   normalizeMgPhone,
 } from "@/lib/subscription-plans";
-import { serializeSubscription } from "@/lib/subscription";
 import {
   parseBody,
   parseJsonBody,
@@ -23,16 +23,11 @@ function generateReferenceId(): string {
   return `SUB-${Date.now()}-${suffix}`;
 }
 
-export async function POST(req: NextRequest) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    if (auth.role !== "PROVIDER") {
-      return NextResponse.json({ error: "Réservé aux prestataires" }, { status: 403 });
-    }
+export const POST = withApiHandler(
+  "POST /api/provider/subscription/purchase",
+  async (req) => {
+    const auth = await requireAuthOrThrow(req);
+    requireRole(auth, "PROVIDER", "Réservé aux prestataires");
 
     const emailCheck = await assertEmailVerified(auth.userId, auth.role);
     if (!emailCheck.ok) {
@@ -128,8 +123,5 @@ export async function POST(req: NextRequest) {
       subscription: activation.subscription,
       spotlightEnabled: activation.spotlightEnabled,
     });
-  } catch (error) {
-    console.error("[POST /api/provider/subscription/purchase]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

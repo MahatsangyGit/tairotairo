@@ -4,7 +4,7 @@ import {
   shouldEnforceCsrf,
 } from "@/lib/csrf";
 import {
-  MAX_API_BODY_BYTES,
+  maxBodyBytesForPath,
   PAYLOAD_TOO_LARGE_MESSAGE,
 } from "@/lib/request-limits";
 import { logSecurityEvent } from "@/lib/security-audit";
@@ -46,7 +46,11 @@ export function rejectOversizedApiBody(
   }
 
   const contentLength = parseInt(getHeader(headers, "content-length") ?? "0", 10);
-  return contentLength > MAX_API_BODY_BYTES;
+  if (!Number.isFinite(contentLength) || contentLength <= 0) {
+    return false;
+  }
+
+  return contentLength > maxBodyBytesForPath(pathname);
 }
 
 export function rejectInvalidCsrf(

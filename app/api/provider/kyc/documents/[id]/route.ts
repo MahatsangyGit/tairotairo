@@ -1,24 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 import { deleteKycFile, readKycFile } from "@/lib/kyc-storage";
 import { getProviderKycPayload, resetProviderKycIfIncomplete } from "@/lib/provider-kyc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
+export const GET = withApiHandler(
+  "GET /api/provider/kyc/documents/[id]",
+  async (req, ctx) => {
+    const auth = await requireAuthOrThrow(req);
+    const { id } = await ctx.params;
 
-export async function GET(req: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    const { id } = await params;
     const doc = await prisma.providerKycDocument.findUnique({
       where: { id },
     });
@@ -39,24 +34,16 @@ export async function GET(req: NextRequest, { params }: RouteParams) {
         "Cache-Control": "private, no-store",
       },
     });
-  } catch (error) {
-    console.error("[GET /api/provider/kyc/documents/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
-export async function DELETE(req: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const DELETE = withApiHandler(
+  "DELETE /api/provider/kyc/documents/[id]",
+  async (req, ctx) => {
+    const auth = await requireAuthOrThrow(req);
+    requireRole(auth, ["PROVIDER", "ADMIN"], "Accès refusé");
 
-    if (auth.role !== "PROVIDER" && auth.role !== "ADMIN") {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
-    }
-
-    const { id } = await params;
+    const { id } = await ctx.params;
     const doc = await prisma.providerKycDocument.findUnique({
       where: { id },
     });
@@ -81,8 +68,5 @@ export async function DELETE(req: NextRequest, { params }: RouteParams) {
 
     const kyc = await getProviderKycPayload(doc.userId);
     return NextResponse.json({ message: "Document supprimé", kyc });
-  } catch (error) {
-    console.error("[DELETE /api/provider/kyc/documents/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

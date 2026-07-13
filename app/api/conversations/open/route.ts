@@ -1,21 +1,24 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 import { assertEmailVerified } from "@/lib/email-verification";
 import {
   conversationPath,
   resolveConversationPair,
   upsertConversationForPair,
 } from "@/lib/conversations";
-import { parseJsonBody, parseBody, openConversationSchema } from "@/lib/api-schemas";
+import {
+  parseJsonBody,
+  parseBody,
+  openConversationSchema,
+} from "@/lib/api-schemas";
 
 // POST — Ouvrir ou créer une conversation (réservation, ou contact direct)
-export async function POST(req: NextRequest) {
-  try {
-    const auth = await requireAuth(req);
-    if (!auth) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const POST = withApiHandler(
+  "POST /api/conversations/open",
+  async (req) => {
+    const auth = await requireAuthOrThrow(req);
 
     const emailCheck = await assertEmailVerified(auth.userId, auth.role);
     if (!emailCheck.ok) {
@@ -63,8 +66,5 @@ export async function POST(req: NextRequest) {
       conversationId: conversation.id,
       href,
     });
-  } catch (error) {
-    console.error("[POST /api/conversations/open]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

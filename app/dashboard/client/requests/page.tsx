@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
@@ -10,6 +10,8 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import ListingFormFields from "@/components/listings/ListingFormFields";
 import { syncListingCover } from "@/lib/listing-cover-sync";
+import { useListingCrud } from "@/hooks/useListingCrud";
+import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
 
 interface ServiceRequest {
   id: string;
@@ -55,55 +57,53 @@ const EMPTY_FORM: RequestForm = {
 export default function ClientRequestsPage() {
   const router = useRouter();
 
-  const [requests, setRequests] = useState<ServiceRequest[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    items: requests,
+    setItems: setRequests,
+    loading,
+    error,
+    fetchList: fetchRequests,
+    showForm,
+    setShowForm,
+    editingId,
+    setEditingId,
+  } = useListingCrud<ServiceRequest>({
+    listUrl: "/api/requests?mine=true",
+    listKey: "requests",
+    router,
+    loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+    forbiddenRedirect: "/dashboard/provider",
+  });
+
   const [actionError, setActionError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<RequestForm>(EMPTY_FORM);
-  const [showForm, setShowForm] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [removeCover, setRemoveCover] = useState(false);
   const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
+  const formSectionRef = useRef<HTMLDivElement>(null);
+
+  const focusListingForm = useCallback(() => {
+    formSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    const titleInput = document.getElementById(
+      "listing-title"
+    ) as HTMLInputElement | null;
+    titleInput?.focus({ preventScroll: true });
+  }, []);
+
+  useEffect(() => {
+    if (!showForm) return;
+    const id = window.setTimeout(focusListingForm, 50);
+    return () => window.clearTimeout(id);
+  }, [showForm, editingId, focusListingForm]);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
   const minDateStr = minDate.toISOString().split("T")[0];
-
-  const fetchRequests = useCallback(async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch("/api/requests?mine=true");
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login?callbackUrl=/dashboard/client/requests");
-          return;
-        }
-        if (res.status === 403) {
-          router.push("/dashboard/provider");
-          return;
-        }
-        setError(data.error ?? "Erreur lors du chargement");
-        return;
-      }
-
-      setRequests(data.requests);
-    } catch {
-      setError("Une erreur est survenue");
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
-
-  useEffect(() => {
-    fetchRequests();
-  }, [fetchRequests]);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -167,28 +167,17 @@ export default function ClientRequestsPage() {
             : null,
       };
 
-      const res = editingId
-        ? await fetch(`/api/requests/${editingId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          })
-        : await fetch("/api/requests", {
+      const data = editingId
+        ? await apiFetchJson<{ request: ServiceRequest }>(
+            `/api/requests/${editingId}`,
+            { method: "PATCH", body: payload, router, loginPath: "/auth/login?callbackUrl=/dashboard/client/requests" }
+          )
+        : await apiFetchJson<{ request: ServiceRequest }>("/api/requests", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: payload,
+            router,
+            loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
           });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login?callbackUrl=/dashboard/client/requests");
-          return;
-        }
-        setActionError(data.error ?? "Erreur lors de l'enregistrement");
-        return;
-      }
 
       const savedId = editingId ?? data.request.id;
       const coverSync = await syncListingCover("request", savedId, {
@@ -204,21 +193,32 @@ export default function ClientRequestsPage() {
         );
       }
 
-      const refreshRes = await fetch("/api/requests?mine=true");
-      const refreshData = await refreshRes.json();
-      if (refreshRes.ok) {
-        setRequests(refreshData.requests);
-      } else if (editingId) {
-        setRequests((prev) =>
-          prev.map((r) => (r.id === editingId ? data.request : r))
+      try {
+        const refreshData = await apiFetch<{ requests: ServiceRequest[] }>(
+          "/api/requests?mine=true",
+          {
+            router,
+            loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+          }
         );
-      } else {
-        setRequests((prev) => [data.request, ...prev]);
+        setRequests(refreshData.requests);
+      } catch {
+        if (editingId) {
+          setRequests((prev) =>
+            prev.map((r) => (r.id === editingId ? data.request : r))
+          );
+        } else {
+          setRequests((prev) => [data.request, ...prev]);
+        }
       }
 
       if (coverSync.ok) resetForm();
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setSaving(false);
     }
@@ -228,24 +228,25 @@ export default function ClientRequestsPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/requests/${request.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ open: !request.open }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        setActionError(data.error ?? "Impossible de modifier le statut");
-        return;
-      }
+      const data = await apiFetchJson<{ request: ServiceRequest }>(
+        `/api/requests/${request.id}`,
+        {
+          method: "PATCH",
+          body: { open: !request.open },
+          router,
+          loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+        }
+      );
 
       setRequests((prev) =>
         prev.map((r) => (r.id === request.id ? data.request : r))
       );
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     }
   };
 
@@ -253,19 +254,21 @@ export default function ClientRequestsPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/requests/${id}`, { method: "DELETE" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setActionError(data.error ?? "Impossible de supprimer");
-        return;
-      }
+      await apiFetchJson(`/api/requests/${id}`, {
+        method: "DELETE",
+        router,
+        loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+      });
 
       setRequests((prev) => prev.filter((r) => r.id !== id));
       if (editingId === id) resetForm();
       setDeleteTarget(null);
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     }
   };
 
@@ -287,6 +290,7 @@ export default function ClientRequestsPage() {
 
         {!showForm ? (
           <button
+            type="button"
             onClick={() => {
               setShowForm(true);
               setEditingId(null);
@@ -300,7 +304,11 @@ export default function ClientRequestsPage() {
             + Nouvelle demande
           </button>
         ) : (
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6">
+          <div
+            ref={formSectionRef}
+            id="listing-form"
+            className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6 scroll-mt-24"
+          >
             <h2 className="font-semibold text-foreground mb-4">
               {editingId ? "Modifier la demande" : "Nouvelle demande de service"}
             </h2>
@@ -404,7 +412,7 @@ export default function ClientRequestsPage() {
           <div className="text-center py-16">
             <p className="text-red-500 mb-4">{error}</p>
             <button
-              onClick={fetchRequests}
+              onClick={() => fetchRequests()}
               className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
@@ -492,6 +500,7 @@ export default function ClientRequestsPage() {
                   </Link>
                   <button
                     onClick={() => startEdit(request)}
+                    type="button"
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-amber-400"
                   >
                     Modifier

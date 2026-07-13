@@ -1,17 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const PATCH = withApiHandler(
+  "PATCH /api/notifications/[id]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
 
     const { id } = await params;
 
@@ -20,10 +15,7 @@ export async function PATCH(
     });
 
     if (!notification || notification.userId !== user.userId) {
-      return NextResponse.json(
-        { error: "Notification introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Notification introuvable");
     }
 
     const updated = await prisma.notification.update({
@@ -32,8 +24,5 @@ export async function PATCH(
     });
 
     return NextResponse.json({ notification: updated });
-  } catch (error) {
-    console.error("[PATCH /api/notifications/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

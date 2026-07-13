@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withApiHandler } from "@/lib/api-handler";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -19,7 +20,7 @@ async function checkRedis(): Promise<boolean> {
   }
 }
 
-export async function GET() {
+export const GET = withApiHandler("GET /api/health", async () => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     const redisOk = await checkRedis();
@@ -42,4 +43,4 @@ export async function GET() {
       { status: 503 }
     );
   }
-}
+});

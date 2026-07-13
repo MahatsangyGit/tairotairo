@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { requireAuth } from "@/lib/auth";
+import { NextResponse } from "next/server";
+import { requireAuthOrThrow } from "@/lib/auth";
 import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth-cookie";
 import {
   generateCsrfToken,
@@ -8,13 +8,10 @@ import {
 } from "@/lib/csrf";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
 import { bumpTokenVersion } from "@/lib/token-version";
+import { withApiHandler } from "@/lib/api-handler";
 
-export async function POST(req: NextRequest) {
-  const auth = await requireAuth(req);
-
-  if (!auth) {
-    return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-  }
+export const POST = withApiHandler("POST /api/auth/logout", async (req) => {
+  const auth = await requireAuthOrThrow(req);
 
   await bumpTokenVersion(auth.userId);
 
@@ -29,4 +26,4 @@ export async function POST(req: NextRequest) {
   response.cookies.set(getCsrfCookieName(), freshCsrf, getCsrfCookieOptions());
 
   return response;
-}
+});

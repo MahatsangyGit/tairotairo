@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
 import {
   BookingStatus,
   canTransitionStatus,
@@ -15,71 +16,23 @@ import {
 import {
   refundEscrowToClient,
   releaseEscrowToProvider,
-  PaymentError,
 } from "@/lib/payments";
 import {
   bookingStatusPatchSchema,
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
+import { bookingMutationInclude } from "@/lib/booking-include";
 
 export const dynamic = "force-dynamic";
 
-const bookingInclude = {
-  service: {
-    select: {
-      id: true,
-      title: true,
-      price: true,
-      category: true,
-      location: true,
-    },
-  },
-  requestResponse: {
-    select: {
-      proposedPrice: true,
-      status: true,
-      request: {
-        select: {
-          id: true,
-          title: true,
-          budget: true,
-          category: true,
-          location: true,
-        },
-      },
-    },
-  },
-  client: {
-    select: { id: true, name: true, phone: true, email: true },
-  },
-  provider: {
-    select: { id: true, name: true, phone: true },
-  },
-  transaction: {
-    select: {
-      id: true,
-      amount: true,
-      status: true,
-      paymentMethod: true,
-      escrowedAt: true,
-      releasedAt: true,
-      refundedAt: true,
-    },
-  },
-};
+const bookingInclude = bookingMutationInclude;
 
 // PATCH - Mettre à jour le statut d'une réservation (workflow paiement inclus)
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const PATCH = withApiHandler(
+  "PATCH /api/bookings/[id]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
 
     const { id } = await params;
 
@@ -103,20 +56,14 @@ export async function PATCH(
     });
 
     if (!booking) {
-      return NextResponse.json(
-        { error: "Réservation introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Réservation introuvable");
     }
 
     const isProvider = booking.providerId === user.userId;
     const isClient = booking.clientId === user.userId;
 
     if (!isProvider && !isClient && user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Vous ne pouvez pas modifier cette réservation" },
-        { status: 403 }
-      );
+      throwForbidden("Vous ne pouvez pas modifier cette réservation");
     }
 
     const currentStatus = normalizeBookingStatus(booking.status);
@@ -148,43 +95,36 @@ export async function PATCH(
         );
       }
 
-      try {
-        const result = await prisma.$transaction(async (tx) => {
-          const updated = await tx.booking.update({
-            where: { id },
-            data: { status: nextStatus },
-            include: bookingInclude,
+      const result = await prisma.$transaction(async (tx) => {
+        const updated = await tx.booking.update({
+          where: { id },
+          data: { status: nextStatus },
+          include: bookingInclude,
+        });
+
+        if (booking.requestResponseId) {
+          await tx.requestResponse.update({
+            where: { id: booking.requestResponseId },
+            data: { status: "COMPLETED" },
           });
-
-          if (booking.requestResponseId) {
-            await tx.requestResponse.update({
-              where: { id: booking.requestResponseId },
-              data: { status: "COMPLETED" },
-            });
-          }
-
-          return updated;
-        });
-
-        // Libérer le séquestre vers le prestataire (hors transaction Prisma pour
-        // éviter les conflits de connexion RLS). On fait remonter l'erreur pour
-        // ne pas laisser la réservation COMPLETED avec un paiement bloqué.
-        if (result.transaction?.status === "ESCROWED") {
-          await releaseEscrowToProvider(id);
         }
 
-        notifyBookingCompleted(id).catch(console.error);
+        return updated;
+      });
 
-        return NextResponse.json({
-          message: "Prestation validée. Versement au prestataire déclenché.",
-          booking: prepareBookingForApi(result),
-        });
-      } catch (err) {
-        if (err instanceof PaymentError) {
-          return NextResponse.json({ error: err.message }, { status: err.status });
-        }
-        throw err;
+      // Libérer le séquestre vers le prestataire (hors transaction Prisma pour
+      // éviter les conflits de connexion RLS). On fait remonter l'erreur pour
+      // ne pas laisser la réservation COMPLETED avec un paiement bloqué.
+      if (result.transaction?.status === "ESCROWED") {
+        await releaseEscrowToProvider(id);
       }
+
+      notifyBookingCompleted(id).catch(console.error);
+
+      return NextResponse.json({
+        message: "Prestation validée. Versement au prestataire déclenché.",
+        booking: prepareBookingForApi(result),
+      });
     }
 
     // Annulation : rembourser le client si les fonds étaient sous séquestre.
@@ -243,8 +183,5 @@ export async function PATCH(
       message: messages[nextStatus] ?? "Réservation mise à jour",
       booking: prepareBookingForApi(updated),
     });
-  } catch (error) {
-    console.error("[PATCH /api/bookings/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

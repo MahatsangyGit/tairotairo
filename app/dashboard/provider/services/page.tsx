@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
@@ -11,6 +11,8 @@ import ListingFormFields from "@/components/listings/ListingFormFields";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 import { MapPinIcon } from "@/components/ui/app-icons";
+import { useListingCrud } from "@/hooks/useListingCrud";
+import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
 
 interface Service {
   id: string;
@@ -56,67 +58,69 @@ const EMPTY_FORM: ServiceForm = {
 export default function ProviderServicesPage() {
   const router = useRouter();
 
-  const [services, setServices] = useState<Service[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+  const {
+    items: services,
+    setItems: setServices,
+    loading,
+    error,
+    fetchList: fetchServices,
+    showForm,
+    setShowForm,
+    editingId,
+    setEditingId,
+  } = useListingCrud<Service>({
+    listUrl: "/api/services?mine=true",
+    listKey: "services",
+    router,
+    forbiddenRedirect: "/dashboard/client",
+  });
+
   const [actionError, setActionError] = useState("");
   const [saving, setSaving] = useState(false);
-  const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ServiceForm>(EMPTY_FORM);
-  const [showForm, setShowForm] = useState(false);
-  const [subscription, setSubscription] = useState<SubscriptionState>(null);
   const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
   const [spotlightBusyId, setSpotlightBusyId] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [removeCover, setRemoveCover] = useState(false);
   const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
+  const [subscription, setSubscription] = useState<SubscriptionState>(null);
+  const formSectionRef = useRef<HTMLDivElement>(null);
 
-  const fetchServices = useCallback(async () => {
-    setLoading(true);
-    setError("");
+  const focusListingForm = useCallback(() => {
+    formSectionRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+    const titleInput = document.getElementById(
+      "listing-title"
+    ) as HTMLInputElement | null;
+    titleInput?.focus({ preventScroll: true });
+  }, []);
 
-    try {
-      const res = await fetch("/api/services?mine=true");
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        if (res.status === 403) {
-          router.push("/dashboard/client");
-          return;
-        }
-        setError(data.error ?? "Erreur lors du chargement");
-        return;
-      }
-
-      setServices(data.services);
-    } catch {
-      setError("Une erreur est survenue");
-    } finally {
-      setLoading(false);
-    }
-  }, [router]);
+  // Après ouverture du formulaire (création ou édition), scroller vers lui.
+  useEffect(() => {
+    if (!showForm) return;
+    const id = window.setTimeout(focusListingForm, 50);
+    return () => window.clearTimeout(id);
+  }, [showForm, editingId, focusListingForm]);
 
   const fetchSpotlight = useCallback(async () => {
     try {
-      const res = await fetch("/api/provider/subscription");
-      const data = await res.json();
-      if (!res.ok) return;
+      const data = await apiFetch<{
+        subscription?: SubscriptionState;
+        spotlight?: SpotlightState;
+      }>("/api/provider/subscription", { router });
       setSubscription(data.subscription ?? null);
       setSpotlight(data.spotlight ?? null);
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
-    fetchServices();
     fetchSpotlight();
-  }, [fetchServices, fetchSpotlight]);
+  }, [fetchSpotlight]);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -163,28 +167,16 @@ export default function ProviderServicesPage() {
         location: form.location,
       };
 
-      const res = editingId
-        ? await fetch(`/api/services/${editingId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
-          })
-        : await fetch("/api/services", {
+      const data = editingId
+        ? await apiFetchJson<{ service: Service }>(
+            `/api/services/${editingId}`,
+            { method: "PATCH", body: payload, router }
+          )
+        : await apiFetchJson<{ service: Service }>("/api/services", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(payload),
+            body: payload,
+            router,
           });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setActionError(data.error ?? "Erreur lors de l'enregistrement");
-        return;
-      }
 
       const savedId = editingId ?? data.service.id;
       const coverSync = await syncListingCover("service", savedId, {
@@ -200,21 +192,29 @@ export default function ProviderServicesPage() {
         );
       }
 
-      const refreshRes = await fetch("/api/services?mine=true");
-      const refreshData = await refreshRes.json();
-      if (refreshRes.ok) {
-        setServices(refreshData.services);
-      } else if (editingId) {
-        setServices((prev) =>
-          prev.map((s) => (s.id === editingId ? data.service : s))
+      try {
+        const refreshData = await apiFetch<{ services: Service[] }>(
+          "/api/services?mine=true",
+          { router }
         );
-      } else {
-        setServices((prev) => [data.service, ...prev]);
+        setServices(refreshData.services);
+      } catch {
+        if (editingId) {
+          setServices((prev) =>
+            prev.map((s) => (s.id === editingId ? data.service : s))
+          );
+        } else {
+          setServices((prev) => [data.service, ...prev]);
+        }
       }
 
       if (coverSync.ok) resetForm();
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setSaving(false);
     }
@@ -224,20 +224,16 @@ export default function ProviderServicesPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/services/${service.id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ available: !service.available }),
-      });
+      const data = await apiFetchJson<{ service: Service }>(
+        `/api/services/${service.id}`,
+        {
+          method: "PATCH",
+          body: { available: !service.available },
+          router,
+        }
+      );
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        setActionError(data.error ?? "Impossible de modifier la disponibilité");
-        return;
-      }
-
-      const updated = data.service as Service;
+      const updated = data.service;
       setServices((prev) =>
         prev.map((s) => (s.id === service.id ? updated : s))
       );
@@ -248,8 +244,12 @@ export default function ProviderServicesPage() {
             : prev
         );
       }
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     }
   };
 
@@ -260,17 +260,11 @@ export default function ProviderServicesPage() {
     const nextId = service.featuredOnHomepage ? null : service.id;
 
     try {
-      const res = await fetch("/api/provider/featured-service", {
+      await apiFetchJson("/api/provider/featured-service", {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serviceId: nextId }),
+        body: { serviceId: nextId },
+        router,
       });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setActionError(data.error ?? "Impossible de modifier la mise en avant");
-        return;
-      }
 
       setServices((prev) =>
         prev.map((s) => ({
@@ -290,8 +284,12 @@ export default function ProviderServicesPage() {
             }
           : prev
       );
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setSpotlightBusyId(null);
     }
@@ -301,19 +299,17 @@ export default function ProviderServicesPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/services/${id}`, { method: "DELETE" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        setActionError(data.error ?? "Impossible de supprimer");
-        return;
-      }
+      await apiFetchJson(`/api/services/${id}`, { method: "DELETE", router });
 
       setServices((prev) => prev.filter((s) => s.id !== id));
       if (editingId === id) resetForm();
       setDeleteTarget(null);
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     }
   };
 
@@ -372,6 +368,7 @@ export default function ProviderServicesPage() {
 
         {!showForm ? (
           <button
+            type="button"
             onClick={() => {
               setShowForm(true);
               setEditingId(null);
@@ -385,7 +382,11 @@ export default function ProviderServicesPage() {
             + Nouvelle annonce
           </button>
         ) : (
-          <div className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6">
+          <div
+            ref={formSectionRef}
+            id="listing-form"
+            className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6 scroll-mt-24"
+          >
             <h2 className="font-semibold text-foreground mb-4">
               {editingId ? "Modifier l'annonce" : "Nouvelle annonce"}
             </h2>
@@ -449,7 +450,7 @@ export default function ProviderServicesPage() {
           <div className="text-center py-16">
             <p className="text-red-500 mb-4">{error}</p>
             <button
-              onClick={fetchServices}
+              onClick={() => fetchServices()}
               className="text-brand-600 font-medium hover:underline"
             >
               Réessayer
@@ -545,12 +546,14 @@ export default function ProviderServicesPage() {
 
                 <div className="flex flex-wrap gap-2 px-6 pb-6 pt-4 border-t border-border">
                   <button
+                    type="button"
                     onClick={() => startEdit(service)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-brand-400"
                   >
                     Modifier
                   </button>
                   <button
+                    type="button"
                     onClick={() => toggleAvailable(service)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-border text-foreground hover:border-brand-400"
                   >

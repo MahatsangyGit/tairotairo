@@ -7,42 +7,18 @@ import BookingCard, { type BookingCardData } from "@/components/booking/BookingC
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import PaymentDialog from "@/components/booking/PaymentDialog";
-
-type BookingStatus =
-  | "PENDING"
-  | "CONFIRMED"
-  | "PAID"
-  | "IN_PROGRESS"
-  | "DONE_PENDING_VALIDATION"
-  | "COMPLETED"
-  | "CANCELLED";
-
-const STATUS_LABEL: Record<BookingStatus, string> = {
-  PENDING: "En attente",
-  CONFIRMED: "Confirmé",
-  PAID: "Payé",
-  IN_PROGRESS: "En cours",
-  DONE_PENDING_VALIDATION: "À valider",
-  COMPLETED: "Terminé",
-  CANCELLED: "Annulé",
-};
+import {
+  type BookingStatus,
+  BOOKING_STATUS_LABEL,
+  CLIENT_BOOKING_FILTERS,
+} from "@/lib/booking-status";
+import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
 
 interface Booking extends BookingCardData {
   createdAt: string;
   provider: { id: string; name: string; phone: string | null };
   review: { id: string; rating: number } | null;
 }
-
-const FILTERS: { label: string; value: BookingStatus | "ALL" }[] = [
-  { label: "Toutes", value: "ALL" },
-  { label: "En attente", value: "PENDING" },
-  { label: "Confirmées", value: "CONFIRMED" },
-  { label: "À payer", value: "CONFIRMED" },
-  { label: "En cours", value: "IN_PROGRESS" },
-  { label: "À valider", value: "DONE_PENDING_VALIDATION" },
-  { label: "Terminées", value: "COMPLETED" },
-  { label: "Annulées", value: "CANCELLED" },
-];
 
 const STAT_CARDS: BookingStatus[] = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
 
@@ -70,17 +46,10 @@ export default function ClientDashboardPage() {
     setError("");
 
     try {
-      const res = await fetch("/api/bookings", { cache: "no-store" });
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setError(data.error ?? "Erreur lors du chargement");
-        return;
-      }
+      const data = await apiFetch<{
+        role?: string;
+        bookings: Booking[];
+      }>("/api/bookings", { cache: "no-store", router });
 
       if (data.role === "PROVIDER") {
         router.push("/dashboard/provider");
@@ -88,8 +57,14 @@ export default function ClientDashboardPage() {
       }
 
       setBookings(data.bookings);
-    } catch {
-      setError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError) {
+        if (err.status !== 401 && !options?.silent) {
+          setError(err.message);
+        }
+      } else if (!options?.silent) {
+        setError("Une erreur est survenue");
+      }
     } finally {
       if (!options?.silent) {
         setLoading(false);
@@ -124,22 +99,10 @@ export default function ClientDashboardPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/bookings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "CANCELLED" }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setActionError(data.error ?? "Impossible d'annuler");
-        return;
-      }
+      const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
+        `/api/bookings/${id}`,
+        { method: "PATCH", body: { status: "CANCELLED" }, router }
+      );
 
       const updated = data.booking ?? { status: "CANCELLED" };
       updateBookingInState(id, {
@@ -147,8 +110,12 @@ export default function ClientDashboardPage() {
         transaction: updated.transaction ?? null,
       });
       setCancelTarget(null);
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setCancellingId(null);
     }
@@ -166,22 +133,14 @@ export default function ClientDashboardPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/bookings/${id}/pay`, {
+      const data = await apiFetchJson<{
+        booking?: Partial<Booking>;
+        transaction?: Booking["transaction"];
+      }>(`/api/bookings/${id}/pay`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ paymentMethod }),
+        body: { paymentMethod },
+        router,
       });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setActionError(data.error ?? "Paiement échoué");
-        return;
-      }
 
       const updated = data.booking ?? { status: "PAID" };
       updateBookingInState(id, {
@@ -189,8 +148,12 @@ export default function ClientDashboardPage() {
         transaction: data.transaction ?? updated.transaction ?? null,
       });
       setPayTarget(null);
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setPayingId(null);
     }
@@ -201,30 +164,22 @@ export default function ClientDashboardPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/bookings/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: "COMPLETED" }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setActionError(data.error ?? "Validation échouée");
-        return;
-      }
+      const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
+        `/api/bookings/${id}`,
+        { method: "PATCH", body: { status: "COMPLETED" }, router }
+      );
 
       const updated = data.booking ?? { status: "COMPLETED" };
       updateBookingInState(id, {
         status: updated.status ?? "COMPLETED",
         transaction: updated.transaction ?? null,
       });
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setValidatingId(null);
     }
@@ -238,22 +193,10 @@ export default function ClientDashboardPage() {
     setActionError("");
 
     try {
-      const res = await fetch(`/api/bookings/${id}/schedule`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(schedule),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        if (res.status === 401) {
-          router.push("/auth/login");
-          return;
-        }
-        setActionError(data.error ?? "Impossible d'enregistrer la date");
-        return;
-      }
+      const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
+        `/api/bookings/${id}/schedule`,
+        { method: "PATCH", body: schedule, router }
+      );
 
       const updated = data.booking;
       if (updated) {
@@ -263,8 +206,12 @@ export default function ClientDashboardPage() {
           slotEnd: updated.slotEnd ?? null,
         });
       }
-    } catch {
-      setActionError("Une erreur est survenue");
+    } catch (err) {
+      if (err instanceof ApiClientError && err.status !== 401) {
+        setActionError(err.message);
+      } else if (!(err instanceof ApiClientError)) {
+        setActionError("Une erreur est survenue");
+      }
     } finally {
       setSchedulingId(null);
     }
@@ -312,7 +259,7 @@ export default function ClientDashboardPage() {
             {STAT_CARDS.map((s) => (
               <div key={s} className="bg-card rounded-xl border border-border p-4 text-center">
                 <p className="text-2xl font-bold text-foreground">{counts[s] ?? 0}</p>
-                <p className="text-xs text-muted-foreground mt-0.5">{STATUS_LABEL[s]}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">{BOOKING_STATUS_LABEL[s]}</p>
               </div>
             ))}
           </div>
@@ -321,12 +268,9 @@ export default function ClientDashboardPage() {
         {/* Filters */}
         {!loading && !error && bookings.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-6">
-            {FILTERS.map((f, i) => {
-              // Évite les doublons de libellé "À payer" / "Confirmées" (même statut)
-              const key = `${f.value}-${i}`;
-              return (
+            {CLIENT_BOOKING_FILTERS.map((f) => (
                 <button
-                  key={key}
+                  key={f.value}
                   onClick={() => setActiveFilter(f.value)}
                   className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
                     activeFilter === f.value
@@ -339,8 +283,7 @@ export default function ClientDashboardPage() {
                     ? ` (${counts[f.value]})`
                     : ""}
                 </button>
-              );
-            })}
+            ))}
           </div>
         )}
 

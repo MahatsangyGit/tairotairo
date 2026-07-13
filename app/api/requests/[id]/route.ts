@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { getAuthUser, requireAuth } from "@/lib/auth";
+import { getAuthUser, requireAuthOrThrow } from "@/lib/auth";
+import {
+  withApiHandler,
+  throwForbidden,
+  throwNotFound,
+} from "@/lib/api-handler";
 import { canViewRequestClientPhone } from "@/lib/contact-privacy";
 import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
 import { withCoverImageUrl } from "@/lib/listing-cover";
@@ -16,11 +21,9 @@ import {
 } from "@/lib/api-schemas";
 
 // GET - Détail d'une demande
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+export const GET = withApiHandler(
+  "GET /api/requests/[id]",
+  async (req, { params }) => {
     const { id } = await params;
     const viewer = await getAuthUser(req);
 
@@ -39,7 +42,7 @@ export async function GET(
     });
 
     if (!request) {
-      return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+      throwNotFound("Demande introuvable");
     }
 
     const showClientPhone = await canViewRequestClientPhone(
@@ -60,24 +63,14 @@ export async function GET(
     return NextResponse.json({
       request: withCoverImageUrl("request", { ...requestFields, client }),
     });
-  } catch (error) {
-    console.error("[GET /api/requests/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
 // PATCH - Modifier une demande (propriétaire client)
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const PATCH = withApiHandler(
+  "PATCH /api/requests/[id]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
     const { id } = await params;
 
     const json = await parseJsonBody(req);
@@ -89,11 +82,11 @@ export async function PATCH(
     const existing = await prisma.serviceRequest.findUnique({ where: { id } });
 
     if (!existing) {
-      return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+      throwNotFound("Demande introuvable");
     }
 
     if (existing.clientId !== user.userId && user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+      throwForbidden("Accès refusé");
     }
 
     const {
@@ -156,34 +149,24 @@ export async function PATCH(
       message: "Demande mise à jour",
       request: withCoverImageUrl("request", updated),
     });
-  } catch (error) {
-    console.error("[PATCH /api/requests/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);
 
 // DELETE - Supprimer une demande
-export async function DELETE(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
+export const DELETE = withApiHandler(
+  "DELETE /api/requests/[id]",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
     const { id } = await params;
 
     const existing = await prisma.serviceRequest.findUnique({ where: { id } });
 
     if (!existing) {
-      return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+      throwNotFound("Demande introuvable");
     }
 
     if (existing.clientId !== user.userId && user.role !== "ADMIN") {
-      return NextResponse.json({ error: "Accès refusé" }, { status: 403 });
+      throwForbidden("Accès refusé");
     }
 
     await snapshotBookingsForRequest(id);
@@ -191,8 +174,5 @@ export async function DELETE(
     await prisma.serviceRequest.delete({ where: { id } });
 
     return NextResponse.json({ message: "Demande supprimée" });
-  } catch (error) {
-    console.error("[DELETE /api/requests/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

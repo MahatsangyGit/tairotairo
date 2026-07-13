@@ -1,6 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuth, requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import { notifyNewRequestResponse } from "@/lib/notify-requests";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
 import { assertEmailVerified } from "@/lib/email-verification";
@@ -24,11 +25,9 @@ const responseInclude = {
 };
 
 // GET - Lister les propositions d'une demande
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+export const GET = withApiHandler(
+  "GET /api/requests/[id]/responses",
+  async (req, { params }) => {
     const user = await requireAuth(req);
     const { id } = await params;
 
@@ -38,7 +37,7 @@ export async function GET(
     });
 
     if (!request) {
-      return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+      throwNotFound("Demande introuvable");
     }
 
     if (!user) {
@@ -78,31 +77,20 @@ export async function GET(
       });
     }
 
-    return NextResponse.json({ responses: [], role: user.role, isOwner: false });
-  } catch (error) {
-    console.error("[GET /api/requests/[id]/responses]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+    return NextResponse.json({
+      responses: [],
+      role: user.role,
+      isOwner: false,
+    });
   }
-}
+);
 
 // POST - Soumettre une proposition (prestataire)
-export async function POST(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
-
-    if (user.role !== "PROVIDER" && user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Seuls les prestataires peuvent proposer" },
-        { status: 403 }
-      );
-    }
+export const POST = withApiHandler(
+  "POST /api/requests/[id]/responses",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
+    requireRole(user, ["PROVIDER", "ADMIN"], "Seuls les prestataires peuvent proposer");
 
     if (user.role === "PROVIDER") {
       const emailCheck = await assertEmailVerified(user.userId, user.role);
@@ -147,7 +135,7 @@ export async function POST(
     });
 
     if (!request) {
-      return NextResponse.json({ error: "Demande introuvable" }, { status: 404 });
+      throwNotFound("Demande introuvable");
     }
 
     if (!request.open) {
@@ -200,8 +188,5 @@ export async function POST(
       { message: "Proposition envoyée avec succès", response },
       { status: 201 }
     );
-  } catch (error) {
-    console.error("[POST /api/requests/[id]/responses]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

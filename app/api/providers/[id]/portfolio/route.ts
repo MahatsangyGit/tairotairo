@@ -1,5 +1,6 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
@@ -7,12 +8,9 @@ import {
 
 export const dynamic = "force-dynamic";
 
-interface RouteParams {
-  params: Promise<{ id: string }>;
-}
-
-export async function GET(_req: NextRequest, { params }: RouteParams) {
-  try {
+export const GET = withApiHandler(
+  "GET /api/providers/[id]/portfolio",
+  async (_req, { params }) => {
     const { id } = await params;
 
     const provider = await prisma.user.findUnique({
@@ -21,7 +19,7 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     });
 
     if (!provider) {
-      return NextResponse.json({ error: "Prestataire introuvable" }, { status: 404 });
+      throwNotFound("Prestataire introuvable");
     }
 
     const items = await prisma.providerPortfolioItem.findMany({
@@ -33,8 +31,5 @@ export async function GET(_req: NextRequest, { params }: RouteParams) {
     return NextResponse.json({
       items: items.map(serializePortfolioItem),
     });
-  } catch (error) {
-    console.error("[GET /api/providers/[id]/portfolio]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

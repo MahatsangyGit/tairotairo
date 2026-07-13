@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
 import { prepareBookingForApi, normalizeBookingStatus } from "@/lib/booking-status";
 import {
   parseScheduleInput,
@@ -11,66 +12,22 @@ import {
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
+import { bookingMutationInclude } from "@/lib/booking-include";
 
 export const dynamic = "force-dynamic";
 
 const bookingInclude = {
-  service: {
-    select: {
-      id: true,
-      title: true,
-      price: true,
-      category: true,
-      location: true,
-    },
-  },
-  requestResponse: {
-    select: {
-      proposedPrice: true,
-      status: true,
-      request: {
-        select: {
-          id: true,
-          title: true,
-          budget: true,
-          category: true,
-          location: true,
-        },
-      },
-    },
-  },
-  client: {
-    select: { id: true, name: true, phone: true, email: true },
-  },
-  provider: {
-    select: { id: true, name: true, phone: true },
-  },
-  transaction: {
-    select: {
-      id: true,
-      amount: true,
-      status: true,
-      paymentMethod: true,
-      escrowedAt: true,
-      releasedAt: true,
-      refundedAt: true,
-    },
-  },
+  ...bookingMutationInclude,
   review: {
     select: { id: true, rating: true },
   },
 };
 
 /** PATCH — Client définit ou modifie la date/créneau de la prestation. */
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
-    const user = await requireAuth(req);
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+export const PATCH = withApiHandler(
+  "PATCH /api/bookings/[id]/schedule",
+  async (req, { params }) => {
+    const user = await requireAuthOrThrow(req);
 
     const { id } = await params;
 
@@ -86,18 +43,12 @@ export async function PATCH(
     });
 
     if (!booking) {
-      return NextResponse.json(
-        { error: "Réservation introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Réservation introuvable");
     }
 
     const isClient = booking.clientId === user.userId;
     if (!isClient && user.role !== "ADMIN") {
-      return NextResponse.json(
-        { error: "Seul le client peut définir la date de prestation" },
-        { status: 403 }
-      );
+      throwForbidden("Seul le client peut définir la date de prestation");
     }
 
     const status = normalizeBookingStatus(booking.status);
@@ -142,8 +93,5 @@ export async function PATCH(
       message: "Date de prestation mise à jour",
       booking: prepareBookingForApi(updated),
     });
-  } catch (error) {
-    console.error("[PATCH /api/bookings/[id]/schedule]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

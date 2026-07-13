@@ -1,11 +1,10 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
+import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  try {
+export const GET = withApiHandler(
+  "GET /api/providers/[id]",
+  async (_req, { params }) => {
     const { id } = await params;
 
     const provider = await prisma.user.findUnique({
@@ -34,10 +33,7 @@ export async function GET(
     });
 
     if (!provider) {
-      return NextResponse.json(
-        { error: "Prestataire introuvable" },
-        { status: 404 }
-      );
+      throwNotFound("Prestataire introuvable");
     }
 
     const reviews = await prisma.review.findMany({
@@ -52,7 +48,8 @@ export async function GET(
     const averageRating =
       reviews.length > 0
         ? Math.round(
-            (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) * 10
+            (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) *
+              10
           ) / 10
         : 0;
 
@@ -64,8 +61,5 @@ export async function GET(
       averageRating,
       totalReviews: reviews.length,
     });
-  } catch (error) {
-    console.error("[GET /api/providers/[id]]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
   }
-}
+);

@@ -1,26 +1,18 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth } from "@/lib/auth";
+import { requireAuthOrThrow } from "@/lib/auth";
+import { withApiHandler } from "@/lib/api-handler";
 
 // DELETE — Supprimer toutes les notifications de l'utilisateur
-export async function DELETE(_req: NextRequest) {
-  try {
-    const user = await requireAuth(_req);
+export const DELETE = withApiHandler("DELETE /api/notifications/clear-all", async (req) => {
+  const user = await requireAuthOrThrow(req);
 
-    if (!user) {
-      return NextResponse.json({ error: "Non autorisé" }, { status: 401 });
-    }
+  const { count } = await prisma.notification.deleteMany({
+    where: { userId: user.userId },
+  });
 
-    const { count } = await prisma.notification.deleteMany({
-      where: { userId: user.userId },
-    });
-
-    return NextResponse.json({
-      message: "Notifications effacées",
-      deletedCount: count,
-    });
-  } catch (error) {
-    console.error("[DELETE /api/notifications/clear-all]", error);
-    return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
-  }
-}
+  return NextResponse.json({
+    message: "Notifications effacées",
+    deletedCount: count,
+  });
+});

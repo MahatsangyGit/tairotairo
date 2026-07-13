@@ -7,7 +7,27 @@ type RouteContext = { params: Promise<Record<string, string>> };
 type ApiHandler = (
   req: NextRequest,
   ctx: RouteContext
-) => Promise<NextResponse> | NextResponse;
+) => Promise<Response | NextResponse> | Response | NextResponse;
+
+/** Errors that expose a stable HTTP status (AppError, PaymentError, …). */
+function getHttpError(
+  error: unknown
+): { message: string; status: number } | null {
+  if (isAppError(error)) {
+    return { message: error.message, status: error.status };
+  }
+  if (
+    error instanceof Error &&
+    "status" in error &&
+    typeof (error as { status: unknown }).status === "number"
+  ) {
+    return {
+      message: error.message,
+      status: (error as { status: number }).status,
+    };
+  }
+  return null;
+}
 
 export function withApiHandler(
   routeLabel: string,
@@ -17,8 +37,12 @@ export function withApiHandler(
     try {
       return await handler(req, ctx);
     } catch (error) {
-      if (isAppError(error)) {
-        return NextResponse.json({ error: error.message }, { status: error.status });
+      const httpErr = getHttpError(error);
+      if (httpErr) {
+        return NextResponse.json(
+          { error: httpErr.message },
+          { status: httpErr.status }
+        );
       }
       logRouteError(routeLabel, error);
       return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
