@@ -1,0 +1,148 @@
+model User {
+  id            String    @id @default(cuid())
+  name          String
+  email         String    @unique
+  password      String
+  phone         String?
+  role          Role      @default(CLIENT)
+  avatar        String?
+  bio           String?
+  emailVerified   Boolean   @default(false)
+  emailVerifiedAt DateTime?
+  notifyEmail     Boolean   @default(true)
+  notifyPush      Boolean   @default(true)
+  kycStatus       KycStatus @default(NOT_STARTED)
+  kycSubmittedAt  DateTime?
+  featuredOnHomepage   Boolean   @default(false)
+  featuredOnHomepageAt DateTime?
+  suspendedAt          DateTime?
+  failedLoginAttempts  Int       @default(0)
+  loginLockedAt        DateTime?
+  tokenVersion         Int       @default(0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  providerSubscription ProviderSubscription?
+  subscriptionPayments ProviderSubscriptionPayment[]
+  kycDocuments  ProviderKycDocument[]
+  emailOtps     EmailOtp[]
+  passwordResetTokens PasswordResetToken[]
+  notifications Notification[]
+  pushSubscriptions PushSubscription[]
+  services      Service[]
+  serviceRequests ServiceRequest[]
+  requestResponses RequestResponse[] @relation("ProviderResponses")
+  bookingsAsClient   Booking[] @relation("ClientBookings")
+  bookingsAsProvider Booking[] @relation("ProviderBookings")
+  reviewsGiven  Review[]  @relation("ReviewsGiven")
+  reviewsReceived Review[] @relation("ReviewsReceived")
+  messagesSent  Message[]
+  conversationsAsClient    Conversation[] @relation("ClientConversations")
+  conversationsAsProvider Conversation[] @relation("ProviderConversations")
+  portfolioItems          ProviderPortfolioItem[]
+  portfolioComments       PortfolioItemComment[] @relation("PortfolioComments")
+  providerPayouts         ProviderPayout[]
+
+  @@index([role])
+  @@index([kycStatus])
+  @@index([featuredOnHomepage])
+}
+
+enum Role {
+  CLIENT
+  PROVIDER
+  ADMIN
+}
+
+enum KycStatus {
+  NOT_STARTED
+  PENDING
+  APPROVED
+}
+
+enum KycDocumentType {
+  CIN
+}
+
+model ProviderSubscription {
+  id         String   @id @default(cuid())
+  providerId String   @unique
+  startsAt   DateTime @default(now())
+  expiresAt  DateTime
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([expiresAt])
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  SUCCESS
+  FAILED
+}
+
+model ProviderSubscriptionPayment {
+  id            String                    @id @default(cuid())
+  providerId    String
+  months        Int
+  amount        Float
+  currency      String                    @default("MGA")
+  paymentMethod PaymentMethod
+  phone         String
+  status        SubscriptionPaymentStatus @default(PENDING)
+  referenceId   String                    @unique
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+
+  provider User @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId, createdAt])
+}
+
+model ProviderKycDocument {
+  id           String          @id @default(cuid())
+  userId       String
+  type         KycDocumentType
+  /// 1 ou 2 pour la CIN (recto/verso)
+  cinSlot      Int             @default(0)
+  storedName   String
+  originalName String
+  mimeType     String
+  sizeBytes    Int
+  createdAt    DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, type, cinSlot])
+  @@index([userId])
+}
+
+model EmailOtp {
+  id             String   @id @default(cuid())
+  codeHash       String
+  failedAttempts Int      @default(0)
+  expiresAt      DateTime
+  createdAt      DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  @@index([userId])
+  @@index([tokenHash])
+}

@@ -1,0 +1,110 @@
+model Booking {
+  id          String        @id @default(cuid())
+  status      BookingStatus @default(PENDING)
+  /// Null si le client n'a pas encore fixé de date de prestation.
+  date        DateTime?
+  slotStart   String?
+  slotEnd     String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  /// Copie figée pour l’affichage si le service ou la demande est supprimé
+  displayTitle      String?
+  displayPrice      Float?
+  displayCategory   String?
+  displayLocation   String?
+  displaySource     String?
+  displayTargetId   String?
+
+  client      User          @relation("ClientBookings", fields: [clientId], references: [id])
+  clientId    String
+  provider    User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  providerId  String
+  service     Service?      @relation(fields: [serviceId], references: [id])
+  serviceId   String?
+  requestResponse RequestResponse? @relation(fields: [requestResponseId], references: [id])
+  requestResponseId String?  @unique
+  transaction Transaction?
+  review      Review?
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([date])
+  @@index([clientId, updatedAt])
+  @@index([providerId, updatedAt])
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  PAID
+  IN_PROGRESS
+  DONE_PENDING_VALIDATION
+  COMPLETED
+  CANCELLED
+}
+
+model Transaction {
+  id            String            @id @default(cuid())
+  amount        Float
+  currency      String            @default("MGA")
+  status        TransactionStatus @default(PENDING)
+  paymentMethod PaymentMethod
+  referenceId   String?
+  /// Date à laquelle le paiement client a été capturé et mis sous séquestre.
+  escrowedAt    DateTime?
+  /// Date à laquelle les fonds ont été débloqués vers le prestataire.
+  releasedAt    DateTime?
+  /// Date à laquelle le paiement a été remboursé au client (annulation).
+  refundedAt    DateTime?
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  booking       Booking           @relation(fields: [bookingId], references: [id])
+  bookingId     String            @unique
+  payout        ProviderPayout?
+
+  @@index([status])
+}
+
+enum TransactionStatus {
+  PENDING
+  ESCROWED
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+/// Enregistre le versement des fonds séquestrés vers le compte du prestataire.
+/// Le prestataire de Mobile Money réel sera branché plus tard ; ce modèle
+/// trace pour l'instant le solde et l'historique des versements.
+model ProviderPayout {
+  id           String              @id @default(cuid())
+  provider     User                @relation(fields: [providerId], references: [id])
+  providerId   String
+  transaction  Transaction         @relation(fields: [transactionId], references: [id])
+  transactionId String             @unique
+  amount       Float
+  currency     String              @default("MGA")
+  status       PayoutStatus        @default(PENDING)
+  reference    String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([providerId])
+  @@index([status])
+}
+
+enum PayoutStatus {
+  PENDING
+  PAID
+  FAILED
+}
+
+enum PaymentMethod {
+  ORANGE_MONEY
+  MVOLA
+  AIRTEL_MONEY
+}

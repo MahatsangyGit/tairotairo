@@ -1,0 +1,46 @@
+model ProviderPortfolioItem {
+  id           String   @id @default(cuid())
+  providerId   String
+  description  String
+  storedName   String
+  mimeType     String
+  sizeBytes    Int
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  provider User                   @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  comments PortfolioItemComment[]
+
+  @@index([providerId, sortOrder])
+}
+
+model PortfolioItemComment {
+  id        String   @id @default(cuid())
+  itemId    String
+  authorId  String
+  body      String
+  createdAt DateTime @default(now())
+
+  item   ProviderPortfolioItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  author User                  @relation("PortfolioComments", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([itemId, createdAt])
+}
+
+model Review {
+  id          String   @id @default(cuid())
+  rating      Int
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  author      User     @relation("ReviewsGiven", fields: [authorId], references: [id])
+  authorId    String
+  target      User     @relation("ReviewsReceived", fields: [targetId], references: [id])
+  targetId    String
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  bookingId   String   @unique
+
+  @@index([targetId])
+  @@index([authorId])
+}

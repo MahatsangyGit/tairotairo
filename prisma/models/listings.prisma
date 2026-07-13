@@ -1,0 +1,79 @@
+model Service {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  price       Float
+  category    String
+  location    String
+  coverImageMime String?
+  available   Boolean   @default(true)
+  featuredOnHomepage   Boolean   @default(false)
+  featuredOnHomepageAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  provider    User      @relation(fields: [providerId], references: [id])
+  providerId  String
+  bookings    Booking[]
+  priceOffers Message[]
+
+  @@index([providerId])
+  @@index([category])
+  @@index([available])
+  @@index([featuredOnHomepage])
+  @@index([createdAt])
+}
+
+model ServiceRequest {
+  id          String    @id @default(cuid())
+  title       String
+  description String
+  budget      Float
+  category    String
+  location    String
+  coverImageMime String?
+  desiredDate        DateTime?
+  desiredSlotStart   String?
+  desiredSlotEnd     String?
+  open        Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  client      User      @relation(fields: [clientId], references: [id])
+  clientId    String
+  responses   RequestResponse[]
+
+  @@index([clientId])
+  @@index([category])
+  @@index([open])
+  @@index([createdAt])
+}
+
+enum RequestResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  WITHDRAWN
+  COMPLETED
+}
+
+model RequestResponse {
+  id            String                @id @default(cuid())
+  message       String
+  proposedPrice Float?
+  status        RequestResponseStatus @default(PENDING)
+  createdAt     DateTime              @default(now())
+  updatedAt     DateTime              @updatedAt
+
+  request       ServiceRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  requestId     String
+  provider      User                  @relation("ProviderResponses", fields: [providerId], references: [id])
+  providerId    String
+  booking       Booking?
+  priceOffers   Message[]
+
+  @@unique([requestId, providerId])
+  @@index([requestId])
+  @@index([providerId])
+  @@index([status])
+}
