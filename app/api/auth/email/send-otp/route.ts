@@ -10,9 +10,18 @@ import {
   getResendCooldownSeconds,
 } from "@/lib/otp";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
+import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 
 export const POST = withApiHandler("POST /api/auth/email/send-otp", async (req) => {
   const auth = await requireAuthOrThrow(req);
+
+  const rateLimited = await enforceRateLimit(
+    req,
+    "send-otp",
+    AUTH_RATE_LIMITS.sendOtp,
+    { userId: auth.userId }
+  );
+  if (rateLimited) return rateLimited;
 
   const user = await prisma.user.findUnique({
     where: { id: auth.userId },

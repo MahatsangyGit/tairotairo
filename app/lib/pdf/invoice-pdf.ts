@@ -290,7 +290,7 @@ function renderPdf(contentStream: string): Buffer {
     )
   );
 
-  let pdf = "%PDF-1.4\n";
+  const pdf = "%PDF-1.4\n";
   const headerBytes = encoder.encode(pdf);
   let pos = headerBytes.length;
 

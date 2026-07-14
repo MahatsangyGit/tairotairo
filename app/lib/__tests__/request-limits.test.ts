@@ -40,4 +40,13 @@ describe("request body limits", () => {
       rejectOversizedApiBody("POST", "/api/services/cuidcovertestid0001/cover", headers)
     ).toBe(true);
   });
+
+  it("rejects upload paths when Content-Length is missing", () => {
+    expect(
+      rejectOversizedApiBody("POST", "/api/users/me/avatar", {})
+    ).toBe(true);
+    expect(
+      rejectOversizedApiBody("POST", "/api/bookings", {})
+    ).toBe(false);
+  });
 });

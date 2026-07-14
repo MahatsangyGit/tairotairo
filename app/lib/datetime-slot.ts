@@ -1,6 +1,11 @@
-/** Créneaux horaires optionnels (HH:mm) en complément d'une date jour. */
+/** Créneaux horaires optionnels (HH:mm) — fuseau métier Madagascar. */
+
+export const BUSINESS_TIMEZONE = "Indian/Antananarivo";
+/** Madagascar is UTC+3 year-round (no DST). */
+const BUSINESS_UTC_OFFSET = "+03:00";
 
 const TIME_RE = /^(\d{1,2}):(\d{2})$/;
+const DAY_RE = /^(\d{4})-(\d{2})-(\d{2})/;
 
 export function parseSlotTime(value: unknown): string | null {
   if (typeof value !== "string" || !value.trim()) return null;
@@ -30,23 +35,65 @@ export function validateSlotRange(
   return null;
 }
 
-export function applySlotToDate(
-  base: Date,
-  slotStart: string | null
+function calendarPartsInBusinessTz(date: Date): {
+  year: string;
+  month: string;
+  day: string;
+} {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: BUSINESS_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  if (!year || !month || !day) {
+    throw new Error("Impossible de résoudre la date métier");
+  }
+  return { year, month, day };
+}
+
+/** Instant in Madagascar local time for a calendar day + optional HH:mm. */
+export function madagascarDateTime(
+  year: number,
+  month: number,
+  day: number,
+  hours = 0,
+  minutes = 0
 ): Date {
-  const d = new Date(base);
+  const y = String(year).padStart(4, "0");
+  const mo = String(month).padStart(2, "0");
+  const d = String(day).padStart(2, "0");
+  const hh = String(hours).padStart(2, "0");
+  const mm = String(minutes).padStart(2, "0");
+  return new Date(`${y}-${mo}-${d}T${hh}:${mm}:00${BUSINESS_UTC_OFFSET}`);
+}
+
+export function applySlotToDate(base: Date, slotStart: string | null): Date {
+  const { year, month, day } = calendarPartsInBusinessTz(base);
   if (slotStart) {
     const [h, m] = slotStart.split(":").map(Number);
-    d.setHours(h, m, 0, 0);
+    return madagascarDateTime(Number(year), Number(month), Number(day), h, m);
   }
-  return d;
+  return madagascarDateTime(Number(year), Number(month), Number(day), 0, 0);
 }
 
 export function parseDayDate(value: unknown): Date | null {
   if (value == null || value === "") return null;
-  const d = new Date(String(value));
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
+  const raw = String(value).trim();
+  const dayMatch = raw.match(DAY_RE);
+  if (dayMatch) {
+    const y = Number(dayMatch[1]);
+    const mo = Number(dayMatch[2]);
+    const d = Number(dayMatch[3]);
+    if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+    return madagascarDateTime(y, mo, d, 0, 0);
+  }
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return null;
+  return parsed;
 }
 
 export interface ParsedScheduleInput {
@@ -97,6 +144,7 @@ export function formatSchedule(
   if (Number.isNaN(d.getTime())) return "Date à définir";
 
   const day = d.toLocaleDateString("fr-MG", {
+    timeZone: BUSINESS_TIMEZONE,
     day: "numeric",
     month: "long",
     year: "numeric",

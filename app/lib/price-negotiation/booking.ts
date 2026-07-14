@@ -47,7 +47,8 @@ export async function acceptRequestPriceOffer(
     await supersedePendingOffers(
       conversationId,
       { requestResponseId: offer.requestResponseId! },
-      messageId
+      messageId,
+      tx
     );
 
     await tx.requestResponse.update({
@@ -223,7 +224,8 @@ export async function acceptServicePriceOffer(
     await supersedePendingOffers(
       conversationId,
       { serviceId: service.id },
-      messageId
+      messageId,
+      tx
     );
 
     const snapshot = snapshotFromService(service, price);

@@ -1,16 +1,17 @@
-import { mkdir, writeFile, readFile } from "fs/promises";
 import path from "path";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
 import type { AvatarAllowedMime } from "@/lib/avatar";
-import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
+import { assertSafeStorageId } from "@/lib/storage-path";
 import { optimizeUploadImage } from "@/lib/image-optimize";
 import {
-  deleteFilesWithBasename,
   mimeFromStoredExtension,
   validateImageUpload,
 } from "@/lib/image-storage";
+import {
+  deleteKeysWithBasename,
+  getStorageBackend,
+} from "@/lib/storage/backend";
 
-const STORAGE_ROOT = path.join(process.cwd(), "storage", "portfolio");
 const IMAGE_BASENAME = "image";
 
 export function validatePortfolioImageFile(
@@ -23,9 +24,15 @@ export function validatePortfolioImageFile(
   });
 }
 
-export function portfolioItemDir(itemId: string): string {
+/** Object-key prefix for a portfolio item (`portfolio/{itemId}`). */
+export function portfolioItemKeyPrefix(itemId: string): string {
   assertSafeStorageId(itemId);
-  return resolveStoragePath(STORAGE_ROOT, itemId);
+  return `portfolio/${itemId}`;
+}
+
+/** @deprecated Prefer portfolioItemKeyPrefix. */
+export function portfolioItemDir(itemId: string): string {
+  return portfolioItemKeyPrefix(itemId);
 }
 
 export type SavedPortfolioImage = {
@@ -39,13 +46,13 @@ export async function savePortfolioImage(
   buffer: Buffer,
   _mime: AvatarAllowedMime
 ): Promise<SavedPortfolioImage> {
-  const dir = portfolioItemDir(itemId);
-  await mkdir(dir, { recursive: true });
-  await deleteFilesWithBasename(dir, IMAGE_BASENAME);
+  const backend = getStorageBackend();
+  const prefix = portfolioItemKeyPrefix(itemId);
+  await deleteKeysWithBasename(backend, prefix, IMAGE_BASENAME);
 
   const optimized = await optimizeUploadImage(buffer, "portfolio");
   const storedName = `${IMAGE_BASENAME}${optimized.extension}`;
-  await writeFile(path.join(dir, storedName), optimized.buffer);
+  await backend.put(`${prefix}/${storedName}`, optimized.buffer, optimized.mime);
 
   return {
     storedName,
@@ -55,7 +62,11 @@ export async function savePortfolioImage(
 }
 
 export async function deletePortfolioItemFiles(itemId: string): Promise<void> {
-  await deleteFilesWithBasename(portfolioItemDir(itemId), IMAGE_BASENAME);
+  await deleteKeysWithBasename(
+    getStorageBackend(),
+    portfolioItemKeyPrefix(itemId),
+    IMAGE_BASENAME
+  );
 }
 
 export async function readPortfolioImage(
@@ -64,7 +75,9 @@ export async function readPortfolioImage(
 ): Promise<{ buffer: Buffer; mime: AvatarAllowedMime } | null> {
   try {
     const safeName = path.basename(storedName);
-    const buffer = await readFile(path.join(portfolioItemDir(itemId), safeName));
+    const key = `${portfolioItemKeyPrefix(itemId)}/${safeName}`;
+    const buffer = await getStorageBackend().get(key);
+    if (!buffer) return null;
     const mime = mimeFromStoredExtension(path.extname(safeName));
     if (!mime) return null;
     return { buffer, mime };

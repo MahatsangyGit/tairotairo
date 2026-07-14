@@ -15,6 +15,8 @@ import {
   createImageResponse,
   isVersionedImageRequest,
 } from "@/lib/image-response";
+import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
+import { rejectInvalidUploadContentLength } from "@/lib/http-security";
 
 async function assertServiceOwnership(
   id: string,
@@ -83,6 +85,17 @@ export async function handleListingCoverPost(
   id: string,
   auth: JwtPayload
 ) {
+  const rateLimited = await enforceRateLimit(
+    req,
+    "upload",
+    API_RATE_LIMITS.upload,
+    { userId: auth.userId }
+  );
+  if (rateLimited) return rateLimited;
+
+  const tooLarge = rejectInvalidUploadContentLength(req);
+  if (tooLarge) return tooLarge;
+
   if (kind === "service") {
     await assertServiceOwnership(id, auth.userId, auth.role);
 

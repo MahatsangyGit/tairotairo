@@ -22,6 +22,8 @@ prisma/
 
 `prisma.config.ts` pointe `schema: "prisma"` (répertoire) pour que Prisma 7 fusionne tous les `.prisma`.
 
+> **Migrations :** ne pas utiliser `prisma migrate`. La source de vérité reste `supabase/migrations/`. Le chemin `prisma/migrations` dans la config Prisma est volontairement non utilisé (compatibilité CLI uniquement).
+
 Après modification d'une migration :
 
 1. Appliquer les fichiers SQL dans l'ordre (outil Supabase CLI, `psql`, ou pipeline CI).

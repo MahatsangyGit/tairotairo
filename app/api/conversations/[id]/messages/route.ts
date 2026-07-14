@@ -16,12 +16,21 @@ import {
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
+import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
 
 // POST — Envoyer un message
 export const POST = withApiHandler(
   "POST /api/conversations/[id]/messages",
   async (req, { params }) => {
     const auth = await requireAuthOrThrow(req);
+
+    const rateLimited = await enforceRateLimit(
+      req,
+      "message",
+      API_RATE_LIMITS.message,
+      { userId: auth.userId }
+    );
+    if (rateLimited) return rateLimited;
 
     const emailCheck = await assertEmailVerified(auth.userId, auth.role);
     if (!emailCheck.ok) {

@@ -13,6 +13,8 @@ import {
   canReviewBooking,
   isBookingPaidViaApp,
 } from "@/lib/booking-status";
+import { paidReviewWhere } from "@/lib/paid-reviews";
+import { isPrismaKnownError } from "@/lib/errors";
 
 // GET - Lister les avis d'un prestataire
 export const GET = withApiHandler("GET /api/reviews", async (req) => {
@@ -33,16 +35,7 @@ export const GET = withApiHandler("GET /api/reviews", async (req) => {
   );
   const skip = (page - 1) * limit;
 
-  // Seuls les avis liés à une réservation payée via l'app sont visibles publiquement.
-  const paidStatuses: ("ESCROWED" | "RELEASED")[] = ["ESCROWED", "RELEASED"];
-  const where = {
-    targetId: providerId,
-    booking: {
-      is: {
-        transaction: { is: { status: { in: paidStatuses } } },
-      },
-    },
-  };
+  const where = paidReviewWhere(providerId);
 
   const [reviews, total, aggregate] = await Promise.all([
     prisma.review.findMany({
@@ -154,23 +147,36 @@ export const POST = withApiHandler("POST /api/reviews", async (req) => {
 
   if (existingReview) {
     return NextResponse.json(
-      { error: "Vous avez déjà laissé un avis pour cette réservation" },
-      { status: 400 }
+      { error: "Vous avez déjà laissé un avis pour cette réservation", code: "CONFLICT" },
+      { status: 409 }
     );
   }
 
-  const review = await prisma.review.create({
-    data: {
-      authorId: user.userId,
-      targetId: booking.providerId,
-      bookingId,
-      rating,
-      comment: commentCheck.value,
-    },
-  });
+  try {
+    const review = await prisma.review.create({
+      data: {
+        authorId: user.userId,
+        targetId: booking.providerId,
+        bookingId,
+        rating,
+        comment: commentCheck.value,
+      },
+    });
 
-  return NextResponse.json(
-    { message: "Avis publié avec succès", review },
-    { status: 201 }
-  );
+    return NextResponse.json(
+      { message: "Avis publié avec succès", review },
+      { status: 201 }
+    );
+  } catch (error) {
+    if (isPrismaKnownError(error) && error.code === "P2002") {
+      return NextResponse.json(
+        {
+          error: "Vous avez déjà laissé un avis pour cette réservation",
+          code: "CONFLICT",
+        },
+        { status: 409 }
+      );
+    }
+    throw error;
+  }
 });

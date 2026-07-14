@@ -28,6 +28,7 @@ model User {
   emailOtps     EmailOtp[]
   passwordResetTokens PasswordResetToken[]
   notifications Notification[]
+  notificationOutbox NotificationOutbox[]
   pushSubscriptions PushSubscription[]
   services      Service[]
   serviceRequests ServiceRequest[]
@@ -131,6 +132,7 @@ model EmailOtp {
   userId    String
 
   @@index([userId])
+  @@index([expiresAt])
 }
 
 model PasswordResetToken {
@@ -145,4 +147,5 @@ model PasswordResetToken {
 
   @@index([userId])
   @@index([tokenHash])
+  @@index([expiresAt])
 }

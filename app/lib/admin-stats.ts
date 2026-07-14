@@ -162,162 +162,316 @@ export async function getAdminStats() {
 }
 
 export async function exportProvidersCsv() {
-  const now = new Date();
-  const rows = await prisma.user.findMany({
-    where: { role: "PROVIDER" },
-    orderBy: { name: "asc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      kycStatus: true,
-      featuredOnHomepage: true,
-      createdAt: true,
-      providerSubscription: { select: { startsAt: true, expiresAt: true, notes: true } },
-      _count: { select: { services: true, bookingsAsProvider: true, reviewsReceived: true } },
-    },
-  });
+  const rows: unknown[][] = [];
+  for await (const row of iterateProvidersCsv()) {
+    rows.push(row);
+  }
+  return rows;
+}
 
-  return rows.map((p) => [
-    p.id,
-    p.name,
-    p.email,
-    p.phone ?? "",
-    p.kycStatus,
-    isSubscriptionActive(p.providerSubscription?.expiresAt, now) ? "Oui" : "Non",
-    p.providerSubscription?.expiresAt.toISOString() ?? "",
-    p.providerSubscription?.notes ?? "",
-    p._count.services,
-    p._count.bookingsAsProvider,
-    p._count.reviewsReceived,
-    p.featuredOnHomepage ? "Oui" : "Non",
-    p.createdAt.toISOString(),
-  ]);
+const EXPORT_PAGE_SIZE = 200;
+
+function idCursorWhere(cursorId: string | null): { id: { gt: string } } | undefined {
+  return cursorId ? { id: { gt: cursorId } } : undefined;
+}
+
+export async function* iterateProvidersCsv(): AsyncGenerator<unknown[]> {
+  const now = new Date();
+  let cursorId: string | null = null;
+
+  for (;;) {
+    const after = idCursorWhere(cursorId);
+    const batch = await prisma.user.findMany({
+      where: {
+        role: "PROVIDER",
+        ...(after ?? {}),
+      },
+      orderBy: { id: "asc" },
+      take: EXPORT_PAGE_SIZE,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        kycStatus: true,
+        featuredOnHomepage: true,
+        createdAt: true,
+        providerSubscription: {
+          select: { startsAt: true, expiresAt: true, notes: true },
+        },
+        _count: {
+          select: {
+            services: true,
+            bookingsAsProvider: true,
+            reviewsReceived: true,
+          },
+        },
+      },
+    });
+
+    if (batch.length === 0) break;
+
+    for (const p of batch) {
+      yield [
+        p.id,
+        p.name,
+        p.email,
+        p.phone ?? "",
+        p.kycStatus,
+        isSubscriptionActive(p.providerSubscription?.expiresAt, now)
+          ? "Oui"
+          : "Non",
+        p.providerSubscription?.expiresAt.toISOString() ?? "",
+        p.providerSubscription?.notes ?? "",
+        p._count.services,
+        p._count.bookingsAsProvider,
+        p._count.reviewsReceived,
+        p.featuredOnHomepage ? "Oui" : "Non",
+        p.createdAt.toISOString(),
+      ];
+    }
+
+    const last = batch[batch.length - 1];
+    if (!last) break;
+    cursorId = last.id;
+    if (batch.length < EXPORT_PAGE_SIZE) break;
+  }
 }
 
 export async function exportServicesCsv() {
-  const rows = await prisma.service.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      title: true,
-      category: true,
-      price: true,
-      location: true,
-      available: true,
-      featuredOnHomepage: true,
-      createdAt: true,
-      provider: { select: { name: true, email: true } },
-    },
-  });
+  const rows: unknown[][] = [];
+  for await (const row of iterateServicesCsv()) {
+    rows.push(row);
+  }
+  return rows;
+}
 
-  return rows.map((s) => [
-    s.id,
-    s.title,
-    s.category,
-    s.price,
-    s.location,
-    s.available ? "Oui" : "Non",
-    s.featuredOnHomepage ? "Oui" : "Non",
-    s.provider.name,
-    s.provider.email,
-    s.createdAt.toISOString(),
-  ]);
+export async function* iterateServicesCsv(): AsyncGenerator<unknown[]> {
+  let cursorId: string | null = null;
+
+  for (;;) {
+    const after = idCursorWhere(cursorId);
+    const batch = await prisma.service.findMany({
+      where: after,
+      orderBy: { id: "asc" },
+      take: EXPORT_PAGE_SIZE,
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        price: true,
+        location: true,
+        available: true,
+        featuredOnHomepage: true,
+        createdAt: true,
+        provider: { select: { name: true, email: true } },
+      },
+    });
+
+    if (batch.length === 0) break;
+
+    for (const s of batch) {
+      yield [
+        s.id,
+        s.title,
+        s.category,
+        s.price,
+        s.location,
+        s.available ? "Oui" : "Non",
+        s.featuredOnHomepage ? "Oui" : "Non",
+        s.provider.name,
+        s.provider.email,
+        s.createdAt.toISOString(),
+      ];
+    }
+
+    const last = batch[batch.length - 1];
+    if (!last) break;
+    cursorId = last.id;
+    if (batch.length < EXPORT_PAGE_SIZE) break;
+  }
 }
 
 export async function exportBookingsCsv() {
-  const rows = await prisma.booking.findMany({
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      status: true,
-      date: true,
-      slotStart: true,
-      slotEnd: true,
-      displayTitle: true,
-      displayPrice: true,
-      displayCategory: true,
-      displayLocation: true,
-      createdAt: true,
-      client: { select: { name: true, email: true } },
-      provider: { select: { name: true, email: true } },
-      service: { select: { title: true } },
-    },
-  });
+  const rows: unknown[][] = [];
+  for await (const row of iterateBookingsCsv()) {
+    rows.push(row);
+  }
+  return rows;
+}
 
-  return rows.map((b) => [
-    b.id,
-    b.status,
-    b.date?.toISOString() ?? "",
-    b.slotStart ?? "",
-    b.slotEnd ?? "",
-    b.displayTitle ?? b.service?.title ?? "",
-    b.displayPrice ?? "",
-    b.displayCategory ?? "",
-    b.displayLocation ?? "",
-    b.client.name,
-    b.client.email,
-    b.provider.name,
-    b.provider.email,
-    b.createdAt.toISOString(),
-  ]);
+export async function* iterateBookingsCsv(): AsyncGenerator<unknown[]> {
+  let cursorId: string | null = null;
+
+  for (;;) {
+    const after = idCursorWhere(cursorId);
+    const batch = await prisma.booking.findMany({
+      where: after,
+      orderBy: { id: "asc" },
+      take: EXPORT_PAGE_SIZE,
+      select: {
+        id: true,
+        status: true,
+        date: true,
+        slotStart: true,
+        slotEnd: true,
+        displayTitle: true,
+        displayPrice: true,
+        displayCategory: true,
+        displayLocation: true,
+        createdAt: true,
+        client: { select: { name: true, email: true } },
+        provider: { select: { name: true, email: true } },
+        service: { select: { title: true } },
+      },
+    });
+
+    if (batch.length === 0) break;
+
+    for (const b of batch) {
+      yield [
+        b.id,
+        b.status,
+        b.date?.toISOString() ?? "",
+        b.slotStart ?? "",
+        b.slotEnd ?? "",
+        b.displayTitle ?? b.service?.title ?? "",
+        b.displayPrice ?? "",
+        b.displayCategory ?? "",
+        b.displayLocation ?? "",
+        b.client.name,
+        b.client.email,
+        b.provider.name,
+        b.provider.email,
+        b.createdAt.toISOString(),
+      ];
+    }
+
+    const last = batch[batch.length - 1];
+    if (!last) break;
+    cursorId = last.id;
+    if (batch.length < EXPORT_PAGE_SIZE) break;
+  }
 }
 
 export async function exportClientsCsv() {
-  const rows = await prisma.user.findMany({
-    where: { role: "CLIENT" },
-    orderBy: { createdAt: "desc" },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      emailVerified: true,
-      createdAt: true,
-      _count: {
-        select: {
-          bookingsAsClient: true,
-          serviceRequests: true,
-          reviewsGiven: true,
+  const rows: unknown[][] = [];
+  for await (const row of iterateClientsCsv()) {
+    rows.push(row);
+  }
+  return rows;
+}
+
+export async function* iterateClientsCsv(): AsyncGenerator<unknown[]> {
+  let cursorId: string | null = null;
+
+  for (;;) {
+    const after = idCursorWhere(cursorId);
+    const batch = await prisma.user.findMany({
+      where: {
+        role: "CLIENT",
+        ...(after ?? {}),
+      },
+      orderBy: { id: "asc" },
+      take: EXPORT_PAGE_SIZE,
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        phone: true,
+        emailVerified: true,
+        createdAt: true,
+        _count: {
+          select: {
+            bookingsAsClient: true,
+            serviceRequests: true,
+            reviewsGiven: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return rows.map((c) => [
-    c.id,
-    c.name,
-    c.email,
-    c.phone ?? "",
-    c.emailVerified ? "Oui" : "Non",
-    c._count.bookingsAsClient,
-    c._count.serviceRequests,
-    c._count.reviewsGiven,
-    c.createdAt.toISOString(),
-  ]);
+    if (batch.length === 0) break;
+
+    for (const c of batch) {
+      yield [
+        c.id,
+        c.name,
+        c.email,
+        c.phone ?? "",
+        c.emailVerified ? "Oui" : "Non",
+        c._count.bookingsAsClient,
+        c._count.serviceRequests,
+        c._count.reviewsGiven,
+        c.createdAt.toISOString(),
+      ];
+    }
+
+    const last = batch[batch.length - 1];
+    if (!last) break;
+    cursorId = last.id;
+    if (batch.length < EXPORT_PAGE_SIZE) break;
+  }
 }
 
 export async function exportSubscriptionsCsv() {
-  const now = new Date();
-  const rows = await prisma.providerSubscription.findMany({
-    orderBy: { expiresAt: "desc" },
-    select: {
-      startsAt: true,
-      expiresAt: true,
-      notes: true,
-      provider: { select: { id: true, name: true, email: true, kycStatus: true } },
-    },
-  });
+  const rows: unknown[][] = [];
+  for await (const row of iterateSubscriptionsCsv()) {
+    rows.push(row);
+  }
+  return rows;
+}
 
-  return rows.map((s) => [
-    s.provider.id,
-    s.provider.name,
-    s.provider.email,
-    s.provider.kycStatus,
-    s.startsAt.toISOString(),
-    s.expiresAt.toISOString(),
-    isSubscriptionActive(s.expiresAt, now) ? "Actif" : "Expiré",
-    s.notes ?? "",
-  ]);
+export async function* iterateSubscriptionsCsv(): AsyncGenerator<unknown[]> {
+  const now = new Date();
+  let cursorId: string | null = null;
+
+  for (;;) {
+    const whereClause:
+      | { providerId: { gt: string } }
+      | undefined = cursorId ? { providerId: { gt: cursorId } } : undefined;
+    const batch: Array<{
+      startsAt: Date;
+      expiresAt: Date;
+      notes: string | null;
+      provider: {
+        id: string;
+        name: string;
+        email: string;
+        kycStatus: string;
+      };
+    }> = await prisma.providerSubscription.findMany({
+      where: whereClause,
+      orderBy: { providerId: "asc" },
+      take: EXPORT_PAGE_SIZE,
+      select: {
+        startsAt: true,
+        expiresAt: true,
+        notes: true,
+        provider: {
+          select: { id: true, name: true, email: true, kycStatus: true },
+        },
+      },
+    });
+
+    if (batch.length === 0) break;
+
+    for (const s of batch) {
+      yield [
+        s.provider.id,
+        s.provider.name,
+        s.provider.email,
+        s.provider.kycStatus,
+        s.startsAt.toISOString(),
+        s.expiresAt.toISOString(),
+        isSubscriptionActive(s.expiresAt, now) ? "Actif" : "Expiré",
+        s.notes ?? "",
+      ];
+    }
+
+    const last = batch[batch.length - 1];
+    if (!last) break;
+    cursorId = last.provider.id;
+    if (batch.length < EXPORT_PAGE_SIZE) break;
+  }
 }

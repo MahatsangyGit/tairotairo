@@ -10,8 +10,16 @@ import {
   resetPasswordSchema,
 } from "@/lib/api-schemas";
 import { withApiHandler } from "@/lib/api-handler";
+import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 
 export const POST = withApiHandler("POST /api/auth/reset-password", async (req) => {
+  const rateLimited = await enforceRateLimit(
+    req,
+    "reset-password",
+    AUTH_RATE_LIMITS.resetPassword
+  );
+  if (rateLimited) return rateLimited;
+
   const json = await parseJsonBody(req);
   if (!json.ok) return json.response;
 

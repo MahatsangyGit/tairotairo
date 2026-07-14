@@ -4,6 +4,7 @@ export {
   findServiceNegotiation,
   findNegotiationForPair,
   getNegotiationHintsFromMessages,
+  getNegotiationHintsForConversations,
   resolveNegotiationForConversation,
 } from "@/lib/price-negotiation/context";
 

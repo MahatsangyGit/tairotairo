@@ -1,9 +1,7 @@
 import type { Duplex } from "stream";
 import type { Server as HttpServer, IncomingMessage } from "http";
 import { WebSocketServer, type WebSocket } from "ws";
-import { verifyToken } from "@/lib/jwt";
-import prisma from "@/lib/prisma";
-import { runWithRls } from "@/lib/rls";
+import { resolveActiveAuth } from "@/lib/active-session";
 import { getMessagingHub } from "@/lib/realtime/hub";
 import type { RealtimeClientEvent } from "@/lib/realtime/types";
 
@@ -36,27 +34,7 @@ function getTokenFromRequest(request: IncomingMessage): string | null {
 }
 
 async function verifyWsAuth(token: string) {
-  const auth = await verifyToken(token);
-  if (!auth) return null;
-
-  const user = await runWithRls(
-    { mode: "user", userId: auth.userId, role: auth.role },
-    () =>
-      prisma.user.findUnique({
-        where: { id: auth.userId },
-        select: { suspendedAt: true, tokenVersion: true },
-      })
-  );
-
-  if (
-    !user ||
-    user.suspendedAt ||
-    user.tokenVersion !== auth.tokenVersion
-  ) {
-    return null;
-  }
-
-  return auth;
+  return resolveActiveAuth(token);
 }
 
 function safeParseClientEvent(raw: string): RealtimeClientEvent | null {
@@ -163,7 +141,7 @@ export function attachMessagingWebSocket(
   return {
     wss,
     async close() {
-      hub.shutdown();
+      await hub.shutdown();
       await new Promise<void>((resolve, reject) => {
         wss.close((err) => (err ? reject(err) : resolve()));
       });

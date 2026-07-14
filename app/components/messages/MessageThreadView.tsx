@@ -50,6 +50,9 @@ export default function MessageThreadView({
   const searchParams = useSearchParams();
   const [conversation, setConversation] = useState<ConversationMeta | null>(null);
   const [messages, setMessages] = useState<SerializedMessage[]>([]);
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -66,20 +69,21 @@ export default function MessageThreadView({
     });
   }, []);
 
-  const apiUrl = (() => {
-    const base = `/api/conversations/${conversationId}`;
-    if (requestResponseId) {
-      return `${base}?response=${encodeURIComponent(requestResponseId)}`;
-    }
-    if (serviceId) {
-      return `${base}?service=${encodeURIComponent(serviceId)}`;
-    }
-    return base;
-  })();
+  const buildApiUrl = useCallback(
+    (cursor?: string | null) => {
+      const params = new URLSearchParams();
+      if (requestResponseId) params.set("response", requestResponseId);
+      if (serviceId) params.set("service", serviceId);
+      if (cursor) params.set("cursor", cursor);
+      const qs = params.toString();
+      return `/api/conversations/${conversationId}${qs ? `?${qs}` : ""}`;
+    },
+    [conversationId, requestResponseId, serviceId]
+  );
 
   const load = useCallback(async () => {
     try {
-      const res = await fetch(apiUrl);
+      const res = await fetch(buildApiUrl());
       const data = await res.json();
 
       if (!res.ok) {
@@ -95,12 +99,38 @@ export default function MessageThreadView({
 
       setConversation(data.conversation);
       setMessages(data.messages);
+      setNextCursor(data.nextCursor ?? null);
+      setHasMore(Boolean(data.hasMore));
     } catch {
       setError("Une erreur est survenue");
     } finally {
       setLoading(false);
     }
-  }, [apiUrl, router]);
+  }, [buildApiUrl, router]);
+
+  const loadOlder = useCallback(async () => {
+    if (!hasMore || !nextCursor || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const res = await fetch(buildApiUrl(nextCursor));
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.error ?? "Erreur");
+        return;
+      }
+      const older = (data.messages ?? []) as SerializedMessage[];
+      setMessages((prev) => {
+        const ids = new Set(prev.map((m) => m.id));
+        return [...older.filter((m) => !ids.has(m.id)), ...prev];
+      });
+      setNextCursor(data.nextCursor ?? null);
+      setHasMore(Boolean(data.hasMore));
+    } catch {
+      setError("Une erreur est survenue");
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [hasMore, nextCursor, loadingOlder, buildApiUrl]);
 
   useEffect(() => {
     load();
@@ -140,8 +170,9 @@ export default function MessageThreadView({
   }, [conversation, pathname, router, searchParams]);
 
   useEffect(() => {
+    if (loadingOlder) return;
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, loadingOlder]);
 
   const handleSend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -270,6 +301,16 @@ export default function MessageThreadView({
       )}
 
       <div className="flex-1 overflow-y-auto bg-card rounded-2xl border border-border shadow-sm p-4 mb-4 flex flex-col gap-3">
+        {hasMore && (
+          <button
+            type="button"
+            onClick={loadOlder}
+            disabled={loadingOlder}
+            className="self-center text-sm text-brand-700 hover:underline disabled:opacity-50"
+          >
+            {loadingOlder ? "Chargement..." : "Messages plus anciens"}
+          </button>
+        )}
         {messages.length === 0 ? (
           <p className="text-muted-foreground text-sm text-center py-8">
             Aucun message. Envoyez le premier !

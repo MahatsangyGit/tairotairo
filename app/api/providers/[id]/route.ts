@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
+import { paidReviewWhere } from "@/lib/paid-reviews";
 
 export const GET = withApiHandler(
   "GET /api/providers/[id]",
@@ -36,22 +37,27 @@ export const GET = withApiHandler(
       throwNotFound("Prestataire introuvable");
     }
 
-    const reviews = await prisma.review.findMany({
-      where: { targetId: id },
-      orderBy: { createdAt: "desc" },
-      take: 20,
-      include: {
-        author: { select: { id: true, name: true, avatar: true } },
-      },
-    });
+    const where = paidReviewWhere(id);
 
-    const averageRating =
-      reviews.length > 0
-        ? Math.round(
-            (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) *
-              10
-          ) / 10
-        : 0;
+    const [reviews, totalReviews, aggregate] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        include: {
+          author: { select: { id: true, name: true, avatar: true } },
+        },
+      }),
+      prisma.review.count({ where }),
+      prisma.review.aggregate({
+        where,
+        _avg: { rating: true },
+      }),
+    ]);
+
+    const averageRating = aggregate._avg.rating
+      ? Math.round(aggregate._avg.rating * 10) / 10
+      : 0;
 
     const { phone: _phone, ...publicProvider } = provider;
 
@@ -59,7 +65,7 @@ export const GET = withApiHandler(
       provider: publicProvider,
       reviews,
       averageRating,
-      totalReviews: reviews.length,
+      totalReviews,
     });
   }
 );

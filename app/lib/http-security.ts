@@ -1,10 +1,13 @@
 import { parse } from "url";
+import { NextRequest, NextResponse } from "next/server";
 import {
   csrfTokensMatch,
   shouldEnforceCsrf,
 } from "@/lib/csrf";
 import {
+  isUploadApiPath,
   maxBodyBytesForPath,
+  MAX_UPLOAD_BODY_BYTES,
   PAYLOAD_TOO_LARGE_MESSAGE,
 } from "@/lib/request-limits";
 import { logSecurityEvent } from "@/lib/security-audit";
@@ -31,6 +34,10 @@ function getHeader(
   return value;
 }
 
+/**
+ * Reject oversized API bodies. For upload paths, also reject when
+ * Content-Length is missing (otherwise chunked uploads bypass the guard).
+ */
 export function rejectOversizedApiBody(
   method: string | undefined,
   url: string | undefined,
@@ -45,12 +52,67 @@ export function rejectOversizedApiBody(
     return false;
   }
 
-  const contentLength = parseInt(getHeader(headers, "content-length") ?? "0", 10);
+  const contentLengthRaw = getHeader(headers, "content-length");
+  const maxBytes = maxBodyBytesForPath(pathname);
+  const isUpload = isUploadApiPath(pathname);
+
+  if (isUpload) {
+    if (contentLengthRaw == null || contentLengthRaw === "") {
+      return true;
+    }
+    const contentLength = parseInt(contentLengthRaw, 10);
+    if (!Number.isFinite(contentLength) || contentLength <= 0) {
+      return true;
+    }
+    return contentLength > maxBytes;
+  }
+
+  const contentLength = parseInt(contentLengthRaw ?? "0", 10);
   if (!Number.isFinite(contentLength) || contentLength <= 0) {
     return false;
   }
 
-  return contentLength > maxBodyBytesForPath(pathname);
+  return contentLength > maxBytes;
+}
+
+/**
+ * Validate Content-Length before calling formData() in upload handlers.
+ * Returns a 413 response when missing or over the upload ceiling.
+ */
+export function rejectInvalidUploadContentLength(
+  req: NextRequest,
+  maxBytes: number = MAX_UPLOAD_BODY_BYTES
+): NextResponse | null {
+  const raw = req.headers.get("content-length");
+  if (raw == null || raw === "") {
+    logSecurityEvent({
+      event: "request.body_too_large",
+      detail: "missing Content-Length on upload",
+    });
+    return NextResponse.json(
+      { error: PAYLOAD_TOO_LARGE_MESSAGE },
+      { status: 413 }
+    );
+  }
+
+  const contentLength = parseInt(raw, 10);
+  if (
+    !Number.isFinite(contentLength) ||
+    contentLength <= 0 ||
+    contentLength > maxBytes
+  ) {
+    logSecurityEvent({
+      event: "request.body_too_large",
+      detail: "Content-Length over upload limit or invalid",
+      meta: { contentLength: raw, maxBytes },
+    });
+    return NextResponse.json(
+      { error: PAYLOAD_TOO_LARGE_MESSAGE },
+      { status: 413 }
+    );
+  }
+
+  return null;
 }
 
 export function rejectInvalidCsrf(

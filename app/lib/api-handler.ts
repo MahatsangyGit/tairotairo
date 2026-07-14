@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { AppError, isAppError } from "@/lib/errors";
+import { AppError, isAppError, isPrismaKnownError } from "@/lib/errors";
 import { logRouteError } from "@/lib/logger";
+import { getRequestId } from "@/lib/request-context";
 
 type RouteContext = { params: Promise<Record<string, string>> };
 
@@ -12,9 +13,25 @@ type ApiHandler = (
 /** Errors that expose a stable HTTP status (AppError, PaymentError, …). */
 function getHttpError(
   error: unknown
-): { message: string; status: number } | null {
+): { message: string; status: number; code?: string } | null {
   if (isAppError(error)) {
-    return { message: error.message, status: error.status };
+    return { message: error.message, status: error.status, code: error.code };
+  }
+  if (isPrismaKnownError(error)) {
+    if (error.code === "P2002") {
+      return {
+        message: "Conflit : cette ressource existe déjà",
+        status: 409,
+        code: "CONFLICT",
+      };
+    }
+    if (error.code === "P2025") {
+      return {
+        message: "Ressource introuvable",
+        status: 404,
+        code: "NOT_FOUND",
+      };
+    }
   }
   if (
     error instanceof Error &&
@@ -38,14 +55,26 @@ export function withApiHandler(
       return await handler(req, ctx);
     } catch (error) {
       const httpErr = getHttpError(error);
+      const requestId = getRequestId();
       if (httpErr) {
         return NextResponse.json(
-          { error: httpErr.message },
+          {
+            error: httpErr.message,
+            ...(httpErr.code ? { code: httpErr.code } : {}),
+            ...(requestId ? { requestId } : {}),
+          },
           { status: httpErr.status }
         );
       }
       logRouteError(routeLabel, error);
-      return NextResponse.json({ error: "Erreur serveur" }, { status: 500 });
+      return NextResponse.json(
+        {
+          error: "Erreur serveur",
+          code: "INTERNAL_ERROR",
+          ...(requestId ? { requestId } : {}),
+        },
+        { status: 500 }
+      );
     }
   };
 }
@@ -55,13 +84,17 @@ export function jsonError(message: string, status: number): NextResponse {
 }
 
 export function throwUnauthorized(message = "Non autorisé"): never {
-  throw new AppError(message, 401);
+  throw new AppError(message, 401, true, "UNAUTHORIZED");
 }
 
 export function throwForbidden(message = "Accès refusé"): never {
-  throw new AppError(message, 403);
+  throw new AppError(message, 403, true, "FORBIDDEN");
 }
 
 export function throwNotFound(message = "Ressource introuvable"): never {
-  throw new AppError(message, 404);
+  throw new AppError(message, 404, true, "NOT_FOUND");
+}
+
+export function throwConflict(message = "Conflit"): never {
+  throw new AppError(message, 409, true, "CONFLICT");
 }

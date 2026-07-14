@@ -35,4 +35,15 @@ export function validateDatabaseUrl(url = getDatabaseUrl()): void {
   if (!parsed.pathname || parsed.pathname === "/") {
     throw new Error("DATABASE_URL doit inclure le nom de la base (ex. /ankino_db).");
   }
+
+  // Soft warn: Supabase transaction pooler (6543) breaks session-scoped RLS set_config.
+  if (
+    process.env.NODE_ENV === "production" &&
+    (parsed.port === "6543" || /pooler\.supabase\.com/i.test(parsed.hostname))
+  ) {
+    console.warn(
+      "[Tairo ampio] DATABASE_URL semble pointer vers un pooler transactionnel. " +
+        "Utilisez une connexion directe ou un pooler session pour préserver le RLS (voir docs/OPS_PERFORMANCE.md)."
+    );
+  }
 }

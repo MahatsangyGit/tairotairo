@@ -1,7 +1,12 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthOrThrow } from "@/lib/auth";
-import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
+import {
+  withApiHandler,
+  throwForbidden,
+  throwNotFound,
+  throwConflict,
+} from "@/lib/api-handler";
 import {
   BookingStatus,
   canTransitionStatus,
@@ -27,6 +32,51 @@ import { bookingMutationInclude } from "@/lib/booking-include";
 export const dynamic = "force-dynamic";
 
 const bookingInclude = bookingMutationInclude;
+
+async function transitionBookingStatus(params: {
+  id: string;
+  expectedStatus: BookingStatus;
+  nextStatus: BookingStatus;
+  requestResponseId: string | null;
+  requestResponseStatus?: "COMPLETED" | "REJECTED";
+}) {
+  const {
+    id,
+    expectedStatus,
+    nextStatus,
+    requestResponseId,
+    requestResponseStatus,
+  } = params;
+
+  return prisma.$transaction(async (tx) => {
+    const locked = await tx.booking.updateMany({
+      where: { id, status: expectedStatus },
+      data: { status: nextStatus },
+    });
+
+    if (locked.count !== 1) {
+      throwConflict(
+        "La réservation a déjà changé d'état. Actualisez et réessayez."
+      );
+    }
+
+    if (requestResponseId && requestResponseStatus) {
+      await tx.requestResponse
+        .update({
+          where: { id: requestResponseId },
+          data: { status: requestResponseStatus },
+        })
+        .catch(() => {
+          // la proposition peut avoir déjà changé de statut
+        });
+    }
+
+    return tx.booking.findUniqueOrThrow({
+      where: { id },
+      include: bookingInclude,
+    });
+  });
+}
 
 // PATCH - Mettre à jour le statut d'une réservation (workflow paiement inclus)
 export const PATCH = withApiHandler(
@@ -78,7 +128,7 @@ export const PATCH = withApiHandler(
       )
     ) {
       return NextResponse.json(
-        { error: "Transition de statut non autorisée" },
+        { error: "Transition de statut non autorisée", code: "INVALID_TRANSITION" },
         { status: 400 }
       );
     }
@@ -95,21 +145,12 @@ export const PATCH = withApiHandler(
         );
       }
 
-      const result = await prisma.$transaction(async (tx) => {
-        const updated = await tx.booking.update({
-          where: { id },
-          data: { status: nextStatus },
-          include: bookingInclude,
-        });
-
-        if (booking.requestResponseId) {
-          await tx.requestResponse.update({
-            where: { id: booking.requestResponseId },
-            data: { status: "COMPLETED" },
-          });
-        }
-
-        return updated;
+      const result = await transitionBookingStatus({
+        id,
+        expectedStatus: currentStatus,
+        nextStatus,
+        requestResponseId: booking.requestResponseId,
+        requestResponseStatus: "COMPLETED",
       });
 
       // Libérer le séquestre vers le prestataire (hors transaction Prisma pour
@@ -129,23 +170,12 @@ export const PATCH = withApiHandler(
 
     // Annulation : rembourser le client si les fonds étaient sous séquestre.
     if (nextStatus === "CANCELLED") {
-      const result = await prisma.$transaction(async (tx) => {
-        const updated = await tx.booking.update({
-          where: { id },
-          data: { status: nextStatus },
-          include: bookingInclude,
-        });
-
-        if (booking.requestResponseId) {
-          await tx.requestResponse.update({
-            where: { id: booking.requestResponseId },
-            data: { status: "REJECTED" },
-          }).catch(() => {
-            // la proposition peut avoir déjà changé de statut
-          });
-        }
-
-        return updated;
+      const result = await transitionBookingStatus({
+        id,
+        expectedStatus: currentStatus,
+        nextStatus,
+        requestResponseId: booking.requestResponseId,
+        requestResponseStatus: "REJECTED",
       });
 
       // Rembourser le séquestre (hors transaction Prisma).
@@ -162,10 +192,11 @@ export const PATCH = withApiHandler(
     }
 
     // Transitions simples (CONFIRMED, IN_PROGRESS, DONE_PENDING_VALIDATION)
-    const updated = await prisma.booking.update({
-      where: { id },
-      data: { status: nextStatus },
-      include: bookingInclude,
+    const updated = await transitionBookingStatus({
+      id,
+      expectedStatus: currentStatus,
+      nextStatus,
+      requestResponseId: null,
     });
 
     if (nextStatus === "CONFIRMED") {

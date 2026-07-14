@@ -57,7 +57,7 @@ function createPrismaClient(): PrismaClient {
 }
 
 /** Incrémenter après chaque changement de schéma pour invalider le singleton en dev. */
-const PRISMA_CLIENT_GENERATION = 6;
+const PRISMA_CLIENT_GENERATION = 8;
 
 type PrismaClientWithGeneration = PrismaClient & { __generation?: number };
 
@@ -69,7 +69,8 @@ function isStalePrismaClient(client: PrismaClient): boolean {
   return (
     !("providerKycDocument" in client) ||
     !("providerPortfolioItem" in client) ||
-    !("providerSubscription" in client)
+    !("providerSubscription" in client) ||
+    !("notificationOutbox" in client)
   );
 }
 

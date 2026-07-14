@@ -89,6 +89,19 @@ Policies définies dans `supabase/migrations/20260629130000_011_rls_prisma_schem
 
 ---
 
+## `ProviderPayout`
+
+Policies : `supabase/migrations/20260714100000_019_provider_payout_rls.sql`.
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT | — | — | Self (`providerId`) | Tous |
+| INSERT | — | — | — | Bypass / Admin |
+| UPDATE | — | — | — | Bypass / Admin |
+| DELETE | — | — | — | ✓ |
+
+---
+
 ## `conversations` / `messages`
 
 | Action | Public | CLIENT | PROVIDER | ADMIN |
@@ -155,6 +168,17 @@ Policies définies dans `supabase/migrations/20260629130000_011_rls_prisma_schem
 ## `email_otps` / `password_reset_tokens`
 
 Accès **Bypass uniquement** (inscription, OTP, mot de passe oublié).
+
+---
+
+## `NotificationOutbox`
+
+File d’attente email/push (cron). Accès **Bypass / Admin** uniquement.
+
+| Action | Public | CLIENT | PROVIDER | ADMIN |
+|--------|--------|--------|----------|-------|
+| SELECT / INSERT / UPDATE | — | — | — | Bypass / ✓ |
+| DELETE | — | — | — | ✓ |
 
 ---
 

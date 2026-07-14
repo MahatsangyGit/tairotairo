@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { MessageKind, PriceOfferStatus } from "@/generated/prisma/enums";
 import type {
   NegotiationContext,
@@ -7,6 +8,8 @@ import type {
 } from "@/lib/price-negotiation-types";
 
 const NEGOTIABLE_REQUEST_STATUSES = ["PENDING", "ACCEPTED"] as const;
+
+type DbClient = Prisma.TransactionClient | typeof prisma;
 
 export async function findServiceNegotiation(
   clientId: string,
@@ -148,57 +151,102 @@ async function findRequestNegotiation(
   };
 }
 
+export type NegotiationHints = {
+  serviceId?: string;
+  requestResponseId?: string;
+};
+
+function hintsFromOffer(offer: {
+  serviceId: string | null;
+  requestResponseId: string | null;
+}): NegotiationHints {
+  return {
+    ...(offer.serviceId ? { serviceId: offer.serviceId } : {}),
+    ...(offer.requestResponseId
+      ? { requestResponseId: offer.requestResponseId }
+      : {}),
+  };
+}
+
 /** Déduit le contexte actif à partir des offres de prix dans le fil. */
 export async function getNegotiationHintsFromMessages(
   conversationId: string
-): Promise<{ serviceId?: string; requestResponseId?: string } | null> {
-  const pending = await prisma.message.findFirst({
+): Promise<NegotiationHints | null> {
+  const map = await getNegotiationHintsForConversations([conversationId]);
+  return map.get(conversationId) ?? null;
+}
+
+/** Batch version of getNegotiationHintsFromMessages — few queries for many threads. */
+export async function getNegotiationHintsForConversations(
+  conversationIds: string[]
+): Promise<Map<string, NegotiationHints | null>> {
+  const result = new Map<string, NegotiationHints | null>();
+  if (conversationIds.length === 0) return result;
+
+  for (const id of conversationIds) {
+    result.set(id, null);
+  }
+
+  const pending = await prisma.message.findMany({
     where: {
-      conversationId,
+      conversationId: { in: conversationIds },
       kind: MessageKind.PRICE_OFFER,
       offerStatus: PriceOfferStatus.PENDING,
     },
     orderBy: { createdAt: "desc" },
-    select: { serviceId: true, requestResponseId: true },
+    select: {
+      conversationId: true,
+      serviceId: true,
+      requestResponseId: true,
+    },
   });
 
-  if (pending) {
-    return {
-      ...(pending.serviceId ? { serviceId: pending.serviceId } : {}),
-      ...(pending.requestResponseId
-        ? { requestResponseId: pending.requestResponseId }
-        : {}),
-    };
+  const withPending = new Set<string>();
+  for (const row of pending) {
+    if (withPending.has(row.conversationId)) continue;
+    withPending.add(row.conversationId);
+    result.set(row.conversationId, hintsFromOffer(row));
   }
 
-  const accepted = await prisma.message.findFirst({
+  const remaining = conversationIds.filter((id) => !withPending.has(id));
+  if (remaining.length === 0) return result;
+
+  const accepted = await prisma.message.findMany({
     where: {
-      conversationId,
+      conversationId: { in: remaining },
       kind: MessageKind.PRICE_OFFER,
       offerStatus: PriceOfferStatus.ACCEPTED,
     },
-    select: { id: true },
+    select: { conversationId: true },
+    distinct: ["conversationId"],
   });
-  if (accepted) return null;
+  const acceptedSet = new Set(accepted.map((a) => a.conversationId));
 
-  const lastOffer = await prisma.message.findFirst({
+  const needLast = remaining.filter((id) => !acceptedSet.has(id));
+  if (needLast.length === 0) return result;
+
+  const lastOffers = await prisma.message.findMany({
     where: {
-      conversationId,
+      conversationId: { in: needLast },
       kind: MessageKind.PRICE_OFFER,
       OR: [{ serviceId: { not: null } }, { requestResponseId: { not: null } }],
     },
     orderBy: { createdAt: "desc" },
-    select: { serviceId: true, requestResponseId: true },
+    select: {
+      conversationId: true,
+      serviceId: true,
+      requestResponseId: true,
+    },
   });
 
-  if (!lastOffer) return null;
+  const seenLast = new Set<string>();
+  for (const row of lastOffers) {
+    if (seenLast.has(row.conversationId)) continue;
+    seenLast.add(row.conversationId);
+    result.set(row.conversationId, hintsFromOffer(row));
+  }
 
-  return {
-    ...(lastOffer.serviceId ? { serviceId: lastOffer.serviceId } : {}),
-    ...(lastOffer.requestResponseId
-      ? { requestResponseId: lastOffer.requestResponseId }
-      : {}),
-  };
+  return result;
 }
 
 async function applyNegotiationOpenState(
@@ -336,11 +384,12 @@ export async function loadOfferForAccept(
 export async function supersedePendingOffers(
   conversationId: string,
   scope: { requestResponseId?: string; serviceId?: string },
-  exceptMessageId?: string
+  exceptMessageId?: string,
+  db: DbClient = prisma
 ) {
   if (!scope.requestResponseId && !scope.serviceId) return;
 
-  await prisma.message.updateMany({
+  await db.message.updateMany({
     where: {
       conversationId,
       kind: MessageKind.PRICE_OFFER,

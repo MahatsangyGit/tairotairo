@@ -55,6 +55,17 @@ export function validateEnvAtBoot(): void {
   if (env.NODE_ENV === "production" && !env.CRON_SECRET) {
     throw new Error("CRON_SECRET est obligatoire en production");
   }
+  if (env.NODE_ENV === "production" && !env.REDIS_URL) {
+    throw new Error("REDIS_URL est obligatoire en production");
+  }
+  if (
+    env.NODE_ENV === "production" &&
+    process.env.TAIRO_CUSTOM_SERVER !== "1"
+  ) {
+    throw new Error(
+      "Le serveur custom (server.ts / dist/server.js) est obligatoire en production. N'utilisez pas `next start`."
+    );
+  }
 }
 
 export function getBcryptRounds(): number {

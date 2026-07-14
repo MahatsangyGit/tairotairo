@@ -151,35 +151,66 @@ export function bookingSubject(booking: {
   return display?.title ?? "Réservation";
 }
 
+export type ConversationContext = {
+  subject: string;
+  bookingId: string | null;
+  bookingStatus: string | null;
+  isDirect: boolean;
+};
+
+function pairKey(clientId: string, providerId: string): string {
+  return `${clientId}:${providerId}`;
+}
+
+const DIRECT_CONTEXT: ConversationContext = {
+  subject: "Discussion directe",
+  bookingId: null,
+  bookingStatus: null,
+  isDirect: true,
+};
+
 export async function getConversationContext(
   clientId: string,
   providerId: string
-) {
-  const booking = await prisma.booking.findFirst({
+): Promise<ConversationContext> {
+  const map = await getConversationContextsBatch([{ clientId, providerId }]);
+  return map.get(pairKey(clientId, providerId)) ?? DIRECT_CONTEXT;
+}
+
+/** Latest non-cancelled booking context per (clientId, providerId) pair — one query. */
+export async function getConversationContextsBatch(
+  pairs: Array<{ clientId: string; providerId: string }>
+): Promise<Map<string, ConversationContext>> {
+  const map = new Map<string, ConversationContext>();
+  for (const { clientId, providerId } of pairs) {
+    map.set(pairKey(clientId, providerId), DIRECT_CONTEXT);
+  }
+
+  if (pairs.length === 0) return map;
+
+  const bookings = await prisma.booking.findMany({
     where: {
-      clientId,
-      providerId,
       status: { not: "CANCELLED" },
+      OR: pairs.map(({ clientId, providerId }) => ({ clientId, providerId })),
     },
     orderBy: { updatedAt: "desc" },
     include: bookingContextInclude,
   });
 
-  if (booking) {
-    return {
-      subject: bookingSubject(booking),
-      bookingId: booking.id,
-      bookingStatus: booking.status,
-      isDirect: false,
-    };
+  for (const booking of bookings) {
+    const key = pairKey(booking.clientId, booking.providerId);
+    const current = map.get(key);
+    if (!current || current.isDirect) {
+      map.set(key, {
+        subject: bookingSubject(booking),
+        bookingId: booking.id,
+        bookingStatus: booking.status,
+        isDirect: false,
+      });
+    }
   }
 
-  return {
-    subject: "Discussion directe",
-    bookingId: null as string | null,
-    bookingStatus: null as string | null,
-    isDirect: true,
-  };
+  return map;
 }
 
 type PairResult =

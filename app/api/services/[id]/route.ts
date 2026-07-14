@@ -18,6 +18,7 @@ import {
   parseJsonBody,
   patchServiceSchema,
 } from "@/lib/api-schemas";
+import { paidReviewWhere } from "@/lib/paid-reviews";
 
 // ─── GET /api/services/[id] ───────────────────────────────────────────────────
 
@@ -57,24 +58,29 @@ export const GET = withApiHandler(
       throwNotFound("Service introuvable");
     }
 
-    // Avis du prestataire
-    const reviews = await prisma.review.findMany({
-      where: { targetId: service.providerId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        author: {
-          select: { id: true, name: true, avatar: true },
-        },
-      },
-    });
+    const where = paidReviewWhere(service.providerId);
 
-    const averageRating =
-      reviews.length > 0
-        ? Math.round(
-            (reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length) *
-              10
-          ) / 10
-        : 0;
+    const [reviews, totalReviews, aggregate] = await Promise.all([
+      prisma.review.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        take: 20,
+        include: {
+          author: {
+            select: { id: true, name: true, avatar: true },
+          },
+        },
+      }),
+      prisma.review.count({ where }),
+      prisma.review.aggregate({
+        where,
+        _avg: { rating: true },
+      }),
+    ]);
+
+    const averageRating = aggregate._avg.rating
+      ? Math.round(aggregate._avg.rating * 10) / 10
+      : 0;
 
     return NextResponse.json({
       service: withCoverImageUrl("service", {
@@ -83,7 +89,7 @@ export const GET = withApiHandler(
       }),
       reviews,
       averageRating,
-      totalReviews: reviews.length,
+      totalReviews,
     });
   }
 );

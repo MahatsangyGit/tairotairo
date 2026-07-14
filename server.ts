@@ -2,6 +2,10 @@ import { createServer, type Server } from "http";
 import { parse } from "url";
 import next from "next";
 import "dotenv/config";
+
+/** Marks that the process was started via the custom Node server (audit C6). */
+process.env.TAIRO_CUSTOM_SERVER = "1";
+
 import { validateDatabaseUrl } from "./app/lib/database-url";
 import { validateJwtSecret } from "./app/lib/jwt-secret";
 import { disconnectPrisma } from "./app/lib/prisma";
@@ -133,20 +137,51 @@ app
         return;
       }
 
+      const { createRequestId, runWithRequestContext } = await import(
+        "./app/lib/request-context"
+      );
+      const { logger } = await import("./app/lib/logger");
+      const requestId = createRequestId(
+        typeof req.headers["x-request-id"] === "string"
+          ? req.headers["x-request-id"]
+          : Array.isArray(req.headers["x-request-id"])
+            ? req.headers["x-request-id"][0]
+            : null
+      );
+      res.setHeader("x-request-id", requestId);
+      const startedAt = Date.now();
+
       const rlsContext = await resolveRlsContextFromRequest(
         req.url ?? undefined,
         req.headers.cookie
       );
 
-      void runWithRls(rlsContext, async () => {
-        await handle(req, res, parsedUrl);
-      }).catch((error) => {
-        console.error("[Tairo ampio] Erreur requête HTTP :", error);
-        if (!res.headersSent) {
-          res.statusCode = 500;
-          res.end("Internal Server Error");
-        }
-      });
+      void runWithRequestContext({ requestId }, async () => {
+        await runWithRls(rlsContext, async () => {
+          await handle(req, res, parsedUrl);
+        });
+      })
+        .catch((error) => {
+          console.error("[Tairo ampio] Erreur requête HTTP :", error);
+          if (!res.headersSent) {
+            res.statusCode = 500;
+            res.end("Internal Server Error");
+          }
+        })
+        .finally(() => {
+          if (pathname.startsWith("/api")) {
+            logger.info(
+              {
+                requestId,
+                method: req.method,
+                path: pathname,
+                status: res.statusCode,
+                durationMs: Date.now() - startedAt,
+              },
+              "api.access"
+            );
+          }
+        });
     });
 
     httpServer = server;

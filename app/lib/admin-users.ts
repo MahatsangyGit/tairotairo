@@ -89,6 +89,8 @@ export async function unsuspendUser(
     data: { suspendedAt: null },
   });
 
+  await bumpTokenVersion(targetId);
+
   logSecurityEvent({
     event: "admin.user_unsuspended",
     userId: targetId,
@@ -134,6 +136,8 @@ export async function setUserRole(
     where: { id: targetId },
     data: { role },
   });
+
+  await bumpTokenVersion(targetId);
 
   if (target.role === "PROVIDER" && role !== "PROVIDER") {
     await disableProviderHomepageSpotlight(targetId);

@@ -31,6 +31,8 @@ npm run build:server # bundle server.ts → dist/server.js
 npm start            # NODE_ENV=production node dist/server.js
 ```
 
+> **Important :** en production, seul le serveur Node custom (`npm start` / `node dist/server.js`) est supporté. Il pose CORS, CSRF, les limites de body, le contexte RLS et le WebSocket. `next start` seul est refusé au démarrage.
+
 ### Docker Compose
 
 ```bash
@@ -47,6 +49,7 @@ Sur le VPS, planifier le script npm :
 
 ```bash
 npm run cron:expire-subscriptions
+npm run cron:cleanup-tokens
 ```
 
 (`vercel.json` peut rester pour un déclencheur externe optionnel ; le cron principal est côté serveur.)

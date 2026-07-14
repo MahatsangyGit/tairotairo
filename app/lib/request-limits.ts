@@ -4,6 +4,8 @@ export const MAX_API_BODY_BYTES = 1024 * 1024;
 /**
  * Maximum multipart body for file uploads.
  * Aligné sur le plus gros upload autorisé (portfolio 5 Mo) + marge multipart.
+ * En production, configurez aussi `client_max_body_size` (nginx) / équivalent
+ * reverse-proxy au-dessus de cette valeur.
  */
 export const MAX_UPLOAD_BODY_BYTES = 6 * 1024 * 1024;
 

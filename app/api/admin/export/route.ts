@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server";
 import { withApiHandler } from "@/lib/api-handler";
 import { requireAdmin } from "@/lib/admin-auth";
-import { rowsToCsv, csvResponse } from "@/lib/csv-export";
+import { rowsToCsv, csvResponse, csvStreamResponse } from "@/lib/csv-export";
 import {
-  exportBookingsCsv,
-  exportClientsCsv,
-  exportProvidersCsv,
-  exportServicesCsv,
-  exportSubscriptionsCsv,
+  iterateBookingsCsv,
+  iterateClientsCsv,
+  iterateProvidersCsv,
+  iterateServicesCsv,
+  iterateSubscriptionsCsv,
   getAdminStats,
 } from "@/lib/admin-stats";
+import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
@@ -31,7 +32,7 @@ const EXPORT_TYPES = {
       "en_avant_accueil",
       "inscrit_le",
     ],
-    rows: exportProvidersCsv,
+    rows: iterateProvidersCsv,
   },
   services: {
     filename: "annonces.csv",
@@ -47,7 +48,7 @@ const EXPORT_TYPES = {
       "email_prestataire",
       "cree_le",
     ],
-    rows: exportServicesCsv,
+    rows: iterateServicesCsv,
   },
   bookings: {
     filename: "reservations.csv",
@@ -67,7 +68,7 @@ const EXPORT_TYPES = {
       "email_prestataire",
       "cree_le",
     ],
-    rows: exportBookingsCsv,
+    rows: iterateBookingsCsv,
   },
   clients: {
     filename: "clients.csv",
@@ -82,7 +83,7 @@ const EXPORT_TYPES = {
       "avis_donnes",
       "inscrit_le",
     ],
-    rows: exportClientsCsv,
+    rows: iterateClientsCsv,
   },
   subscriptions: {
     filename: "abonnements.csv",
@@ -96,7 +97,7 @@ const EXPORT_TYPES = {
       "statut",
       "notes",
     ],
-    rows: exportSubscriptionsCsv,
+    rows: iterateSubscriptionsCsv,
   },
 } as const;
 
@@ -108,6 +109,14 @@ function isExportType(value: string | null): value is ExportType {
 
 export const GET = withApiHandler("GET /api/admin/export", async (req) => {
   const auth = await requireAdmin(req);
+
+  const rateLimited = await enforceRateLimit(
+    req,
+    "admin-export",
+    API_RATE_LIMITS.adminExport,
+    { userId: auth.userId }
+  );
+  if (rateLimited) return rateLimited;
 
   const type = req.nextUrl.searchParams.get("type");
 
@@ -150,7 +159,5 @@ export const GET = withApiHandler("GET /api/admin/export", async (req) => {
   }
 
   const config = EXPORT_TYPES[type];
-  const rows = await config.rows();
-  const csv = rowsToCsv([...config.headers], rows);
-  return csvResponse(csv, config.filename);
+  return csvStreamResponse(config.filename, [...config.headers], config.rows());
 });

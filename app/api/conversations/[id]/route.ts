@@ -10,8 +10,14 @@ import {
 import { resolveNegotiationForConversation } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
 import { publishInboxChanged } from "@/lib/realtime/publish";
+import {
+  decodeTimeIdCursor,
+  encodeTimeIdCursor,
+  parsePageLimit,
+} from "@/lib/keyset-cursor";
+import type { Prisma } from "@/generated/prisma/client";
 
-// GET — Détail d'une conversation et ses messages
+// GET — Détail d'une conversation et ses messages (paginés, plus récents d'abord)
 export const GET = withApiHandler(
   "GET /api/conversations/[id]",
   async (req, { params }) => {
@@ -20,6 +26,11 @@ export const GET = withApiHandler(
     const requestResponseId =
       req.nextUrl.searchParams.get("response") ?? undefined;
     const serviceId = req.nextUrl.searchParams.get("service") ?? undefined;
+    const limit = parsePageLimit(req.nextUrl.searchParams.get("limit"), {
+      default: 50,
+      max: 100,
+    });
+    const cursor = decodeTimeIdCursor(req.nextUrl.searchParams.get("cursor"));
 
     const conversation = await getConversationForParticipant(id, auth.userId);
 
@@ -40,13 +51,36 @@ export const GET = withApiHandler(
       publishInboxChanged(auth.userId);
     }
 
-    const messages = await prisma.message.findMany({
-      where: { conversationId: id },
-      orderBy: { createdAt: "asc" },
+    const olderThanCursor: Prisma.MessageWhereInput | undefined = cursor
+      ? {
+          OR: [
+            { createdAt: { lt: cursor.at } },
+            { createdAt: cursor.at, id: { lt: cursor.id } },
+          ],
+        }
+      : undefined;
+
+    const messageRows = await prisma.message.findMany({
+      where: {
+        conversationId: id,
+        ...(olderThanCursor ? olderThanCursor : {}),
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      take: limit + 1,
       include: {
         sender: { select: { id: true, name: true, avatar: true } },
       },
     });
+
+    const hasMore = messageRows.length > limit;
+    const pageDesc = hasMore ? messageRows.slice(0, limit) : messageRows;
+    const pageAsc = [...pageDesc].reverse();
+
+    const oldest = pageAsc[0];
+    const nextCursor =
+      hasMore && oldest
+        ? encodeTimeIdCursor(oldest.createdAt, oldest.id)
+        : null;
 
     const counterparty = getCounterpartyFromConversation(
       conversation,
@@ -84,7 +118,9 @@ export const GET = withApiHandler(
           avatar: counterparty.avatar,
         },
       },
-      messages: messages.map((m) => serializeMessage(m, auth.userId)),
+      messages: pageAsc.map((m) => serializeMessage(m, auth.userId)),
+      nextCursor,
+      hasMore,
     });
   }
 );

@@ -1,18 +1,20 @@
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
 import {
   AVATAR_MAX_FILE_BYTES,
   type AvatarAllowedMime,
 } from "@/lib/avatar";
-import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
+import { assertSafeStorageId } from "@/lib/storage-path";
 import { optimizeUploadImage } from "@/lib/image-optimize";
 import {
-  deleteFilesWithBasename,
-  readImageByBasename,
+  mimeFromStoredExtension,
   validateImageUpload,
 } from "@/lib/image-storage";
+import {
+  deleteKeysWithBasename,
+  findKeyWithBasename,
+  getStorageBackend,
+} from "@/lib/storage/backend";
+import path from "path";
 
-const STORAGE_ROOT = path.join(process.cwd(), "storage", "avatars");
 const AVATAR_BASENAME = "avatar";
 
 export function validateAvatarUploadFile(
@@ -22,9 +24,15 @@ export function validateAvatarUploadFile(
   return validateImageUpload(file, buffer, { maxBytes: AVATAR_MAX_FILE_BYTES });
 }
 
-export function userAvatarDir(userId: string): string {
+/** Object-key prefix for a user avatar (`avatars/{userId}`). */
+export function userAvatarKeyPrefix(userId: string): string {
   assertSafeStorageId(userId);
-  return resolveStoragePath(STORAGE_ROOT, userId);
+  return `avatars/${userId}`;
+}
+
+/** @deprecated Prefer userAvatarKeyPrefix — kept for callers expecting a path-like id. */
+export function userAvatarDir(userId: string): string {
+  return userAvatarKeyPrefix(userId);
 }
 
 export async function saveAvatarFile(
@@ -32,21 +40,38 @@ export async function saveAvatarFile(
   buffer: Buffer,
   _mime?: AvatarAllowedMime
 ): Promise<void> {
-  const dir = userAvatarDir(userId);
-  await mkdir(dir, { recursive: true });
-  await deleteFilesWithBasename(dir, AVATAR_BASENAME);
+  const backend = getStorageBackend();
+  const prefix = userAvatarKeyPrefix(userId);
+  await deleteKeysWithBasename(backend, prefix, AVATAR_BASENAME);
 
   const optimized = await optimizeUploadImage(buffer, "avatar");
-  const fileName = `${AVATAR_BASENAME}${optimized.extension}`;
-  await writeFile(path.join(dir, fileName), optimized.buffer);
+  const key = `${prefix}/${AVATAR_BASENAME}${optimized.extension}`;
+  await backend.put(key, optimized.buffer, optimized.mime);
 }
 
 export async function deleteAvatarFiles(userId: string): Promise<void> {
-  await deleteFilesWithBasename(userAvatarDir(userId), AVATAR_BASENAME);
+  await deleteKeysWithBasename(
+    getStorageBackend(),
+    userAvatarKeyPrefix(userId),
+    AVATAR_BASENAME
+  );
 }
 
 export async function readAvatarFile(
   userId: string
 ): Promise<{ buffer: Buffer; mime: AvatarAllowedMime } | null> {
-  return readImageByBasename(userAvatarDir(userId), AVATAR_BASENAME);
+  const backend = getStorageBackend();
+  const key = await findKeyWithBasename(
+    backend,
+    userAvatarKeyPrefix(userId),
+    AVATAR_BASENAME
+  );
+  if (!key) return null;
+
+  const buffer = await backend.get(key);
+  if (!buffer) return null;
+
+  const mime = mimeFromStoredExtension(path.extname(key));
+  if (!mime) return null;
+  return { buffer, mime };
 }

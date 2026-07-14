@@ -2,7 +2,7 @@ import { AsyncLocalStorage } from "node:async_hooks";
 import type { NextRequest } from "next/server";
 import type { PoolClient } from "pg";
 import type { JwtPayload } from "@/lib/jwt";
-import { verifyToken } from "@/lib/jwt";
+import { resolveActiveAuth } from "@/lib/active-session";
 
 export type RlsContext =
   | { mode: "anonymous" }
@@ -32,7 +32,7 @@ export async function withRequestRls<T>(
   fn: () => Promise<T>
 ): Promise<T> {
   const token = req.cookies.get("token")?.value;
-  const auth = token ? await verifyToken(token) : null;
+  const auth = await resolveActiveAuth(token);
   return runWithRls(rlsContextFromAuth(auth), fn);
 }
 
@@ -96,7 +96,7 @@ export async function resolveRlsContextFromRequest(
   const token = parseCookieHeader(cookieHeader).token;
   if (!token) return ANONYMOUS_RLS;
 
-  const auth = await verifyToken(token);
+  const auth = await resolveActiveAuth(token);
   return rlsContextFromAuth(auth);
 }
 

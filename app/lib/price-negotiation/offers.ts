@@ -93,7 +93,7 @@ export async function createPriceOffer(params: {
 
   try {
     const message = await prisma.$transaction(async (tx) => {
-      await supersedePendingOffers(conversationId, scope);
+      await supersedePendingOffers(conversationId, scope, undefined, tx);
 
       const created = await tx.message.create({
         data: {

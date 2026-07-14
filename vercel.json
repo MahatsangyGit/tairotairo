@@ -3,6 +3,14 @@
     {
       "path": "/api/cron/expire-subscriptions",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/cron/cleanup-tokens",
+      "schedule": "15 3 * * *"
+    },
+    {
+      "path": "/api/cron/process-notification-outbox",
+      "schedule": "*/5 * * * *"
     }
   ]
 }

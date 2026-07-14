@@ -17,6 +17,8 @@ import {
   parseJsonBody,
   portfolioDescriptionPatchSchema,
 } from "@/lib/api-schemas";
+import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
+import { rejectInvalidUploadContentLength } from "@/lib/http-security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,6 +45,17 @@ export const PATCH = withApiHandler(
     const contentType = req.headers.get("content-type") ?? "";
 
     if (contentType.includes("multipart/form-data")) {
+      const rateLimited = await enforceRateLimit(
+        req,
+        "upload",
+        API_RATE_LIMITS.upload,
+        { userId: auth.userId }
+      );
+      if (rateLimited) return rateLimited;
+
+      const tooLarge = rejectInvalidUploadContentLength(req);
+      if (tooLarge) return tooLarge;
+
       const formData = await req.formData();
       const descriptionRaw = formData.get("description");
       const file = formData.get("file");

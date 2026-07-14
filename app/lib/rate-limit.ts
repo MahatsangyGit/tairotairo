@@ -87,10 +87,28 @@ export async function checkRateLimit(
   }
 }
 
+/**
+ * Client IP for rate limiting.
+ * Only trusts X-Forwarded-For when TRUSTED_PROXY_COUNT is a positive integer
+ * (number of trusted reverse-proxy hops from the right of the chain).
+ */
 export function getClientIp(req: NextRequest): string {
-  const forwarded = req.headers.get("x-forwarded-for");
-  if (forwarded) {
-    return forwarded.split(",")[0]?.trim() || "unknown";
+  const trustedProxyCount = parseInt(
+    process.env.TRUSTED_PROXY_COUNT ?? "",
+    10
+  );
+
+  if (Number.isFinite(trustedProxyCount) && trustedProxyCount > 0) {
+    const forwarded = req.headers.get("x-forwarded-for");
+    if (forwarded) {
+      const parts = forwarded
+        .split(",")
+        .map((p) => p.trim())
+        .filter(Boolean);
+      const index = parts.length - 1 - trustedProxyCount;
+      const candidate = parts[Math.max(0, index)];
+      if (candidate) return candidate;
+    }
   }
 
   const realIp = req.headers.get("x-real-ip");
@@ -106,6 +124,14 @@ export const AUTH_RATE_LIMITS = {
   register: { maxAttempts: 5, windowMs: 60 * 60 * 1000 },
   forgotPassword: { maxAttempts: 5, windowMs: 15 * 60 * 1000 },
   verifyOtp: { maxAttempts: 20, windowMs: 15 * 60 * 1000 },
+  sendOtp: { maxAttempts: 5, windowMs: 15 * 60 * 1000 },
+  resetPassword: { maxAttempts: 10, windowMs: 15 * 60 * 1000 },
+} as const satisfies Record<string, RateLimitConfig>;
+
+export const API_RATE_LIMITS = {
+  message: { maxAttempts: 60, windowMs: 60 * 1000 },
+  upload: { maxAttempts: 20, windowMs: 15 * 60 * 1000 },
+  adminExport: { maxAttempts: 10, windowMs: 15 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitConfig>;
 
 export function rateLimitResponse(retryAfter: number): NextResponse {
@@ -121,20 +147,41 @@ export function rateLimitResponse(retryAfter: number): NextResponse {
   );
 }
 
+export type EnforceRateLimitOptions = {
+  /** When set, also applies a user-scoped bucket (in addition to IP). */
+  userId?: string;
+};
+
 export async function enforceRateLimit(
   req: NextRequest,
   scope: string,
-  config: RateLimitConfig
+  config: RateLimitConfig,
+  options?: EnforceRateLimitOptions
 ): Promise<NextResponse | null> {
   const ip = getClientIp(req);
-  const result = await checkRateLimit(`${scope}:${ip}`, config);
+  const ipResult = await checkRateLimit(`${scope}:ip:${ip}`, config);
 
-  if (!result.ok) {
+  if (!ipResult.ok) {
     logSecurityEventFromRequest("auth.rate_limited", req, {
       detail: scope,
-      meta: { retryAfter: result.retryAfter },
+      meta: { retryAfter: ipResult.retryAfter, key: "ip" },
     });
-    return rateLimitResponse(result.retryAfter);
+    return rateLimitResponse(ipResult.retryAfter);
+  }
+
+  if (options?.userId) {
+    const userResult = await checkRateLimit(
+      `${scope}:user:${options.userId}`,
+      config
+    );
+    if (!userResult.ok) {
+      logSecurityEventFromRequest("auth.rate_limited", req, {
+        detail: scope,
+        userId: options.userId,
+        meta: { retryAfter: userResult.retryAfter, key: "user" },
+      });
+      return rateLimitResponse(userResult.retryAfter);
+    }
   }
 
   return null;

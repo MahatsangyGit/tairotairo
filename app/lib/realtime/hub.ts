@@ -1,4 +1,5 @@
 import type { WebSocket } from "ws";
+import type Redis from "ioredis";
 import type { RealtimeServerEvent } from "@/lib/realtime/types";
 import { getRedisClient, REALTIME_REDIS_CHANNEL } from "@/lib/redis";
 
@@ -8,6 +9,7 @@ class MessagingHub {
   private readonly socketsByUser = new Map<string, Set<ClientSocket>>();
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private redisSubscribed = false;
+  private redisSubscriber: Redis | null = null;
 
   addSocket(userId: string, socket: ClientSocket) {
     const set = this.socketsByUser.get(userId) ?? new Set();
@@ -79,12 +81,13 @@ class MessagingHub {
   }
 
   private async subscribeRedis() {
-    if (this.redisSubscribed) return;
+    if (this.redisSubscribed || this.redisSubscriber) return;
     const redis = getRedisClient();
     if (!redis) return;
 
     try {
       const subscriber = redis.duplicate();
+      this.redisSubscriber = subscriber;
       await subscriber.subscribe(REALTIME_REDIS_CHANNEL);
       subscriber.on("message", (_channel, message) => {
         try {
@@ -101,11 +104,17 @@ class MessagingHub {
       });
       this.redisSubscribed = true;
     } catch {
-      // single-instance mode
+      // single-instance mode — drop half-open duplicate if subscribe failed
+      const failed = this.redisSubscriber;
+      this.redisSubscriber = null;
+      this.redisSubscribed = false;
+      if (failed) {
+        void failed.quit().catch(() => undefined);
+      }
     }
   }
 
-  shutdown() {
+  async shutdown() {
     if (this.heartbeatInterval) {
       clearInterval(this.heartbeatInterval);
       this.heartbeatInterval = null;
@@ -117,6 +126,22 @@ class MessagingHub {
       }
     }
     this.socketsByUser.clear();
+
+    const subscriber = this.redisSubscriber;
+    this.redisSubscriber = null;
+    this.redisSubscribed = false;
+    if (subscriber) {
+      try {
+        await subscriber.unsubscribe(REALTIME_REDIS_CHANNEL);
+      } catch {
+        // ignore unsubscribe errors during shutdown
+      }
+      try {
+        await subscriber.quit();
+      } catch {
+        subscriber.disconnect();
+      }
+    }
   }
 }
 

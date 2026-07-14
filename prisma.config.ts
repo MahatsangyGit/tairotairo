@@ -3,10 +3,16 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+/**
+ * Schema: multi-file folder under prisma/.
+ * Migrations: Supabase SQL in supabase/migrations/ is the source of truth.
+ * Do not use `prisma migrate` against this empty path — apply SQL via psql/CI.
+ */
 export default defineConfig({
-  // Directory so Prisma 7 loads all multi-file schema models under prisma/
   schema: "prisma",
   migrations: {
+    // Intentionally unused — kept for Prisma CLI compatibility only.
+    // Real migrations live in supabase/migrations/ (see docs/MIGRATIONS.md).
     path: "prisma/migrations",
   },
   datasource: {

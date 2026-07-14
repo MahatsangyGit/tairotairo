@@ -1,4 +1,3 @@
-import { mkdir, writeFile, unlink, readFile } from "fs/promises";
 import path from "path";
 import crypto from "crypto";
 import {
@@ -6,11 +5,9 @@ import {
   KYC_ALLOWED_MIME_TYPES,
   KYC_MAX_FILE_BYTES,
   type KycAllowedMime,
-  type KycDocumentType,
 } from "@/lib/kyc";
-import { assertSafeStorageId, resolveStoragePath } from "@/lib/storage-path";
-
-const STORAGE_ROOT = path.join(process.cwd(), "storage", "kyc");
+import { assertSafeStorageId } from "@/lib/storage-path";
+import { getStorageBackend } from "@/lib/storage/backend";
 
 function extensionForMime(mime: KycAllowedMime): string {
   switch (mime) {
@@ -82,9 +79,26 @@ export function validateKycUploadFile(
   return { ok: true, mime };
 }
 
-export function userKycDir(userId: string): string {
+/** Object-key prefix for KYC files (`kyc/{userId}`). */
+export function userKycKeyPrefix(userId: string): string {
   assertSafeStorageId(userId);
-  return resolveStoragePath(STORAGE_ROOT, userId);
+  return `kyc/${userId}`;
+}
+
+/** @deprecated Prefer userKycKeyPrefix. */
+export function userKycDir(userId: string): string {
+  return userKycKeyPrefix(userId);
+}
+
+function kycObjectKey(userId: string, storedName: string): string {
+  const safeName = path.basename(storedName);
+  if (!safeName || safeName !== storedName.replace(/\\/g, "/").split("/").pop()) {
+    throw new Error("Nom de fichier KYC invalide");
+  }
+  if (safeName.includes("..")) {
+    throw new Error("Nom de fichier KYC invalide");
+  }
+  return `${userKycKeyPrefix(userId)}/${safeName}`;
 }
 
 export async function saveKycFile(
@@ -92,10 +106,9 @@ export async function saveKycFile(
   buffer: Buffer,
   mime: KycAllowedMime
 ): Promise<string> {
-  const dir = userKycDir(userId);
-  await mkdir(dir, { recursive: true });
   const storedName = `${crypto.randomUUID()}${extensionForMime(mime)}`;
-  await writeFile(path.join(dir, storedName), buffer);
+  const key = kycObjectKey(userId, storedName);
+  await getStorageBackend().put(key, buffer, mime);
   return storedName;
 }
 
@@ -104,9 +117,9 @@ export async function deleteKycFile(
   storedName: string
 ): Promise<void> {
   try {
-    await unlink(path.join(userKycDir(userId), storedName));
+    await getStorageBackend().delete(kycObjectKey(userId, storedName));
   } catch {
-    // fichier déjà absent
+    // fichier déjà absent / clé invalide
   }
 }
 
@@ -114,8 +127,13 @@ export async function readKycFile(
   userId: string,
   storedName: string
 ): Promise<Buffer> {
-  const safeName = path.basename(storedName);
-  return readFile(path.join(userKycDir(userId), safeName));
+  const buffer = await getStorageBackend().get(
+    kycObjectKey(userId, storedName)
+  );
+  if (!buffer) {
+    throw new Error("Fichier KYC introuvable");
+  }
+  return buffer;
 }
 
 export function resolveCinSlot(

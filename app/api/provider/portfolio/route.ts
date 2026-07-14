@@ -15,6 +15,8 @@ import {
   savePortfolioImage,
   validatePortfolioImageFile,
 } from "@/lib/portfolio-storage";
+import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
+import { rejectInvalidUploadContentLength } from "@/lib/http-security";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,6 +40,17 @@ export const GET = withApiHandler("GET /api/provider/portfolio", async (req) => 
 export const POST = withApiHandler("POST /api/provider/portfolio", async (req) => {
   const auth = await requireAuthOrThrow(req);
   requireRole(auth, "PROVIDER", "Réservé aux prestataires");
+
+  const rateLimited = await enforceRateLimit(
+    req,
+    "upload",
+    API_RATE_LIMITS.upload,
+    { userId: auth.userId }
+  );
+  if (rateLimited) return rateLimited;
+
+  const tooLarge = rejectInvalidUploadContentLength(req);
+  if (tooLarge) return tooLarge;
 
   const emailCheck = await assertEmailVerified(auth.userId, auth.role);
   if (!emailCheck.ok) {
