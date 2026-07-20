@@ -11,6 +11,7 @@ import { validateJwtSecret } from "./app/lib/jwt-secret";
 import { disconnectPrisma } from "./app/lib/prisma";
 import { validateEnvAtBoot } from "./app/lib/env";
 import { disconnectRedis } from "./app/lib/redis";
+import { disconnectImageOptimizeQueue } from "./app/lib/image-optimize-queue";
 
 try {
   validateDatabaseUrl();
@@ -57,6 +58,7 @@ async function gracefulShutdown(signal: string, exitCode = 0): Promise<void> {
     }
 
     await disconnectPrisma();
+    await disconnectImageOptimizeQueue();
     await disconnectRedis();
     clearTimeout(forceExit);
     process.exit(exitCode);

@@ -1,8 +1,6 @@
 import esbuild from "esbuild";
 
-await esbuild.build({
-  entryPoints: ["server.ts"],
-  outfile: "dist/server.js",
+const shared = {
   bundle: true,
   platform: "node",
   target: "node20",
@@ -12,4 +10,16 @@ await esbuild.build({
     "@": "./app",
   },
   logLevel: "info",
+};
+
+await esbuild.build({
+  ...shared,
+  entryPoints: ["server.ts"],
+  outfile: "dist/server.js",
+});
+
+await esbuild.build({
+  ...shared,
+  entryPoints: ["workers/image-optimize-worker.ts"],
+  outfile: "dist/image-optimize-worker.js",
 });

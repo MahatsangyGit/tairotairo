@@ -5,7 +5,7 @@ import {
 } from "@/lib/listing-cover";
 import type { AvatarAllowedMime } from "@/lib/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImage } from "@/lib/image-optimize";
+import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
   validateImageUpload,
@@ -44,7 +44,7 @@ export async function saveListingCoverFile(
   const prefix = listingKeyPrefix(kind, id);
   await deleteKeysWithBasename(backend, prefix, COVER_BASENAME);
 
-  const optimized = await optimizeUploadImage(buffer, "cover");
+  const optimized = await optimizeUploadImageDispatched(buffer, "cover");
   const key = `${prefix}/${COVER_BASENAME}${optimized.extension}`;
   await backend.put(key, optimized.buffer, optimized.mime);
 }

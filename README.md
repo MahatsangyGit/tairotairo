@@ -27,11 +27,14 @@ L'application est disponible sur [http://localhost:3000](http://localhost:3000).
 ```bash
 npm ci
 npm run build        # next build
-npm run build:server # bundle server.ts → dist/server.js
+npm run build:server # bundle server.ts + worker Sharp → dist/
 npm start            # NODE_ENV=production node dist/server.js
+npm run start:worker:images  # process Sharp séparé (obligatoire en prod)
 ```
 
 > **Important :** en production, seul le serveur Node custom (`npm start` / `node dist/server.js`) est supporté. Il pose CORS, CSRF, les limites de body, le contexte RLS et le WebSocket. `next start` seul est refusé au démarrage.
+>
+> Le worker d’images (`start:worker:images`) isole Sharp du process HTTP via BullMQ/Redis — adapté à un VPS ~4 Go RAM (concurrency 1).
 
 ### Docker Compose
 

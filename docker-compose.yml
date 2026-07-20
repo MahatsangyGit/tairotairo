@@ -36,13 +36,36 @@ services:
       JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret-at-least-32-chars}
       CRON_SECRET: ${CRON_SECRET:-replace-with-a-long-random-secret}
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      IMAGE_OPTIMIZE_MODE: queue
+      IMAGE_WORKER_CONCURRENCY: "1"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      image-worker:
+        condition: service_started
     volumes:
       - app_storage:/app/storage
+
+  # Sharp isolé du process HTTP (concurrency 1 adaptée à ~4 Go RAM).
+  # Partage le volume storage pour le staging local `_tmp/image-optimize/`.
+  image-worker:
+    build: .
+    command: ["node", "dist/image-optimize-worker.js"]
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      IMAGE_WORKER_CONCURRENCY: "1"
+      STORAGE_BACKEND: local
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - app_storage:/app/storage
+    restart: unless-stopped
+    healthcheck:
+      disable: true
 
 volumes:
   postgres_data:

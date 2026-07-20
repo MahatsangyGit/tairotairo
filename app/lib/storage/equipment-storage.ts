@@ -1,7 +1,7 @@
 import path from "path";
 import type { AvatarAllowedMime } from "@/lib/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImage } from "@/lib/image-optimize";
+import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
   validateImageUpload,
@@ -40,7 +40,7 @@ export async function saveEquipmentPhoto(
   const prefix = equipmentPhotoPrefix(equipmentId);
   const basename = `photo-${index}`;
   await deleteKeysWithBasename(backend, prefix, basename);
-  const optimized = await optimizeUploadImage(buffer, "cover");
+  const optimized = await optimizeUploadImageDispatched(buffer, "cover");
   const key = `${prefix}/${basename}${optimized.extension}`;
   await backend.put(key, optimized.buffer, optimized.mime);
   return key;

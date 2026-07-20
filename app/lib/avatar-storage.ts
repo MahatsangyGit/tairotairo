@@ -3,7 +3,7 @@ import {
   type AvatarAllowedMime,
 } from "@/lib/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImage } from "@/lib/image-optimize";
+import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
   validateImageUpload,
@@ -44,7 +44,7 @@ export async function saveAvatarFile(
   const prefix = userAvatarKeyPrefix(userId);
   await deleteKeysWithBasename(backend, prefix, AVATAR_BASENAME);
 
-  const optimized = await optimizeUploadImage(buffer, "avatar");
+  const optimized = await optimizeUploadImageDispatched(buffer, "avatar");
   const key = `${prefix}/${AVATAR_BASENAME}${optimized.extension}`;
   await backend.put(key, optimized.buffer, optimized.mime);
 }

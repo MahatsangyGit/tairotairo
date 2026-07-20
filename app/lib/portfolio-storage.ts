@@ -2,7 +2,7 @@ import path from "path";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
 import type { AvatarAllowedMime } from "@/lib/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImage } from "@/lib/image-optimize";
+import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
   validateImageUpload,
@@ -50,7 +50,7 @@ export async function savePortfolioImage(
   const prefix = portfolioItemKeyPrefix(itemId);
   await deleteKeysWithBasename(backend, prefix, IMAGE_BASENAME);
 
-  const optimized = await optimizeUploadImage(buffer, "portfolio");
+  const optimized = await optimizeUploadImageDispatched(buffer, "portfolio");
   const storedName = `${IMAGE_BASENAME}${optimized.extension}`;
   await backend.put(`${prefix}/${storedName}`, optimized.buffer, optimized.mime);
 

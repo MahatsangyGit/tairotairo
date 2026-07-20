@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { withApiHandler } from "@/lib/api-handler";
+import {
+  isImageWorkerHealthy,
+  resolveImageOptimizeMode,
+} from "@/lib/image-optimize-queue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,10 +28,32 @@ export const GET = withApiHandler("GET /api/health", async () => {
   try {
     await prisma.$queryRaw`SELECT 1`;
     const redisOk = await checkRedis();
+    const imageMode = resolveImageOptimizeMode();
+    const imageWorker = await isImageWorkerHealthy();
 
     if (!redisOk) {
       return NextResponse.json(
-        { status: "degraded", database: "ok", redis: "error" },
+        {
+          status: "degraded",
+          database: "ok",
+          redis: "error",
+          imageOptimize: imageMode,
+          imageWorker:
+            imageWorker === null ? "n/a" : imageWorker ? "ok" : "error",
+        },
+        { status: 503 }
+      );
+    }
+
+    if (imageMode === "queue" && imageWorker === false) {
+      return NextResponse.json(
+        {
+          status: "degraded",
+          database: "ok",
+          redis: process.env.REDIS_URL ? "ok" : "skipped",
+          imageOptimize: imageMode,
+          imageWorker: "error",
+        },
         { status: 503 }
       );
     }
@@ -36,6 +62,9 @@ export const GET = withApiHandler("GET /api/health", async () => {
       status: "ok",
       database: "ok",
       redis: process.env.REDIS_URL ? "ok" : "skipped",
+      imageOptimize: imageMode,
+      imageWorker:
+        imageWorker === null ? "n/a" : imageWorker ? "ok" : "error",
     });
   } catch {
     return NextResponse.json(

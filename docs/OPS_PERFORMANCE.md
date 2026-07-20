@@ -26,3 +26,19 @@ FROM pg_stat_statements
 ORDER BY total_exec_time DESC
 LIMIT 20;
 ```
+
+## Worker Sharp (optimisation images)
+
+Sur un VPS ~3 vCPU / 4 Go RAM, Sharp tourne dans un **process dédié** (BullMQ + Redis), pas dans le serveur HTTP.
+
+| Process | Commande | Rôle |
+|---------|----------|------|
+| API | `npm start` | Upload → staging storage → job BullMQ → attend WebP |
+| Worker | `npm run start:worker:images` | Lit staging, Sharp → WebP, heartbeat Redis |
+
+- Concurrency par défaut : **1** (`IMAGE_WORKER_CONCURRENCY`, max 2).
+- Staging : clés `_tmp/image-optimize/{jobId}/…` (local ou S3) — pas de gros buffers dans Redis.
+- Santé : `GET /api/health` expose `imageOptimize` + `imageWorker` (heartbeat TTL 30s).
+- Docker Compose : service `image-worker` + volume `app_storage` partagé avec `app`.
+
+En local (`npm run dev`) le mode `auto` reste **inline** (pas besoin du worker). Forcer la file : `IMAGE_OPTIMIZE_MODE=queue` + `npm run worker:images`.
