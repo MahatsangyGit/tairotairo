@@ -1,6 +1,9 @@
 import Link from "next/link";
-import { searchEquipment, serializeEquipment, EQUIPMENT_CATEGORY_LABELS } from "@/lib/rental/equipment";
-import { EQUIPMENT_CATEGORIES } from "@/lib/schemas/rental";
+import { searchEquipment, serializeEquipment } from "@/lib/rental/equipment";
+import {
+  EQUIPMENT_CATEGORIES,
+  EQUIPMENT_CATEGORY_LABELS,
+} from "@/lib/rental/constants";
 import { Button } from "@/components/ui/button";
 import AmpindramoSearch from "@/ampindramo/AmpindramoSearch";
 

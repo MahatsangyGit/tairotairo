@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { apiFetchJson } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
-import { COURSE_CATEGORIES } from "@/lib/schemas/learning";
-import { COURSE_CATEGORY_LABELS } from "@/lib/learning/access";
+import {
+  COURSE_CATEGORIES,
+  COURSE_CATEGORY_LABELS,
+} from "@/lib/learning/constants";
 
 type Course = {
   id: string;

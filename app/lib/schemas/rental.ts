@@ -6,17 +6,9 @@ import {
   requiredText,
 } from "@/lib/schemas/shared";
 import { FIELD_LIMITS } from "@/lib/field-limits";
+import { EQUIPMENT_CATEGORIES } from "@/lib/rental/constants";
 
-export const EQUIPMENT_CATEGORIES = [
-  "POWER_TOOLS",
-  "HAND_TOOLS",
-  "ELECTRICAL",
-  "PLUMBING",
-  "PAINTING",
-  "GARDENING",
-  "CONSTRUCTION",
-  "OTHER",
-] as const;
+export { EQUIPMENT_CATEGORIES } from "@/lib/rental/constants";
 
 export const equipmentCategorySchema = z.enum(EQUIPMENT_CATEGORIES, {
   error: "Catégorie de matériel invalide",

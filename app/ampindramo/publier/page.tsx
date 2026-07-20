@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetchJson } from "@/lib/api-client";
-import { EQUIPMENT_CATEGORIES } from "@/lib/schemas/rental";
-import { EQUIPMENT_CATEGORY_LABELS } from "@/lib/rental/equipment";
+import {
+  EQUIPMENT_CATEGORIES,
+  EQUIPMENT_CATEGORY_LABELS,
+} from "@/lib/rental/constants";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
 
@@ -13,7 +15,8 @@ export default function PublishEquipmentPage() {
   const router = useRouter();
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [category, setCategory] = useState<(typeof EQUIPMENT_CATEGORIES)[number]>("POWER_TOOLS");
+  const [category, setCategory] =
+    useState<(typeof EQUIPMENT_CATEGORIES)[number]>("POWER_TOOLS");
   const [location, setLocation] = useState("");
   const [dailyPrice, setDailyPrice] = useState("");
   const [depositAmount, setDepositAmount] = useState("");

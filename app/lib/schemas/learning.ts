@@ -5,16 +5,9 @@ import {
   requiredText,
 } from "@/lib/schemas/shared";
 import { FIELD_LIMITS } from "@/lib/field-limits";
+import { COURSE_CATEGORIES } from "@/lib/learning/constants";
 
-export const COURSE_CATEGORIES = [
-  "DIY",
-  "HANDYWORK",
-  "ELECTRICAL",
-  "PLUMBING",
-  "PAINTING",
-  "SAFETY",
-  "OTHER",
-] as const;
+export { COURSE_CATEGORIES } from "@/lib/learning/constants";
 
 export const courseCategorySchema = z.enum(COURSE_CATEGORIES, {
   error: "Catégorie de formation invalide",

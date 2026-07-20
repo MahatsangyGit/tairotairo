@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { withBypassRls } from "@/lib/rls";
+import { COURSE_CATEGORY_LABELS } from "@/lib/learning/constants";
 
 /**
  * Lecture vidéo réservée aux prestataires avec abonnement Tairo ampio actif,
@@ -37,16 +38,6 @@ export function slugifyCourseTitle(title: string): string {
     .slice(0, 120);
 }
 
-export const COURSE_CATEGORY_LABELS: Record<string, string> = {
-  DIY: "DIY",
-  HANDYWORK: "Bricolage",
-  ELECTRICAL: "Électricité",
-  PLUMBING: "Plomberie",
-  PAINTING: "Peinture",
-  SAFETY: "Sécurité",
-  OTHER: "Autre",
-};
-
 export function serializeCourse(course: {
   id: string;
   title: string;
@@ -57,7 +48,13 @@ export function serializeCourse(course: {
   status: string;
   createdAt: Date;
   updatedAt: Date;
-  lessons?: { id: string; title: string; position: number; durationSec: number | null; videoKey: string | null }[];
+  lessons?: {
+    id: string;
+    title: string;
+    position: number;
+    durationSec: number | null;
+    videoKey: string | null;
+  }[];
   _count?: { lessons: number };
 }) {
   return {
@@ -66,7 +63,10 @@ export function serializeCourse(course: {
     slug: course.slug,
     description: course.description,
     category: course.category,
-    categoryLabel: COURSE_CATEGORY_LABELS[course.category] ?? course.category,
+    categoryLabel:
+      COURSE_CATEGORY_LABELS[
+        course.category as keyof typeof COURSE_CATEGORY_LABELS
+      ] ?? course.category,
     status: course.status,
     coverUrl: course.coverKey
       ? `/api/learning/courses/${course.id}/cover`

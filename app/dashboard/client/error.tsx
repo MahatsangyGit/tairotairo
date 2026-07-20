@@ -1,10 +1,10 @@
 "use client";
 
 /**
- * Error boundary for /dashboard/* (client + provider + admin).
- * Kept dependency-free to avoid ChunkLoadError when the module graph is broken.
+ * Mirrored under client/provider so a segment error does not depend solely on
+ * the parent dashboard/error.tsx chunk (Turbopack ChunkLoadError resilience).
  */
-export default function DashboardError({
+export default function ClientDashboardError({
   error,
   reset,
 }: {
@@ -14,7 +14,7 @@ export default function DashboardError({
   return (
     <div className="min-h-[40vh] flex flex-col items-center justify-center gap-4 px-4">
       <p className="text-muted-foreground text-sm text-center">
-        Une erreur est survenue.
+        Une erreur est survenue sur votre espace client.
         {process.env.NODE_ENV === "development" && error?.message ? (
           <>
             <br />

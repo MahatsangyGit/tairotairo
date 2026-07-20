@@ -1,16 +1,6 @@
 import type { EquipmentStatus, Prisma } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-
-export const EQUIPMENT_CATEGORY_LABELS: Record<string, string> = {
-  POWER_TOOLS: "Outillage électroportatif",
-  HAND_TOOLS: "Outillage à main",
-  ELECTRICAL: "Électricité",
-  PLUMBING: "Plomberie",
-  PAINTING: "Peinture",
-  GARDENING: "Jardinage",
-  CONSTRUCTION: "Construction",
-  OTHER: "Autre",
-};
+import { EQUIPMENT_CATEGORY_LABELS } from "@/lib/rental/constants";
 
 export type EquipmentSearchParams = {
   search?: string;
@@ -101,7 +91,10 @@ export function serializeEquipment(
     title: item.title,
     description: item.description,
     category: item.category,
-    categoryLabel: EQUIPMENT_CATEGORY_LABELS[item.category] ?? item.category,
+    categoryLabel:
+      EQUIPMENT_CATEGORY_LABELS[
+        item.category as keyof typeof EQUIPMENT_CATEGORY_LABELS
+      ] ?? item.category,
     location: item.location,
     dailyPrice: item.dailyPrice,
     depositAmount: item.depositAmount,

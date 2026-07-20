@@ -1,7 +1,10 @@
 import Link from "next/link";
 import prisma from "@/lib/prisma";
-import { serializeCourse, COURSE_CATEGORY_LABELS } from "@/lib/learning/access";
-import { COURSE_CATEGORIES } from "@/lib/schemas/learning";
+import { serializeCourse } from "@/lib/learning/access";
+import {
+  COURSE_CATEGORIES,
+  COURSE_CATEGORY_LABELS,
+} from "@/lib/learning/constants";
 import AmpianaroFilters from "@/ampianaro/AmpianaroFilters";
 
 export const dynamic = "force-dynamic";
