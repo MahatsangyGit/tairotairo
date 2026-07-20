@@ -13,14 +13,29 @@ interface TurnstileSiteverifyResponse {
   hostname?: string;
 }
 
-function getExpectedHostname(): string | null {
+function getAllowedHostnames(): Set<string> {
+  const hosts = new Set<string>();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  if (!appUrl) return null;
-  try {
-    return new URL(appUrl).hostname;
-  } catch {
-    return null;
+  if (appUrl) {
+    try {
+      hosts.add(new URL(appUrl).hostname.toLowerCase());
+    } catch {
+      // ignore invalid URL
+    }
   }
+  for (const envKey of ["RENTAL_HOST", "LEARNING_HOST"] as const) {
+    const raw = process.env[envKey]?.trim();
+    if (!raw) continue;
+    try {
+      const host = raw.includes("://")
+        ? new URL(raw).hostname
+        : raw.split(":")[0];
+      if (host) hosts.add(host.toLowerCase());
+    } catch {
+      // ignore
+    }
+  }
+  return hosts;
 }
 
 function getTurnstileSecret(): string {
@@ -86,8 +101,12 @@ export async function verifyTurnstileToken(
     return { ok: false, error: "Captcha invalide pour cette action." };
   }
 
-  const expectedHostname = getExpectedHostname();
-  if (expectedHostname && result.hostname && result.hostname !== expectedHostname) {
+  const allowedHostnames = getAllowedHostnames();
+  if (
+    allowedHostnames.size > 0 &&
+    result.hostname &&
+    !allowedHostnames.has(result.hostname.toLowerCase())
+  ) {
     return { ok: false, error: "Captcha invalide pour ce domaine." };
   }
 

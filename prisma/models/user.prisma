@@ -44,6 +44,17 @@ model User {
   portfolioComments       PortfolioItemComment[] @relation("PortfolioComments")
   providerPayouts         ProviderPayout[]
 
+  /// Écosystème ampindramo
+  equipmentOwned          EquipmentItem[] @relation("EquipmentOwner")
+  rentalsAsRenter         RentalBooking[] @relation("RentalRenter")
+  rentalsAsOwner          RentalBooking[] @relation("RentalOwner")
+  rentalPayouts           RentalPayout[]  @relation("RentalPayoutOwner")
+
+  /// Écosystème ampianaro
+  coursesCreated          Course[]           @relation("CourseAuthor")
+  courseEnrollments       CourseEnrollment[]
+  lessonProgress          LessonProgress[]
+
   @@index([role])
   @@index([kycStatus])
   @@index([featuredOnHomepage])

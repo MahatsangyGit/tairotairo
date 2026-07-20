@@ -1,0 +1,88 @@
+enum CourseCategory {
+  DIY
+  HANDYWORK
+  ELECTRICAL
+  PLUMBING
+  PAINTING
+  SAFETY
+  OTHER
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model Course {
+  id          String         @id @default(cuid())
+  title       String
+  slug        String         @unique
+  description String
+  category    CourseCategory
+  coverKey    String?
+  status      CourseStatus   @default(DRAFT)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  createdBy   User           @relation("CourseAuthor", fields: [createdById], references: [id])
+  createdById String
+  lessons     CourseLesson[]
+  enrollments CourseEnrollment[]
+
+  @@index([status])
+  @@index([category])
+  @@index([status, updatedAt])
+}
+
+model CourseLesson {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  position    Int
+  /// Clé StorageBackend — jamais exposée au client
+  videoKey    String?
+  videoMime   String?
+  durationSec Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId    String
+  progress    LessonProgress[]
+
+  @@unique([courseId, position])
+  @@index([courseId])
+}
+
+model CourseEnrollment {
+  id           String   @id @default(cuid())
+  lastLessonId String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String
+  course       Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId     String
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+model LessonProgress {
+  id          String    @id @default(cuid())
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  lesson      CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    String
+
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}

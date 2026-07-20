@@ -7,17 +7,28 @@ type CookieOptions = {
   sameSite: "lax";
   path: "/";
   maxAge: number;
+  domain?: string;
 };
+
+function getSharedCookieDomain(): string | undefined {
+  const domain = process.env.AUTH_COOKIE_DOMAIN?.trim();
+  return domain || undefined;
+}
 
 /** Shared options for the session JWT httpOnly cookie. */
 export function getAuthCookieOptions(maxAge = AUTH_COOKIE_MAX_AGE_SECONDS): CookieOptions {
-  return {
+  const options: CookieOptions = {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
     maxAge,
   };
+  const domain = getSharedCookieDomain();
+  if (domain) {
+    options.domain = domain;
+  }
+  return options;
 }
 
 export function getAuthCookieName(): typeof AUTH_COOKIE_NAME {

@@ -4,16 +4,23 @@ import AdminStatsPanel from "@/components/admin/AdminStatsPanel";
 import AdminSpotlightPanel from "@/components/admin/AdminSpotlightPanel";
 import AdminKycPanel from "@/components/admin/AdminKycPanel";
 import AdminUsersPanel from "@/components/admin/AdminUsersPanel";
+import AdminRentalEquipmentPanel from "@/components/admin/AdminRentalEquipmentPanel";
+import AdminLearningPanel from "@/components/admin/AdminLearningPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
   return (
     <Tabs defaultValue="stats" className="gap-8">
-      <TabsList variant="line" className="w-full justify-start border-b border-border rounded-none pb-0">
+      <TabsList
+        variant="line"
+        className="w-full justify-start border-b border-border rounded-none pb-0"
+      >
         <TabsTrigger value="stats">Statistiques</TabsTrigger>
         <TabsTrigger value="kyc">Vérification KYC</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="users">Utilisateurs</TabsTrigger>
+        <TabsTrigger value="rental">Ampindramo</TabsTrigger>
+        <TabsTrigger value="learning">Ampianaro</TabsTrigger>
       </TabsList>
 
       <TabsContent value="stats">
@@ -27,6 +34,12 @@ export default function AdminDashboard() {
       </TabsContent>
       <TabsContent value="users">
         <AdminUsersPanel />
+      </TabsContent>
+      <TabsContent value="rental">
+        <AdminRentalEquipmentPanel />
+      </TabsContent>
+      <TabsContent value="learning">
+        <AdminLearningPanel />
       </TabsContent>
     </Tabs>
   );

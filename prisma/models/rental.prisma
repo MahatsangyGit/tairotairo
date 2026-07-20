@@ -1,0 +1,136 @@
+enum EquipmentCategory {
+  POWER_TOOLS
+  HAND_TOOLS
+  ELECTRICAL
+  PLUMBING
+  PAINTING
+  GARDENING
+  CONSTRUCTION
+  OTHER
+}
+
+enum EquipmentStatus {
+  DRAFT
+  PENDING_REVIEW
+  PUBLISHED
+  SUSPENDED
+  ARCHIVED
+}
+
+enum RentalStatus {
+  REQUESTED
+  ACCEPTED
+  PAID
+  ONGOING
+  RETURN_PENDING
+  COMPLETED
+  CANCELLED
+  DISPUTED
+}
+
+enum RentalTransactionStatus {
+  PENDING
+  ESCROWED
+  RELEASED
+  REFUNDED
+  FAILED
+}
+
+model EquipmentItem {
+  id              String            @id @default(cuid())
+  title           String
+  description     String
+  category        EquipmentCategory
+  location        String
+  dailyPrice      Float
+  depositAmount   Float
+  status          EquipmentStatus   @default(DRAFT)
+  isPlatformOwned Boolean           @default(false)
+  rejectionReason String?
+  photoKeys       String[]          @default([])
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  owner           User              @relation("EquipmentOwner", fields: [ownerId], references: [id])
+  ownerId         String
+  rentals         RentalBooking[]
+
+  @@index([status])
+  @@index([category])
+  @@index([ownerId])
+  @@index([status, updatedAt])
+  @@index([isPlatformOwned])
+}
+
+model RentalBooking {
+  id            String       @id @default(cuid())
+  status        RentalStatus @default(REQUESTED)
+  startDate     DateTime
+  endDate       DateTime
+  totalAmount   Float
+  depositAmount Float
+  /// Snapshots figés pour l’affichage si le matériel est archivé
+  displayTitle    String?
+  displayCategory String?
+  displayLocation String?
+  displayDailyPrice Float?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  equipment     EquipmentItem @relation(fields: [equipmentId], references: [id])
+  equipmentId   String
+  renter        User          @relation("RentalRenter", fields: [renterId], references: [id])
+  renterId      String
+  owner         User          @relation("RentalOwner", fields: [ownerId], references: [id])
+  ownerId       String
+  transaction   RentalTransaction?
+
+  @@index([equipmentId])
+  @@index([renterId])
+  @@index([ownerId])
+  @@index([status])
+  @@index([startDate, endDate])
+  @@index([renterId, updatedAt])
+  @@index([ownerId, updatedAt])
+}
+
+model RentalTransaction {
+  id                String                  @id @default(cuid())
+  amount            Float
+  depositAmount     Float
+  currency          String                  @default("MGA")
+  status            RentalTransactionStatus @default(PENDING)
+  paymentMethod     PaymentMethod
+  referenceId       String?
+  escrowedAt        DateTime?
+  releasedAt        DateTime?
+  refundedAt        DateTime?
+  depositRefundedAt DateTime?
+  /// Portion de caution retenue en litige (0 = caution intégralement remboursée)
+  depositRetained   Float                   @default(0)
+  createdAt         DateTime                @default(now())
+  updatedAt         DateTime                @updatedAt
+
+  rentalBooking     RentalBooking           @relation(fields: [rentalBookingId], references: [id])
+  rentalBookingId   String                  @unique
+  payout            RentalPayout?
+
+  @@index([status])
+}
+
+model RentalPayout {
+  id            String       @id @default(cuid())
+  owner         User         @relation("RentalPayoutOwner", fields: [ownerId], references: [id])
+  ownerId       String
+  transaction   RentalTransaction @relation(fields: [transactionId], references: [id])
+  transactionId String       @unique
+  amount        Float
+  currency      String       @default("MGA")
+  status        PayoutStatus @default(PENDING)
+  reference     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([ownerId])
+  @@index([status])
+}

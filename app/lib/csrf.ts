@@ -24,12 +24,14 @@ export function getCsrfCookieName(): typeof CSRF_COOKIE_NAME {
 }
 
 export function getCsrfCookieOptions(maxAge = CSRF_MAX_AGE_SECONDS) {
+  const domain = process.env.AUTH_COOKIE_DOMAIN?.trim() || undefined;
   return {
     httpOnly: false as const,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax" as const,
     path: "/",
     maxAge,
+    ...(domain ? { domain } : {}),
   };
 }
 

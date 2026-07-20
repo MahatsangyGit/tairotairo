@@ -39,7 +39,28 @@ export {
   openConversationSchema,
 } from "@/lib/schemas/conversations";
 
-export { createReviewSchema } from "@/lib/schemas/reviews";
+export {
+  createReviewSchema,
+} from "@/lib/schemas/reviews";
+
+export {
+  createEquipmentSchema,
+  patchEquipmentSchema,
+  adminEquipmentReviewSchema,
+  createRentalBookingSchema,
+  rentalStatusPatchSchema,
+  rentalPaySchema,
+  EQUIPMENT_CATEGORIES,
+} from "@/lib/schemas/rental";
+
+export {
+  createCourseSchema,
+  patchCourseSchema,
+  createLessonSchema,
+  patchLessonSchema,
+  lessonProgressSchema,
+  COURSE_CATEGORIES,
+} from "@/lib/schemas/learning";
 
 export {
   notificationPreferencesSchema,

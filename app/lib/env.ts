@@ -38,6 +38,14 @@ const envSchema = z.object({
   BCRYPT_ROUNDS: z.coerce.number().int().min(10).max(15).optional(),
   VAPID_SUBJECT: vapidSubjectSchema(),
   PLAYWRIGHT_BASE_URL: z.string().url().optional(),
+  /** Shared cookie Domain for SSO across subdomains, e.g. `.tairo-ampio.mg` */
+  AUTH_COOKIE_DOMAIN: z.string().optional(),
+  /** Host header for Tairo ampindramo (e.g. ampindramo.tairo-ampio.mg) */
+  RENTAL_HOST: z.string().optional(),
+  /** Host header for Tairo ampianaro */
+  LEARNING_HOST: z.string().optional(),
+  RENTAL_ENABLED: z.string().optional(),
+  LEARNING_ENABLED: z.string().optional(),
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

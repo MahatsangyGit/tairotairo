@@ -9,6 +9,9 @@ export const MAX_API_BODY_BYTES = 1024 * 1024;
  */
 export const MAX_UPLOAD_BODY_BYTES = 6 * 1024 * 1024;
 
+/** Upload vidéo cours (ampianaro) — aligné sur COURSE_VIDEO_MAX_BYTES + marge. */
+export const MAX_VIDEO_UPLOAD_BODY_BYTES = 310 * 1024 * 1024;
+
 export const PAYLOAD_TOO_LARGE_MESSAGE = "Payload trop volumineux";
 
 /** Routes qui acceptent un fichier (multipart), donc un body plus large. */
@@ -19,13 +22,23 @@ const UPLOAD_PATH_PATTERNS: RegExp[] = [
   /^\/api\/provider\/portfolio\/?$/,
   /^\/api\/provider\/portfolio\/[^/]+\/?$/,
   /^\/api\/provider\/kyc\/upload\/?$/,
+  /^\/api\/rental\/equipment\/[^/]+\/photos\/?$/,
+];
+
+const VIDEO_UPLOAD_PATH_PATTERNS: RegExp[] = [
+  /^\/api\/admin\/learning\/lessons\/[^/]+\/video\/?$/,
 ];
 
 export function isUploadApiPath(pathname: string): boolean {
   return UPLOAD_PATH_PATTERNS.some((re) => re.test(pathname));
 }
 
+export function isVideoUploadApiPath(pathname: string): boolean {
+  return VIDEO_UPLOAD_PATH_PATTERNS.some((re) => re.test(pathname));
+}
+
 export function maxBodyBytesForPath(pathname: string): number {
+  if (isVideoUploadApiPath(pathname)) return MAX_VIDEO_UPLOAD_BODY_BYTES;
   return isUploadApiPath(pathname)
     ? MAX_UPLOAD_BODY_BYTES
     : MAX_API_BODY_BYTES;

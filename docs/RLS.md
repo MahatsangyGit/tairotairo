@@ -182,6 +182,44 @@ File d’attente email/push (cron). Accès **Bypass / Admin** uniquement.
 
 ---
 
+## Écosystème — ampindramo / ampianaro
+
+Policies dans `supabase/migrations/20260720110000_023_ecosystem_rls.sql`.
+
+### `EquipmentItem`
+
+| Action | Public | Owner | ADMIN |
+|--------|--------|-------|-------|
+| SELECT | `PUBLISHED` | Self (tous statuts) | Tous |
+| INSERT / UPDATE / DELETE | — | Self | ✓ |
+
+### `RentalBooking` / `RentalTransaction` / `RentalPayout`
+
+| Table | SELECT | Mutations |
+|-------|--------|-----------|
+| RentalBooking | Participants + Admin | Insert renter ; update participants ; delete admin |
+| RentalTransaction | Participants + Admin | Bypass / Admin |
+| RentalPayout | Owner + Admin | Bypass / Admin |
+
+Helper : `app.is_rental_participant(rental_booking_id)`.
+
+### `Course` / `CourseLesson`
+
+| Action | Public | ADMIN |
+|--------|--------|-------|
+| SELECT | `PUBLISHED` (cours) / leçons du cours publié | Tous |
+| CUD | — | ✓ |
+
+La clé `videoKey` n’est jamais exposée aux clients ; lecture via `/api/learning/lessons/[id]/video` après contrôle d’abonnement.
+
+### `CourseEnrollment` / `LessonProgress`
+
+| Action | Public | Self | ADMIN |
+|--------|--------|------|-------|
+| SELECT / INSERT / UPDATE / DELETE | — | Self (`userId`) | ✓ |
+
+---
+
 ## Configuration
 
 ```sql
