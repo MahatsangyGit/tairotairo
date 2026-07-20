@@ -19,30 +19,26 @@ export default function Navbar() {
   const pathname = usePathname();
   const { user, setUser } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  // false jusqu'au mount pour que le 1er paint SSR/CSR soit identique
-  // (évite mismatch lié au scroll / blend hero).
   const [isAtTop, setIsAtTop] = useState(true);
-  const [scrollReady, setScrollReady] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   const isHome = pathname === "/";
-  const blendWithHero = isHome && (!scrollReady || isAtTop);
+  const blendWithHero = isHome && isAtTop;
   const showGuestAuth = !user;
 
   useEffect(() => {
-    setScrollReady(true);
-    if (!isHome) {
-      setIsAtTop(false);
-      return;
-    }
+    if (!isHome) return;
 
     const handleScroll = () => {
       setIsAtTop(window.scrollY <= 0);
     };
 
-    handleScroll();
+    const frame = window.requestAnimationFrame(handleScroll);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, [isHome]);
 
   useEffect(() => {
@@ -76,6 +72,8 @@ export default function Navbar() {
         : null;
 
   const adminHref = user?.role === "ADMIN" ? "/dashboard/admin" : null;
+  const showEcosystemAccess =
+    user?.role === "CLIENT" || user?.role === "PROVIDER";
 
   const messagesHref =
     user?.role === "CLIENT"
@@ -121,7 +119,7 @@ export default function Navbar() {
             </span>
           </Link>
 
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center gap-4">
             {user && (
               <>
                 <Link href="/services" className={navLinkClass("/services")}>
@@ -130,6 +128,25 @@ export default function Navbar() {
                 <Link href="/requests" className={navLinkClass("/requests")}>
                   Demandes
                 </Link>
+                {showEcosystemAccess && (
+                  <div
+                    className="flex items-center gap-1 rounded-xl border border-border bg-muted/40 p-1"
+                    aria-label="Services de l'écosystème Tairo"
+                  >
+                    <Link
+                      href="/ampindramo"
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-background hover:text-brand-700 dark:hover:text-brand-300"
+                    >
+                      Ampindramo
+                    </Link>
+                    <Link
+                      href="/ampianaro"
+                      className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-background hover:text-brand-700 dark:hover:text-brand-300"
+                    >
+                      Ampianaro
+                    </Link>
+                  </div>
+                )}
                 {user.role === "CLIENT" && (
                   <>
                     <Link href="/dashboard/client" className={navLinkClass("/dashboard/client")}>
@@ -270,6 +287,26 @@ export default function Navbar() {
             {user && (
               <>
                 <div className="h-px bg-border my-2" />
+                {showEcosystemAccess && (
+                  <>
+                    <p className="px-3 pt-1 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                      Écosystème Tairo
+                    </p>
+                    <MobileNavLink
+                      href="/ampindramo"
+                      label="Ampindramo — Louer du matériel"
+                      active={isActive("/ampindramo")}
+                      onClick={close}
+                    />
+                    <MobileNavLink
+                      href="/ampianaro"
+                      label="Ampianaro — Se former"
+                      active={isActive("/ampianaro")}
+                      onClick={close}
+                    />
+                    <div className="h-px bg-border my-2" />
+                  </>
+                )}
                 {user.role === "CLIENT" && (
                   <>
                     <MobileNavLink href="/dashboard/client" label="Réservations" active={isActive("/dashboard/client")} onClick={close} />

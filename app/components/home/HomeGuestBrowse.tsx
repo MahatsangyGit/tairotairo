@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
+import { useAuth } from "@/components/auth/AuthProvider";
 import CategoryIcon from "@/components/categories/CategoryIcon";
 import { CATEGORY_META } from "@/lib/categories";
 
@@ -58,6 +59,16 @@ export function HomeProviderBrowseCta() {
 }
 
 export function HomeFooterLinks() {
+  const { user } = useAuth();
+  const dashboardHref =
+    user?.role === "CLIENT"
+      ? "/dashboard/client"
+      : user?.role === "PROVIDER"
+        ? "/dashboard/provider"
+        : user?.role === "ADMIN"
+          ? "/dashboard/admin"
+          : null;
+
   return (
     <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-sm text-muted-foreground">
       <GuestBrowseTrigger
@@ -72,9 +83,21 @@ export function HomeFooterLinks() {
       >
         Voir toutes les demandes
       </GuestBrowseTrigger>
-      <Link href="/auth/register" className="hover:text-foreground transition-colors">
-        S&apos;inscrire
-      </Link>
+      {dashboardHref ? (
+        <Link
+          href={dashboardHref}
+          className="hover:text-foreground transition-colors"
+        >
+          Mon espace
+        </Link>
+      ) : (
+        <Link
+          href="/auth/register"
+          className="hover:text-foreground transition-colors"
+        >
+          S&apos;inscrire
+        </Link>
+      )}
     </div>
   );
 }

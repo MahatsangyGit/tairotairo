@@ -3,6 +3,8 @@ import Link from "next/link";
 import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import FeaturedProvidersSection from "@/components/home/FeaturedProvidersSection";
 import FeaturedServicesSection from "@/components/home/FeaturedServicesSection";
+import HomeHero from "@/components/home/HomeHero";
+import HomeGuestOnly from "@/components/home/HomeGuestOnly";
 import {
   HomeCategoriesBrowse,
   HomeFooterLinks,
@@ -33,24 +35,7 @@ export default async function HomePage() {
     <div className="min-h-screen bg-background">
       <JsonLdScripts paths={SEO_SCHEMA_PATHS.home} />
 
-      {/* Hero */}
-      <section className="bg-background text-foreground border-b border-border">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-24 md:py-32">
-          <div className="max-w-2xl">
-            <p className="text-brand-600 dark:text-brand-400 text-sm font-semibold uppercase tracking-widest mb-4">
-              Marketplace de services — Madagascar
-            </p>
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6 text-foreground">
-              Trouvez un prestataire{" "}
-              <span className="text-brand-600 dark:text-brand-400">de confiance</span>
-            </h1>
-            <p className="text-muted-foreground text-lg leading-relaxed">
-              Rapide, simple et sécurisé. Connectez-vous avec des prestataires
-              qualifiés près de chez vous.
-            </p>
-          </div>
-        </div>
-      </section>
+      <HomeHero />
 
       {/* Featured */}
       {hasFeatured && (
@@ -65,11 +50,12 @@ export default async function HomePage() {
         <HomeCategoriesBrowse />
       </section>
 
-      {/* Split CTA */}
-      <section className="border-t border-border">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-neutral-950 text-white rounded-2xl p-8 flex flex-col gap-4">
+      {/* Split CTA — réservé aux visiteurs ; l'accueil connecté est personnalisé */}
+      <HomeGuestOnly>
+        <section className="border-t border-border">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-neutral-950 text-white rounded-2xl p-8 flex flex-col gap-4">
               <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shrink-0">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <path d="M10 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm-7 14a7 7 0 0 1 14 0" stroke="white" strokeWidth="1.5" strokeLinecap="round" />
@@ -93,9 +79,9 @@ export default async function HomePage() {
                   <path d="M2 7h10M8 3l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
               </Link>
-            </div>
+              </div>
 
-            <div className="bg-tertiary-50 border border-tertiary-200 rounded-2xl p-8 flex flex-col gap-4">
+              <div className="bg-tertiary-50 border border-tertiary-200 rounded-2xl p-8 flex flex-col gap-4">
               <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shrink-0">
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
                   <rect x="2" y="8" width="16" height="10" rx="2" stroke="white" strokeWidth="1.5" />
@@ -120,10 +106,11 @@ export default async function HomePage() {
                 </Link>
                 <HomeProviderBrowseCta />
               </div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </HomeGuestOnly>
 
       {/* How it works */}
       <section className="border-t border-border bg-tertiary-50/40 dark:bg-muted/40">
