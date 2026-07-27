@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
-const SUGGESTIONS = ["Plomberie", "Électricité", "Ménage", "Cours Particuliers", "Transport"];
+const SUGGESTIONS = ["Plomberie", "Électricité", "Ménage", "Bricolage", "Transport"];
 
 export default function HeroSearch() {
   const router = useRouter();

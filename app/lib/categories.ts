@@ -4,7 +4,6 @@ export const SERVICE_CATEGORIES = [
   "Électricité",
   "Jardinage",
   "Ménage",
-  "Cours Particuliers",
   "Informatique",
   "Cuisine",
   "Transport",
@@ -27,16 +26,28 @@ export interface CategoryMeta {
   description: string;
 }
 
-/** Anciens libellés encore présents en base. */
+/**
+ * « Cours Particuliers » retiré du catalogue marketplace (Ampianaro couvre
+ * l’apprentissage). Les listings encore en base sont reclassés vers cette
+ * catégorie (migration SQL) pour rester éditables / valides côté Zod.
+ */
+export const RETIRED_COURS_PARTICULIERS_FALLBACK =
+  "Informatique" as const satisfies ServiceCategory;
+
+/** Anciens libellés encore présents en base (avant migration / résidus). */
 export const LEGACY_CATEGORY_NAMES: Record<string, ServiceCategory> = {
-  Cours: "Cours Particuliers",
   Iraka: "Irakiraka",
+  /** Anciennes valeurs tutoring → reclassement marketplace. */
+  Cours: RETIRED_COURS_PARTICULIERS_FALLBACK,
+  "Cours Particuliers": RETIRED_COURS_PARTICULIERS_FALLBACK,
 };
 
-/** Anciens slugs d’URL à rediriger. */
+/** Anciens slugs d’URL à rediriger vers un slug de catégorie encore actif. */
 export const LEGACY_CATEGORY_SLUGS: Record<string, string> = {
-  cours: "cours-particuliers",
   iraka: "irakiraka",
+  /** Tutoring retiré → page catégorie de reclassement. */
+  cours: "informatique",
+  "cours-particuliers": "informatique",
 };
 
 function slugifyCategory(name: string): string {
@@ -78,12 +89,6 @@ export const CATEGORY_META: CategoryMeta[] = [
     slug: "menage",
     description:
       "Services de ménage et nettoyage à domicile à Madagascar. Régulier ou ponctuel.",
-  },
-  {
-    name: "Cours Particuliers",
-    slug: "cours-particuliers",
-    description:
-      "Cours particuliers et soutien scolaire à Madagascar. Toutes matières et niveaux.",
   },
   {
     name: "Informatique",

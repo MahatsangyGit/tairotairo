@@ -1,0 +1,29 @@
+import { describe, expect, it } from "vitest";
+import {
+  SERVICE_CATEGORIES,
+  categoryDbValues,
+  normalizeCategoryName,
+  resolveCategorySlug,
+  slugToCategory,
+} from "@/lib/categories";
+
+describe("retired Cours Particuliers category", () => {
+  it("is no longer a selectable service category", () => {
+    expect(SERVICE_CATEGORIES).not.toContain("Cours Particuliers");
+  });
+
+  it("maps legacy names and slugs to Informatique", () => {
+    expect(normalizeCategoryName("Cours Particuliers")).toBe("Informatique");
+    expect(normalizeCategoryName("Cours")).toBe("Informatique");
+    expect(resolveCategorySlug("cours-particuliers")).toBe("informatique");
+    expect(resolveCategorySlug("cours")).toBe("informatique");
+    expect(slugToCategory("cours-particuliers")).toBe("Informatique");
+  });
+
+  it("includes legacy DB values when filtering Informatique", () => {
+    const values = categoryDbValues("Informatique");
+    expect(values).toEqual(
+      expect.arrayContaining(["Informatique", "Cours Particuliers", "Cours"])
+    );
+  });
+});
