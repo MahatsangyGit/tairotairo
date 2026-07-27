@@ -113,8 +113,7 @@ export const CATEGORY_META: CategoryMeta[] = [
   {
     name: "Irakiraka",
     slug: "irakiraka",
-    description:
-      "Artisans du bâtiment et travaux Irakiraka à Madagascar. Maçonnerie, finitions et rénovation.",
+    description: "Service de conciergerie",
   },
   {
     name: "Evénementiel",
