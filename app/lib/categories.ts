@@ -12,6 +12,8 @@ export const SERVICE_CATEGORIES = [
   "Animaux",
   "Bricolage",
   "Déménagement",
+  "Arts",
+  "Musiques",
 ] as const;
 
 export type ServiceCategory = (typeof SERVICE_CATEGORIES)[number];
@@ -137,6 +139,18 @@ export const CATEGORY_META: CategoryMeta[] = [
     slug: "demenagement",
     description:
       "Aide au déménagement à Madagascar. Transport de meubles, emballage et manutention.",
+  },
+  {
+    name: "Arts",
+    slug: "arts",
+    description:
+      "Artistes et créatifs à Madagascar. Peinture, dessin, artisanat d'art et prestations artistiques.",
+  },
+  {
+    name: "Musiques",
+    slug: "musiques",
+    description:
+      "Musiciens et services musicaux à Madagascar. Cours, animation, répétition et prestations live.",
   },
 ];
 

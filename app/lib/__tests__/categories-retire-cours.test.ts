@@ -12,6 +12,14 @@ describe("retired Cours Particuliers category", () => {
     expect(SERVICE_CATEGORIES).not.toContain("Cours Particuliers");
   });
 
+  it("exposes Arts and Musiques", () => {
+    expect(SERVICE_CATEGORIES).toEqual(
+      expect.arrayContaining(["Arts", "Musiques"])
+    );
+    expect(slugToCategory("arts")).toBe("Arts");
+    expect(slugToCategory("musiques")).toBe("Musiques");
+  });
+
   it("maps legacy names and slugs to Informatique", () => {
     expect(normalizeCategoryName("Cours Particuliers")).toBe("Informatique");
     expect(normalizeCategoryName("Cours")).toBe("Informatique");

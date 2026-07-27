@@ -9,6 +9,8 @@ import {
   IconDroplet,
   IconEngine,
   IconHammer,
+  IconMusic,
+  IconPalette,
   IconPaw,
   IconShovel,
   IconSpray,
@@ -35,6 +37,8 @@ const CATEGORY_ICONS: Record<string, Icon> = {
   animaux: IconPaw,
   bricolage: IconHammer,
   demenagement: IconTruck,
+  arts: IconPalette,
+  musiques: IconMusic,
 };
 
 export const DUOTONE_PROPS: Partial<IconProps> = {
