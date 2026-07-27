@@ -34,8 +34,8 @@ export default async function AmpindramoHomePage({
           Empruntez l&apos;outil qu&apos;il vous faut
         </h1>
         <p className="text-muted-foreground">
-          Catalogue Tairo et prêt entre particuliers. Compte Tairo ampio requis
-          pour réserver.
+          Catalogue Tairo et prêt entre particuliers. Compte Tairo ampio et
+          réservation de prestation requis pour emprunter
         </p>
       </div>
 

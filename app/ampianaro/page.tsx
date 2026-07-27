@@ -51,8 +51,8 @@ export default async function AmpianaroHomePage({
           Apprenez le DIY, le bricolage, l&apos;électricité
         </h1>
         <p className="text-muted-foreground">
-          Catalogue gratuit. La lecture des vidéos est réservée aux prestataires
-          Tairo ampio avec un abonnement actif.
+          Catalogue de vidéos d&apos;apprentissage gratuit pour les utilisateurs
+          de Tairo Ampio.
         </p>
       </div>
 
