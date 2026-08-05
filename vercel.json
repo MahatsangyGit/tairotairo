@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/cron/expire-subscriptions",
-      "schedule": "0 * * * *"
+      "schedule": "0 2 * * *"
     },
     {
       "path": "/api/cron/cleanup-tokens",
@@ -10,7 +10,7 @@
     },
     {
       "path": "/api/cron/process-notification-outbox",
-      "schedule": "*/5 * * * *"
+      "schedule": "0 4 * * *"
     }
   ]
 }

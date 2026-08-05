@@ -55,4 +55,6 @@ next-env.d.ts
 /storage/avatars
 /storage/portfolio
 /storage/listings
+/storage/equipment
+/storage/courses
 .env
