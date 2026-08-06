@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import "./globals.css";
 import ThemeProvider from "@/components/theme/ThemeProvider";
@@ -60,6 +61,8 @@ export default async function RootLayout({
 }>) {
   // Snapshot auth côté serveur → Navbar hydratée sans mismatch SSR/client.
   const initialUser = await getCurrentAuthUser();
+  // Lecture du nonce CSP (posé par proxy.ts) — Next y attache aussi ses scripts.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
     <html
@@ -68,7 +71,7 @@ export default async function RootLayout({
       className={cn("h-full", "antialiased", geistSans.variable, geistMono.variable, "font-sans", notoSans.variable)}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
-        <ThemeProvider>
+        <ThemeProvider nonce={nonce}>
           <CsrfProvider>
             <AuthProvider initialUser={initialUser}>
               <Suspense fallback={null}>

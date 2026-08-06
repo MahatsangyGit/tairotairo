@@ -1,4 +1,8 @@
-import { getConfiguredImageHosts, getCdnUrl } from "./cdn";
+import {
+  getConfiguredImageHosts,
+  getCdnUrl,
+  isCdnEnabled,
+} from "./cdn";
 
 const isProduction = process.env.NODE_ENV === "production";
 const isDev = process.env.NODE_ENV === "development";
@@ -15,6 +19,15 @@ function hostToOrigin(host: string): string | null {
   return `https://${host}`;
 }
 
+function isLocalOrigin(origin: string): boolean {
+  try {
+    const host = new URL(origin).hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  } catch {
+    return false;
+  }
+}
+
 function collectTrustedOrigins(): string[] {
   const origins = new Set<string>();
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -24,15 +37,21 @@ function collectTrustedOrigins(): string[] {
 
   for (const host of getConfiguredImageHosts()) {
     const origin = hostToOrigin(host);
-    if (origin) origins.add(origin);
+    if (!origin) continue;
+    // Ne pas autoriser localhost dans la CSP des déploiements production.
+    if (isProduction && isLocalOrigin(origin)) continue;
+    origins.add(origin);
   }
 
-  const cdnUrl = getCdnUrl();
-  if (cdnUrl) {
-    try {
-      origins.add(new URL(cdnUrl).origin);
-    } catch {
-      /* ignore invalid CDN URL */
+  // N'ajouter le CDN à la CSP que lorsqu'il est réellement utilisé comme assetPrefix.
+  if (isCdnEnabled()) {
+    const cdnUrl = getCdnUrl();
+    if (cdnUrl) {
+      try {
+        origins.add(new URL(cdnUrl).origin);
+      } catch {
+        /* ignore invalid CDN URL */
+      }
     }
   }
 
@@ -57,9 +76,9 @@ export function buildContentSecurityPolicy(nonce: string): string {
     isDev ? " 'unsafe-eval'" : ""
   }${originList ? ` ${originList}` : ""}`;
 
-  const styleSrc = isDev
-    ? `'self' 'unsafe-inline'${originList ? ` ${originList}` : ""}`
-    : `'self' 'nonce-${nonce}'${originList ? ` ${originList}` : ""}`;
+  // Les attributs style="" ne peuvent pas porter de nonce (CSP).
+  // On autorise donc unsafe-inline pour les styles uniquement.
+  const styleSrc = `'self' 'unsafe-inline'${originList ? ` ${originList}` : ""}`;
 
   const imgSrc = `'self' data: blob:${originList ? ` ${originList}` : ""}`;
   const fontSrc = `'self' data:${originList ? ` ${originList}` : ""}`;

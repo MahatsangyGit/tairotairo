@@ -3,21 +3,18 @@
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import type { ThemeProviderProps } from "next-themes";
 
-export default function ThemeProvider({
-  children,
-  ...props
-}: ThemeProviderProps) {
+type Props = ThemeProviderProps & {
+  nonce?: string;
+};
+
+export default function ThemeProvider({ children, nonce, ...props }: Props) {
   return (
     <NextThemesProvider
       attribute="class"
       defaultTheme="system"
       enableSystem
       disableTransitionOnChange
-      scriptProps={
-        typeof window === "undefined"
-          ? undefined
-          : ({ type: "application/json" } as const)
-      }
+      nonce={nonce}
       {...props}
     >
       {children}

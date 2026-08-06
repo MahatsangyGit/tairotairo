@@ -24,6 +24,24 @@ prisma/
 
 > **Migrations :** ne pas utiliser `prisma migrate`. La source de vérité reste `supabase/migrations/`. Le chemin `prisma/migrations` dans la config Prisma est volontairement non utilisé (compatibilité CLI uniquement).
 
+## Neon sur Vercel
+
+Les variables de connexion créées par l'intégration Neon sont marquées
+**Sensitive**. `vercel env pull` écrit donc `[SENSITIVE]` localement au lieu de
+la chaîne de connexion réelle.
+
+Le script `npm run db:migrate:neon` est exécuté par `vercel-build`, là où
+`DATABASE_URL_UNPOOLED` est réellement injectée. Il :
+
+1. synchronise le schéma Prisma sans accepter de suppression de données ;
+2. ignore les migrations historiques `001` à `010` en snake_case ;
+3. applique dans l'ordre les migrations actives `011+` ;
+4. enregistre leur état dans `app."_TairoMigration"` ;
+5. vérifie les tables principales et les politiques RLS.
+
+L'exécution est protégée par un verrou PostgreSQL et peut être rejouée sans
+réappliquer les migrations déjà enregistrées.
+
 Après modification d'une migration :
 
 1. Appliquer les fichiers SQL dans l'ordre (outil Supabase CLI, `psql`, ou pipeline CI).

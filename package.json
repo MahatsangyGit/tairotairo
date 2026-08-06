@@ -19,6 +19,8 @@
     "cron:cleanup-tokens": "curl -s -H \"Authorization: Bearer ${CRON_SECRET}\" ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}/api/cron/cleanup-tokens",
     "cron:process-notification-outbox": "curl -s -H \"Authorization: Bearer ${CRON_SECRET}\" ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}/api/cron/process-notification-outbox",
     "prisma:generate": "prisma generate",
+    "db:migrate:neon": "node scripts/migrate-neon.mjs",
+    "vercel-build": "npm run db:migrate:neon && next build",
     "postinstall": "prisma generate"
   },
   "dependencies": {

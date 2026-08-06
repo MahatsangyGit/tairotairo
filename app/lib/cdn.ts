@@ -2,21 +2,50 @@ function readEnvUrl(key: "NEXT_PUBLIC_CDN_URL" | "NEXT_PUBLIC_APP_URL"): string 
   return process.env[key]?.replace(/\/$/, "") ?? "";
 }
 
-function isLocalAppUrl(): boolean {
-  const appUrl = readEnvUrl("NEXT_PUBLIC_APP_URL");
-  if (!appUrl) return process.env.NODE_ENV !== "production";
+function hostnameFromRaw(raw: string | undefined): string | null {
+  if (!raw) return null;
   try {
-    const host = new URL(appUrl).hostname;
-    return host === "localhost" || host === "127.0.0.1";
+    const value = raw.includes("://") ? raw : `https://${raw}`;
+    return new URL(value).hostname.toLowerCase();
   } catch {
-    return process.env.NODE_ENV !== "production";
+    return null;
   }
 }
 
-/** CDN actif uniquement en production (évite les URLs CDN en dev local). */
+function isLocalHostname(hostname: string | null): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function isVercelHostname(hostname: string | null): boolean {
+  return Boolean(hostname?.endsWith(".vercel.app"));
+}
+
+function isLocalAppUrl(): boolean {
+  const appUrl = readEnvUrl("NEXT_PUBLIC_APP_URL");
+  if (!appUrl) return process.env.NODE_ENV !== "production";
+  return isLocalHostname(hostnameFromRaw(appUrl));
+}
+
+/**
+ * CDN actif uniquement en production réelle (domaine custom).
+ * Désactivé sur localhost, preview Vercel, et hébergements *.vercel.app :
+ * les chunks hashés n'existent que sur le déploiement courant, pas sur le CDN prod.
+ *
+ * Critère : `NEXT_PUBLIC_APP_URL` (pas `VERCEL_URL`, toujours en *.vercel.app).
+ */
 export function isCdnEnabled(): boolean {
-  if (!readEnvUrl("NEXT_PUBLIC_CDN_URL")) return false;
+  const cdnUrl = readEnvUrl("NEXT_PUBLIC_CDN_URL");
+  if (!cdnUrl) return false;
   if (process.env.NODE_ENV !== "production") return false;
+  if (process.env.VERCEL_ENV === "preview" || process.env.VERCEL_ENV === "development") {
+    return false;
+  }
+
+  const appHost = hostnameFromRaw(readEnvUrl("NEXT_PUBLIC_APP_URL"));
+  if (!appHost || isLocalHostname(appHost) || isVercelHostname(appHost)) {
+    return false;
+  }
+
   return true;
 }
 
@@ -49,12 +78,7 @@ export function absoluteAssetUrl(path: string): string {
 }
 
 function hostnameFromEnvUrl(raw: string | undefined): string | null {
-  if (!raw) return null;
-  try {
-    return new URL(raw).hostname;
-  } catch {
-    return null;
-  }
+  return hostnameFromRaw(raw);
 }
 
 /** Patterns pour `images.remotePatterns` dans next.config. */
@@ -104,7 +128,8 @@ export function getImageRemotePatterns(): Array<{
 export function getConfiguredImageHosts(): string[] {
   return [
     hostnameFromEnvUrl(readEnvUrl("NEXT_PUBLIC_APP_URL")),
-    hostnameFromEnvUrl(readEnvUrl("NEXT_PUBLIC_CDN_URL")),
+    // N'exposer le host CDN aux images/CSP que s'il est réellement actif.
+    isCdnEnabled() ? hostnameFromEnvUrl(readEnvUrl("NEXT_PUBLIC_CDN_URL")) : null,
   ].filter((h): h is string => h != null);
 }
 
