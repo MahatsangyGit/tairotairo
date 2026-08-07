@@ -93,7 +93,8 @@ jobs:
         with:
           node-version: "24"
           cache: npm
-      - run: npm ci
+      - name: Install dependencies including build tooling
+        run: npm ci --include=dev
       - run: npx prisma generate
       - name: Synchronize Prisma schema and apply current migrations
         run: npm run db:migrate:neon
