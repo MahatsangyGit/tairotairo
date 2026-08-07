@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { AppError, isAppError, isPrismaKnownError } from "@/lib/errors";
 import { logRouteError } from "@/lib/logger";
 import { getRequestId } from "@/lib/request-context";
+import { resolveRlsContextFromRequest, runWithRls } from "@/lib/rls";
 
 type RouteContext = { params: Promise<Record<string, string>> };
 
@@ -46,36 +47,48 @@ function getHttpError(
   return null;
 }
 
+/**
+ * Applique le contexte RLS (JWT / bypass auth / cron) puis exécute le handler.
+ * Indispensable sur Vercel : contrairement à `server.ts`, les route handlers
+ * serverless n'héritent pas du wrapping RLS HTTP.
+ */
 export function withApiHandler(
   routeLabel: string,
   handler: ApiHandler
 ): ApiHandler {
   return async (req, ctx) => {
-    try {
-      return await handler(req, ctx);
-    } catch (error) {
-      const httpErr = getHttpError(error);
-      const requestId = getRequestId();
-      if (httpErr) {
+    const rlsCtx = await resolveRlsContextFromRequest(
+      req.url,
+      req.headers.get("cookie") ?? undefined
+    );
+
+    return runWithRls(rlsCtx, async () => {
+      try {
+        return await handler(req, ctx);
+      } catch (error) {
+        const httpErr = getHttpError(error);
+        const requestId = getRequestId();
+        if (httpErr) {
+          return NextResponse.json(
+            {
+              error: httpErr.message,
+              ...(httpErr.code ? { code: httpErr.code } : {}),
+              ...(requestId ? { requestId } : {}),
+            },
+            { status: httpErr.status }
+          );
+        }
+        logRouteError(routeLabel, error);
         return NextResponse.json(
           {
-            error: httpErr.message,
-            ...(httpErr.code ? { code: httpErr.code } : {}),
+            error: "Erreur serveur",
+            code: "INTERNAL_ERROR",
             ...(requestId ? { requestId } : {}),
           },
-          { status: httpErr.status }
+          { status: 500 }
         );
       }
-      logRouteError(routeLabel, error);
-      return NextResponse.json(
-        {
-          error: "Erreur serveur",
-          code: "INTERNAL_ERROR",
-          ...(requestId ? { requestId } : {}),
-        },
-        { status: 500 }
-      );
-    }
+    });
   };
 }
 

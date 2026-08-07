@@ -7,6 +7,7 @@ import {
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
+import { BlobNotFoundError, del, get, head, put } from "@vercel/blob";
 
 export interface StorageBackend {
   put(key: string, buffer: Buffer, contentType: string): Promise<void>;
@@ -170,16 +171,101 @@ export class S3Backend implements StorageBackend {
   }
 }
 
+/** Private Vercel Blob — durable uploads on serverless (KYC, avatars, etc.). */
+export class VercelBlobBackend implements StorageBackend {
+  private tokenOptions(): { token?: string } {
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    return token ? { token } : {};
+  }
+
+  private normalizeKey(key: string): string {
+    assertSafeStorageKey(key);
+    return key.replace(/\\/g, "/");
+  }
+
+  async put(key: string, buffer: Buffer, contentType: string): Promise<void> {
+    await put(this.normalizeKey(key), buffer, {
+      access: "private",
+      addRandomSuffix: false,
+      allowOverwrite: true,
+      contentType,
+      ...this.tokenOptions(),
+    });
+  }
+
+  async get(key: string): Promise<Buffer | null> {
+    try {
+      const result = await get(this.normalizeKey(key), {
+        access: "private",
+        ...this.tokenOptions(),
+      });
+      if (!result?.stream) return null;
+      return Buffer.from(await new Response(result.stream).arrayBuffer());
+    } catch (error: unknown) {
+      if (isBlobNotFoundError(error)) return null;
+      throw error;
+    }
+  }
+
+  async delete(key: string): Promise<void> {
+    try {
+      await del(this.normalizeKey(key), this.tokenOptions());
+    } catch (error: unknown) {
+      if (isBlobNotFoundError(error)) return;
+      throw error;
+    }
+  }
+
+  async exists(key: string): Promise<boolean> {
+    try {
+      await head(this.normalizeKey(key), this.tokenOptions());
+      return true;
+    } catch (error: unknown) {
+      if (isBlobNotFoundError(error)) return false;
+      throw error;
+    }
+  }
+}
+
+function isBlobNotFoundError(error: unknown): boolean {
+  return error instanceof BlobNotFoundError;
+}
+
 let cachedBackend: StorageBackend | null = null;
 
 export function getStorageRoot(): string {
   return path.join(process.cwd(), "storage");
 }
 
+function hasVercelBlobCredentials(
+  env: NodeJS.ProcessEnv = process.env
+): boolean {
+  return Boolean(env.BLOB_READ_WRITE_TOKEN || env.BLOB_STORE_ID);
+}
+
+/** Resolve storage mode: explicit STORAGE_BACKEND, else blob on Vercel when configured. */
+export function resolveStorageBackendMode(
+  env: NodeJS.ProcessEnv = process.env
+): "local" | "s3" | "blob" {
+  const explicit = env.STORAGE_BACKEND?.trim().toLowerCase();
+  if (explicit === "local" || explicit === "s3" || explicit === "blob") {
+    return explicit;
+  }
+  if (explicit) {
+    throw new Error(
+      `STORAGE_BACKEND invalide: ${explicit} (attendu local|s3|blob)`
+    );
+  }
+  if (env.VERCEL === "1" && hasVercelBlobCredentials(env)) {
+    return "blob";
+  }
+  return "local";
+}
+
 export function getStorageBackend(): StorageBackend {
   if (cachedBackend) return cachedBackend;
 
-  const mode = (process.env.STORAGE_BACKEND ?? "local").toLowerCase();
+  const mode = resolveStorageBackendMode();
 
   if (mode === "s3") {
     const bucket = process.env.S3_BUCKET;
@@ -201,9 +287,19 @@ export function getStorageBackend(): StorageBackend {
     return cachedBackend;
   }
 
-  if (mode !== "local") {
+  if (mode === "blob") {
+    if (!hasVercelBlobCredentials() && process.env.VERCEL !== "1") {
+      throw new Error(
+        "STORAGE_BACKEND=blob nécessite BLOB_READ_WRITE_TOKEN (ou OIDC + BLOB_STORE_ID sur Vercel)"
+      );
+    }
+    cachedBackend = new VercelBlobBackend();
+    return cachedBackend;
+  }
+
+  if (process.env.VERCEL === "1") {
     throw new Error(
-      `STORAGE_BACKEND invalide: ${mode} (attendu local|s3)`
+      "STORAGE_BACKEND=local est incompatible avec Vercel (filesystem éphémère). Configurez STORAGE_BACKEND=blob (Vercel Blob privé) ou s3."
     );
   }
 
