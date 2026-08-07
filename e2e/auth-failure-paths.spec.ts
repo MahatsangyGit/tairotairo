@@ -86,12 +86,18 @@ test.describe.serial("Auth — chemins d'échec", () => {
     expect(userId).toBeTruthy();
   });
 
-  test("login — verrouillage après 5 échecs et déblocage admin", async ({
-    request,
-  }) => {
+  test("login — verrouillage après 5 échecs et déblocage admin", async (
+    { request },
+    testInfo
+  ) => {
+    const loginHeaders = {
+      "x-real-ip": `198.18.${testInfo.retry + 1}.10`,
+    };
+
     for (let i = 1; i < MAX_FAILED_LOGIN_ATTEMPTS; i++) {
       const res = await request.post("/api/auth/login", {
         data: { email: clientEmail, password: `wrong-password-${i}`, ...turnstileFields() },
+        headers: loginHeaders,
       });
       const body = await res.json();
 
@@ -101,6 +107,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
 
     const fifth = await request.post("/api/auth/login", {
       data: { email: clientEmail, password: "wrong-password-5", ...turnstileFields() },
+      headers: loginHeaders,
     });
     const fifthBody = await fifth.json();
     expect(fifth.status()).toBe(423);
@@ -108,6 +115,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
 
     const blocked = await request.post("/api/auth/login", {
       data: { email: clientEmail, password: PASSWORD, ...turnstileFields() },
+      headers: loginHeaders,
     });
     const blockedBody = await blocked.json();
     expect(blocked.status()).toBe(423);
@@ -131,6 +139,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
 
     const ok = await request.post("/api/auth/login", {
       data: { email: clientEmail, password: PASSWORD, ...turnstileFields() },
+      headers: loginHeaders,
     });
     expect(ok.status()).toBe(200);
   });
