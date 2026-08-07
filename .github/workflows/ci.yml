@@ -83,8 +83,8 @@ jobs:
       JWT_SECRET: ci-test-jwt-secret-at-least-32-chars
       REDIS_URL: redis://localhost:6379
       CRON_SECRET: ci-cron-secret-16chars
-      NEXT_PUBLIC_APP_URL: http://127.0.0.1:3000
-      PLAYWRIGHT_BASE_URL: http://127.0.0.1:3000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      PLAYWRIGHT_BASE_URL: http://localhost:3000
       NODE_ENV: production
       TAIRO_CUSTOM_SERVER: "1"
       IMAGE_OPTIMIZE_MODE: inline
@@ -106,7 +106,7 @@ jobs:
           npm start > /tmp/tairo-server.log 2>&1 &
           server_pid=$!
           for i in $(seq 1 60); do
-            if curl -sf http://127.0.0.1:3000/api/health; then
+            if curl -sf http://localhost:3000/api/health; then
               exit 0
             fi
             if ! kill -0 "$server_pid" 2>/dev/null; then
