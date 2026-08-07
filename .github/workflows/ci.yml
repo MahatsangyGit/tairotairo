@@ -45,17 +45,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
-      - name: Apply Supabase SQL migrations
-        run: |
-          set -euo pipefail
-          for f in $(ls supabase/migrations/*.sql | sort); do
-            case "$f" in
-              *010_rls_enforcement*) echo "Skip obsolete $f"; continue ;;
-              *016_decimal_amounts*) echo "Skip commented $f"; continue ;;
-            esac
-            echo "Applying $f"
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
-          done
+      - name: Synchronize Prisma schema and apply current migrations
+        run: npm run db:migrate:neon
       - run: npx prisma validate
       - name: Typecheck
         run: npx tsc --noEmit
@@ -104,16 +95,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx prisma generate
-      - name: Apply migrations
-        run: |
-          set -euo pipefail
-          for f in $(ls supabase/migrations/*.sql | sort); do
-            case "$f" in
-              *010_rls_enforcement*) continue ;;
-              *016_decimal_amounts*) continue ;;
-            esac
-            psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
-          done
+      - name: Synchronize Prisma schema and apply current migrations
+        run: npm run db:migrate:neon
       - run: npm run build:all
       - run: npx playwright install --with-deps chromium
       - name: Start server
