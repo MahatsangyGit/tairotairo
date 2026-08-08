@@ -6,6 +6,17 @@ const PASSWORD = "E2eTest!2026";
 /** Dummy token accepted by Cloudflare test secret keys only. */
 const TURNSTILE_DUMMY_TOKEN = "XXXX.DUMMY.TOKEN.XXXX";
 
+function identityHeaders(identity: string): Record<string, string> {
+  let hash = 0;
+  for (const character of identity) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+
+  return {
+    "x-real-ip": `198.18.${((hash >>> 8) % 254) + 1}.${(hash % 254) + 1}`,
+  };
+}
+
 export function turnstileFields(): { turnstileToken?: string } {
   const secret = process.env.TURNSTILE_SECRET_KEY?.trim();
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim();
@@ -152,6 +163,7 @@ export async function registerUser(
 ) {
   const res = await request.post("/api/auth/register", {
     data: { ...data, ...turnstileFields() },
+    headers: identityHeaders(data.email),
   });
   const body = await res.json();
   if (!res.ok()) {
@@ -167,6 +179,7 @@ export async function login(
 ) {
   const res = await request.post("/api/auth/login", {
     data: { email, password, ...turnstileFields() },
+    headers: identityHeaders(email),
   });
   const body = await res.json();
   if (!res.ok()) {

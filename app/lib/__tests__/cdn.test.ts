@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { getAssetPrefix, isCdnEnabled } from "@/lib/cdn";
 
 const ENV_KEYS = [
@@ -10,25 +10,15 @@ const ENV_KEYS = [
   "NEXT_PUBLIC_APP_URL",
 ] as const;
 
-const originalEnv = Object.fromEntries(
-  ENV_KEYS.map((key) => [key, process.env[key]])
-);
-
-function resetEnv() {
-  for (const key of ENV_KEYS) {
-    const value = originalEnv[key];
-    if (value === undefined) delete process.env[key];
-    else process.env[key] = value;
+function setEnv(values: Partial<Record<(typeof ENV_KEYS)[number], string>>) {
+  for (const key of ENV_KEYS) vi.stubEnv(key, undefined);
+  for (const [key, value] of Object.entries(values)) {
+    vi.stubEnv(key, value);
   }
 }
 
-function setEnv(values: Partial<Record<(typeof ENV_KEYS)[number], string>>) {
-  for (const key of ENV_KEYS) delete process.env[key];
-  Object.assign(process.env, values);
-}
-
 afterEach(() => {
-  resetEnv();
+  vi.unstubAllEnvs();
 });
 
 describe("isCdnEnabled / getAssetPrefix", () => {
