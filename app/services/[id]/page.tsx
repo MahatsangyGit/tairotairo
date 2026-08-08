@@ -390,7 +390,7 @@ export default function ServiceDetailPage() {
 
                     {!service.available && (
                       <p className="text-muted-foreground text-xs text-center mt-3">
-                        Ce service n'est plus disponible
+                        Ce service n&apos;est plus disponible
                       </p>
                     )}
                   </>

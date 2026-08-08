@@ -238,14 +238,14 @@ export function getStorageRoot(): string {
 }
 
 function hasVercelBlobCredentials(
-  env: NodeJS.ProcessEnv = process.env
+  env: Readonly<Record<string, string | undefined>> = process.env
 ): boolean {
   return Boolean(env.BLOB_READ_WRITE_TOKEN || env.BLOB_STORE_ID);
 }
 
 /** Resolve storage mode: explicit STORAGE_BACKEND, else blob on Vercel when configured. */
 export function resolveStorageBackendMode(
-  env: NodeJS.ProcessEnv = process.env
+  env: Readonly<Record<string, string | undefined>> = process.env
 ): "local" | "s3" | "blob" {
   const explicit = env.STORAGE_BACKEND?.trim().toLowerCase();
   if (explicit === "local" || explicit === "s3" || explicit === "blob") {

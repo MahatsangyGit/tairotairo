@@ -12,6 +12,8 @@ export default function JsonLdScripts({
   return (
     <>
       {paths.map((segments) => (
+        // JSON-LD must be present in the server-rendered HTML for crawlers.
+        // eslint-disable-next-line @next/next/no-sync-scripts
         <script
           key={toSrc(segments)}
           src={toSrc(segments)}
