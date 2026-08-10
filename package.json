@@ -31,6 +31,7 @@
     "@prisma/client": "^7.8.0",
     "@tabler/icons-react": "^3.44.0",
     "@vercel/blob": "^2.7.0",
+    "@vercel/speed-insights": "^2.0.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.80.9",
     "class-variance-authority": "^0.7.1",
