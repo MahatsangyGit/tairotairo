@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Noto_Sans } from "next/font/google";
 import { headers } from "next/headers";
 import { Suspense } from "react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import ThemeProvider from "@/components/theme/ThemeProvider";
 import { AuthProvider } from "@/components/auth/AuthProvider";
@@ -86,6 +87,7 @@ export default async function RootLayout({
             </AuthProvider>
           </CsrfProvider>
         </ThemeProvider>
+        <SpeedInsights />
       </body>
     </html>
   );
