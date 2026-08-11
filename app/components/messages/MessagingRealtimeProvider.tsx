@@ -11,7 +11,10 @@ import {
   type ReactNode,
 } from "react";
 import { useAuth } from "@/components/auth/AuthProvider";
-import { getMessagingWebSocketUrl } from "@/lib/realtime/client";
+import {
+  getMessagingWebSocketUrl,
+  isMessagingWebSocketEnabled,
+} from "@/lib/realtime/client";
 import type { RealtimeServerEvent } from "@/lib/realtime/types";
 
 type Listener = (event: RealtimeServerEvent) => void;
@@ -62,6 +65,12 @@ export function MessagingRealtimeProvider({ children }: { children: ReactNode })
 
   useEffect(() => {
     if (!userId) {
+      setConnected(false);
+      return;
+    }
+
+    // Pas de serveur WS sur Vercel — éviter GET /ws/messaging → 404 en boucle.
+    if (!isMessagingWebSocketEnabled()) {
       setConnected(false);
       return;
     }
