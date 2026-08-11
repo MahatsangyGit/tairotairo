@@ -28,6 +28,15 @@ function isLocalOrigin(origin: string): boolean {
   }
 }
 
+/** Origins Speed Insights (debug + resilient intake). Prod first-party = 'self'. */
+const SPEED_INSIGHTS_SCRIPT_ORIGINS = [
+  "https://va.vercel-scripts.com",
+] as const;
+const SPEED_INSIGHTS_CONNECT_ORIGINS = [
+  "https://vitals.vercel-insights.com",
+  "https://va.vercel-scripts.com",
+] as const;
+
 function collectTrustedOrigins(): string[] {
   const origins = new Set<string>();
   const turnstileSiteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
@@ -72,9 +81,12 @@ export function buildContentSecurityPolicy(nonce: string): string {
   const trustedOrigins = collectTrustedOrigins();
   const originList = trustedOrigins.join(" ");
 
+  const siScript = SPEED_INSIGHTS_SCRIPT_ORIGINS.join(" ");
+  const siConnect = SPEED_INSIGHTS_CONNECT_ORIGINS.join(" ");
+
   const scriptSrc = `'self' 'nonce-${nonce}' 'strict-dynamic'${
     isDev ? " 'unsafe-eval'" : ""
-  }${originList ? ` ${originList}` : ""}`;
+  }${originList ? ` ${originList}` : ""} ${siScript}`;
 
   // Les attributs style="" ne peuvent pas porter de nonce (CSP).
   // On autorise donc unsafe-inline pour les styles uniquement.
@@ -82,7 +94,7 @@ export function buildContentSecurityPolicy(nonce: string): string {
 
   const imgSrc = `'self' data: blob:${originList ? ` ${originList}` : ""}`;
   const fontSrc = `'self' data:${originList ? ` ${originList}` : ""}`;
-  const connectSrc = `'self' ws: wss:${originList ? ` ${originList}` : ""}`;
+  const connectSrc = `'self' ws: wss:${originList ? ` ${originList}` : ""} ${siConnect}`;
 
   const directives = [
     "default-src 'self'",
