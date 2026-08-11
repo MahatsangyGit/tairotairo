@@ -1,5 +1,6 @@
 import sharp from "sharp";
 import type { ImageAllowedMime } from "@/lib/image-upload-validation";
+import { toIsolatedBuffer } from "@/lib/isolated-buffer";
 
 export type OptimizedImage = {
   buffer: Buffer;
@@ -50,13 +51,14 @@ export async function optimizeUploadImage(
     });
 
   const { data, info } = await pipeline.toBuffer({ resolveWithObject: true });
+  const buffer = toIsolatedBuffer(data);
 
   return {
-    buffer: data,
+    buffer,
     mime: "image/webp",
     extension: ".webp",
     width: info.width,
     height: info.height,
-    sizeBytes: data.length,
+    sizeBytes: buffer.length,
   };
 }
