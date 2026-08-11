@@ -66,6 +66,16 @@ function stripPort(host: string): string {
   return host.split(":")[0]!.toLowerCase();
 }
 
+/** Vercel Speed Insights / Analytics — ne pas réécrire ni filtrer ces chemins. */
+function isVercelObservabilityPath(pathname: string): boolean {
+  if (pathname.startsWith("/_vercel")) return true;
+  // Intake v2 : `/<unique-path>/script.js` et `/<unique-path>/vitals`
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments.length !== 2) return false;
+  const leaf = segments[1];
+  return leaf === "script.js" || leaf === "vitals";
+}
+
 /**
  * Host-based routing for ecosystem subdomains.
  * Rewrites ampindramo.* → /ampindramo/… and ampianaro.* → /ampianaro/…
@@ -91,6 +101,7 @@ function resolveHostRouting(
     if (
       pathname.startsWith("/api") ||
       pathname.startsWith("/_next") ||
+      pathname.startsWith("/_vercel") ||
       pathname.startsWith("/seo")
     ) {
       return null;
@@ -114,6 +125,7 @@ function resolveHostRouting(
     if (
       pathname.startsWith("/api") ||
       pathname.startsWith("/_next") ||
+      pathname.startsWith("/_vercel") ||
       pathname.startsWith("/seo")
     ) {
       return null;
@@ -164,9 +176,15 @@ function resolveHostRouting(
 }
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Speed Insights / Analytics : laisser Vercel servir ces endpoints sans CSP/rewrite.
+  if (isVercelObservabilityPath(pathname)) {
+    return NextResponse.next();
+  }
+
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = buildContentSecurityPolicy(nonce);
-  const { pathname } = request.nextUrl;
 
   const hostRouted = resolveHostRouting(request, pathname);
   if (hostRouted) {
@@ -242,7 +260,8 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      source: "/((?!api|seo|_next/static|_next/image|favicon.ico).*)",
+      // Exclure aussi `_vercel` (Speed Insights / Analytics), sinon le script/vitals casse.
+      source: "/((?!api|seo|_next/static|_next/image|_vercel|favicon.ico).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },
         { type: "header", key: "purpose", value: "prefetch" },
