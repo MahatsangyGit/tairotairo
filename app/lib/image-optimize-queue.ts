@@ -70,8 +70,14 @@ export function resolveImageOptimizeMode(): "queue" | "inline" {
   const explicit = process.env.IMAGE_OPTIMIZE_MODE?.trim().toLowerCase();
   if (explicit === "queue" || explicit === "inline") return explicit;
 
-  // auto: file dédiée en production (Redis obligatoire) ; inline en local
-  // pour ne pas exiger le worker pendant `npm run dev`.
+  // Vercel serverless : pas de worker Sharp long-lived → Sharp inline dans l'API.
+  // (Sinon REDIS_URL en prod bascule en "queue" et les uploads timeout → « Erreur serveur ».)
+  if (process.env.VERCEL === "1") {
+    return "inline";
+  }
+
+  // auto: file dédiée en production self-hosted (Redis + `npm run worker:images`) ;
+  // inline en local pour ne pas exiger le worker pendant `npm run dev`.
   if (process.env.NODE_ENV === "production" && process.env.REDIS_URL) {
     return "queue";
   }
