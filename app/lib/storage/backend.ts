@@ -8,6 +8,7 @@ import {
   S3Client,
 } from "@aws-sdk/client-s3";
 import { BlobNotFoundError, del, get, head, put } from "@vercel/blob";
+import { toIsolatedBuffer } from "@/lib/isolated-buffer";
 
 export interface StorageBackend {
   put(key: string, buffer: Buffer, contentType: string): Promise<void>;
@@ -184,7 +185,8 @@ export class VercelBlobBackend implements StorageBackend {
   }
 
   async put(key: string, buffer: Buffer, contentType: string): Promise<void> {
-    await put(this.normalizeKey(key), buffer, {
+    // Copie isolée : undici refuse les Buffer Sharp (SharedArrayBuffer).
+    await put(this.normalizeKey(key), toIsolatedBuffer(buffer), {
       access: "private",
       addRandomSuffix: false,
       allowOverwrite: true,
