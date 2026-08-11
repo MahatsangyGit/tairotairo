@@ -22,9 +22,9 @@ describe("optimizeUploadImage", () => {
     expect(out.width).toBeGreaterThan(0);
     expect(out.height).toBeGreaterThan(0);
     expect(out.sizeBytes).toBe(out.buffer.length);
+    expect(out.buffer.buffer instanceof SharedArrayBuffer).toBe(false);
   });
 });
-
 describe("optimizeUploadImageDispatched", () => {
   it("uses inline Sharp when IMAGE_OPTIMIZE_MODE=inline", async () => {
     process.env.IMAGE_OPTIMIZE_MODE = "inline";
