@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { apiFetchJson } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
@@ -19,17 +19,28 @@ type Equipment = {
   isPlatformOwned: boolean;
 };
 
+type EligibleBooking = {
+  id: string;
+  title: string;
+  date: string | null;
+  dateLabel: string;
+  status: string;
+  statusLabel: string;
+  clientName: string;
+};
+
 export default function EquipmentDetailPage() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, authChecked } = useAuth();
   const [item, setItem] = useState<Equipment | null>(null);
-  const [startDate, setStartDate] = useState("");
-  const [endDate, setEndDate] = useState("");
+  const [eligible, setEligible] = useState<EligibleBooking[] | null>(null);
+  const [eligibleError, setEligibleError] = useState<string | null>(null);
+  const [serviceBookingId, setServiceBookingId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const load = useCallback(async () => {
+  const loadEquipment = useCallback(async () => {
     try {
       const data = await apiFetchJson<Equipment>(`/api/rental/equipment/${id}`);
       setItem(data);
@@ -38,16 +49,55 @@ export default function EquipmentDetailPage() {
     }
   }, [id]);
 
+  const loadEligible = useCallback(async () => {
+    if (!user || user.role !== "PROVIDER") {
+      setEligible([]);
+      setEligibleError(null);
+      return;
+    }
+    try {
+      const data = await apiFetchJson<{ bookings: EligibleBooking[] }>(
+        "/api/rental/eligible-service-bookings"
+      );
+      setEligible(data.bookings);
+      setEligibleError(null);
+    } catch (e) {
+      setEligible([]);
+      setEligibleError(
+        e instanceof Error
+          ? e.message
+          : "Impossible de charger vos prestations confirmées."
+      );
+    }
+  }, [user]);
+
   useEffect(() => {
     // Fetch on mount / dependency change
     // eslint-disable-next-line react-hooks/set-state-in-effect -- client data load
-    void load();
-  }, [load]);
+    void loadEquipment();
+  }, [loadEquipment]);
+
+  useEffect(() => {
+    if (!authChecked) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- client data load
+    void loadEligible();
+  }, [authChecked, loadEligible]);
+
+  const selected = useMemo(
+    () => eligible?.find((b) => b.id === serviceBookingId) ?? null,
+    [eligible, serviceBookingId]
+  );
+
+  const isOwnEquipment = Boolean(user && item && item.ownerId === user.id);
 
   async function requestRental(e: React.FormEvent) {
     e.preventDefault();
     if (!user) {
       router.push(`/auth/login?callbackUrl=/ampindramo/materiel/${id}`);
+      return;
+    }
+    if (!serviceBookingId) {
+      setError("Choisissez la prestation confirmée liée à cette location.");
       return;
     }
     setSubmitting(true);
@@ -60,8 +110,7 @@ export default function EquipmentDetailPage() {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             equipmentId: id,
-            startDate,
-            endDate,
+            serviceBookingId,
           }),
         }
       );
@@ -118,38 +167,83 @@ export default function EquipmentDetailPage() {
         </span>
       </p>
 
-      <form
-        onSubmit={requestRental}
-        className="rounded-xl border border-border p-4 sm:p-6"
-      >
-        <h2 className="mb-4 text-lg font-semibold">Demander une location</h2>
-        <div className="mb-4 grid gap-3 sm:grid-cols-2">
-          <label className="block text-sm">
-            Début
-            <input
-              type="date"
-              required
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-            />
-          </label>
-          <label className="block text-sm">
-            Fin
-            <input
-              type="date"
-              required
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
-            />
-          </label>
-        </div>
-        {error ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
-        <Button type="submit" disabled={submitting}>
-          {submitting ? "Envoi…" : "Envoyer la demande"}
-        </Button>
-      </form>
+      <section className="rounded-xl border border-border p-4 sm:p-6">
+        <h2 className="mb-2 text-lg font-semibold">Demander une location</h2>
+        <p className="mb-4 text-sm text-muted-foreground">
+          La location est liée à une de vos prestations confirmées. La date
+          du prêt est automatiquement celle de la prestation.
+        </p>
+
+        {isOwnEquipment ? (
+          <p className="text-sm text-muted-foreground">
+            Vous ne pouvez pas louer votre propre matériel.
+          </p>
+        ) : !authChecked ? (
+          <p className="text-muted-foreground">Chargement…</p>
+        ) : !user ? (
+          <Button
+            type="button"
+            onClick={() =>
+              router.push(`/auth/login?callbackUrl=/ampindramo/materiel/${id}`)
+            }
+          >
+            Se connecter pour louer
+          </Button>
+        ) : user.role !== "PROVIDER" ? (
+          <p className="text-sm text-muted-foreground">
+            Seuls les prestataires peuvent emprunter du matériel, à partir
+            d&apos;une réservation de prestation acceptée, payée, en cours ou
+            en finition.
+          </p>
+        ) : eligible === null ? (
+          <p className="text-muted-foreground">
+            Chargement de vos prestations…
+          </p>
+        ) : eligibleError ? (
+          <p className="text-sm text-destructive">{eligibleError}</p>
+        ) : eligible.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Aucune prestation éligible pour le moment. Pour louer, vous devez
+            avoir une réservation confirmée (acceptée, payée, en cours ou en
+            finition) avec une date de prestation déjà fixée.
+          </p>
+        ) : (
+          <form onSubmit={requestRental}>
+            <label className="mb-4 block text-sm">
+              Prestation confirmée
+              <select
+                required
+                value={serviceBookingId}
+                onChange={(e) => setServiceBookingId(e.target.value)}
+                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
+              >
+                <option value="">Choisir une prestation…</option>
+                {eligible.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.title} — {b.dateLabel} ({b.statusLabel})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="mb-4 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+              <p className="text-muted-foreground">Date de location</p>
+              <p className="font-medium">
+                {selected
+                  ? selected.dateLabel
+                  : "Sélectionnez une prestation pour afficher la date"}
+              </p>
+            </div>
+
+            {error ? (
+              <p className="mb-3 text-sm text-destructive">{error}</p>
+            ) : null}
+            <Button type="submit" disabled={submitting || !serviceBookingId}>
+              {submitting ? "Envoi…" : "Envoyer la demande"}
+            </Button>
+          </form>
+        )}
+      </section>
     </div>
   );
 }

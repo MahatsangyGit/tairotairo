@@ -1,4 +1,5 @@
 import type { RentalStatus } from "@/generated/prisma/client";
+import { formatSchedule } from "@/lib/datetime-slot";
 
 export function serializeRental(rental: {
   id: string;
@@ -14,6 +15,7 @@ export function serializeRental(rental: {
   equipmentId: string;
   renterId: string;
   ownerId: string;
+  serviceBookingId?: string | null;
   createdAt: Date;
   updatedAt: Date;
   equipment?: {
@@ -26,6 +28,14 @@ export function serializeRental(rental: {
     status: string;
     amount: number;
     depositAmount: number;
+  } | null;
+  serviceBooking?: {
+    id: string;
+    status: string;
+    date: Date | null;
+    slotStart: string | null;
+    slotEnd: string | null;
+    displayTitle: string | null;
   } | null;
 }) {
   return {
@@ -42,6 +52,7 @@ export function serializeRental(rental: {
     equipmentId: rental.equipmentId,
     renterId: rental.renterId,
     ownerId: rental.ownerId,
+    serviceBookingId: rental.serviceBookingId ?? null,
     createdAt: rental.createdAt.toISOString(),
     updatedAt: rental.updatedAt.toISOString(),
     equipment: rental.equipment
@@ -54,5 +65,20 @@ export function serializeRental(rental: {
         }
       : null,
     transaction: rental.transaction ?? null,
+    serviceBooking: rental.serviceBooking
+      ? {
+          id: rental.serviceBooking.id,
+          status: rental.serviceBooking.status,
+          title: rental.serviceBooking.displayTitle,
+          date: rental.serviceBooking.date
+            ? rental.serviceBooking.date.toISOString()
+            : null,
+          dateLabel: formatSchedule(
+            rental.serviceBooking.date,
+            rental.serviceBooking.slotStart,
+            rental.serviceBooking.slotEnd
+          ),
+        }
+      : null,
   };
 }

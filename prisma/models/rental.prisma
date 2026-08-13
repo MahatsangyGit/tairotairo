@@ -83,6 +83,9 @@ model RentalBooking {
   renterId      String
   owner         User          @relation("RentalOwner", fields: [ownerId], references: [id])
   ownerId       String
+  /// Prestation Tairo ampio qui justifie la location (obligatoire à la création).
+  serviceBooking   Booking?  @relation(fields: [serviceBookingId], references: [id])
+  serviceBookingId String?
   transaction   RentalTransaction?
 
   @@index([equipmentId])
@@ -92,6 +95,7 @@ model RentalBooking {
   @@index([startDate, endDate])
   @@index([renterId, updatedAt])
   @@index([ownerId, updatedAt])
+  @@index([serviceBookingId])
 }
 
 model RentalTransaction {

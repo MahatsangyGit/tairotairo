@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { RentalStatus } from "@/generated/prisma/client";
 import prisma from "@/lib/prisma";
-import { requireAuthOrThrow } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole } from "@/lib/auth";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import {
   createRentalBookingSchema,
@@ -11,8 +11,9 @@ import {
 import {
   ACTIVE_RENTAL_STATUSES,
   computeRentalTotalAmount,
-  parseRentalDate,
 } from "@/lib/rental/status";
+import { requireEligibleServiceBookingForRental } from "@/lib/rental/service-booking";
+import { rentalBookingInclude } from "@/lib/rental/include";
 import { notifyRentalRequested } from "@/lib/rental/notify";
 import { serializeRental } from "@/lib/rental/serialize";
 import { AppError, isPrismaKnownError } from "@/lib/errors";
@@ -35,17 +36,7 @@ export const GET = withApiHandler(
       where,
       orderBy: { updatedAt: "desc" },
       take: 100,
-      include: {
-        equipment: { select: { id: true, title: true, photoKeys: true } },
-        transaction: {
-          select: {
-            id: true,
-            status: true,
-            amount: true,
-            depositAmount: true,
-          },
-        },
-      },
+      include: rentalBookingInclude,
     });
 
     return NextResponse.json({
@@ -58,16 +49,22 @@ export const POST = withApiHandler(
   "POST /api/rental/bookings",
   async (req) => {
     const user = await requireAuthOrThrow(req);
+    requireRole(
+      user,
+      "PROVIDER",
+      "Seuls les prestataires peuvent louer du matériel"
+    );
+
     const json = await parseJsonBody(req);
     if (!json.ok) return json.response;
     const parsed = parseBody(createRentalBookingSchema, json.body);
     if (!parsed.ok) return parsed.response;
 
-    const startDate = parseRentalDate(parsed.data.startDate);
-    const endDate = parseRentalDate(parsed.data.endDate);
-    if (!startDate || !endDate || endDate <= startDate) {
-      throw new AppError("Période de location invalide", 400);
-    }
+    const { startDate, endDate, bookingId: serviceBookingId } =
+      await requireEligibleServiceBookingForRental({
+        serviceBookingId: parsed.data.serviceBookingId,
+        providerId: user.userId,
+      });
 
     const equipment = await prisma.equipmentItem.findUnique({
       where: { id: parsed.data.equipmentId },
@@ -90,7 +87,7 @@ export const POST = withApiHandler(
     });
     if (overlap) {
       throw new AppError(
-        "Ce matériel n'est pas disponible sur la période demandée",
+        "Ce matériel n'est pas disponible à la date de votre prestation",
         409
       );
     }
@@ -107,6 +104,7 @@ export const POST = withApiHandler(
           equipmentId: equipment.id,
           renterId: user.userId,
           ownerId: equipment.ownerId,
+          serviceBookingId,
           startDate,
           endDate,
           totalAmount,
@@ -117,10 +115,7 @@ export const POST = withApiHandler(
           displayDailyPrice: equipment.dailyPrice,
           status: "REQUESTED",
         },
-        include: {
-          equipment: { select: { id: true, title: true, photoKeys: true } },
-          transaction: true,
-        },
+        include: rentalBookingInclude,
       });
 
       await notifyRentalRequested(rental.id);
@@ -128,7 +123,7 @@ export const POST = withApiHandler(
     } catch (error) {
       if (isPrismaKnownError(error) && error.code === "P2002") {
         throw new AppError(
-          "Ce matériel n'est pas disponible sur la période demandée",
+          "Ce matériel n'est pas disponible à la date de votre prestation",
           409
         );
       }
@@ -136,7 +131,7 @@ export const POST = withApiHandler(
         error instanceof Error ? error.message : String(error);
       if (message.includes("RentalBooking_no_overlap")) {
         throw new AppError(
-          "Ce matériel n'est pas disponible sur la période demandée",
+          "Ce matériel n'est pas disponible à la date de votre prestation",
           409
         );
       }

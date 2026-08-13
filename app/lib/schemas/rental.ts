@@ -53,8 +53,7 @@ export const adminEquipmentReviewSchema = z.object({
 
 export const createRentalBookingSchema = z.object({
   equipmentId: cuidSchema,
-  startDate: z.union([z.string(), z.number(), z.date()]),
-  endDate: z.union([z.string(), z.number(), z.date()]),
+  serviceBookingId: cuidSchema,
 });
 
 export const rentalStatusPatchSchema = z.object({

@@ -14,6 +14,7 @@ import {
 import { captureRentalToEscrow } from "@/lib/rental/payments";
 import { notifyRentalPaid } from "@/lib/rental/notify";
 import { serializeRental } from "@/lib/rental/serialize";
+import { rentalBookingInclude } from "@/lib/rental/include";
 import { PaymentError } from "@/lib/payments";
 import { AppError } from "@/lib/errors";
 
@@ -43,17 +44,7 @@ export const POST = withApiHandler(
       await notifyRentalPaid(id);
       const fresh = await prisma.rentalBooking.findUniqueOrThrow({
         where: { id },
-        include: {
-          equipment: { select: { id: true, title: true, photoKeys: true } },
-          transaction: {
-            select: {
-              id: true,
-              status: true,
-              amount: true,
-              depositAmount: true,
-            },
-          },
-        },
+        include: rentalBookingInclude,
       });
       return NextResponse.json(serializeRental(fresh));
     } catch (error) {

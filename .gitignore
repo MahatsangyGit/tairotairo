@@ -44,6 +44,9 @@ yarn-error.log*
 # vercel
 .vercel
 
+# k6 (load tests locaux — hors repo)
+/k6/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
