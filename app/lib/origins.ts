@@ -126,3 +126,21 @@ export function resolveVerticalFromHost(hostHeader: string | null): TairoVertica
   if (learning && host === learning) return "learning";
   return "marketplace";
 }
+
+/**
+ * Lien « retour Tairo ampio » depuis ampindramo / ampianaro.
+ *
+ * Sur l'hôte marketplace (chemins `/ampindramo`, `/ampianaro`, previews Vercel),
+ * renvoyer `/` pour rester sur la même origine — sinon `NEXT_PUBLIC_APP_URL`
+ * (domaine canonique) ouvre un autre hôte et le cookie de session host-only
+ * n'est pas envoyé : déconnexion apparente.
+ *
+ * Sur un sous-domaine dédié, renvoyer l'origine marketplace (SSO via
+ * AUTH_COOKIE_DOMAIN).
+ */
+export function getMarketplaceHomeHref(hostHeader: string | null): string {
+  if (resolveVerticalFromHost(hostHeader) === "marketplace") {
+    return "/";
+  }
+  return getMarketplaceOrigin();
+}

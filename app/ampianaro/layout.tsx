@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getMarketplaceOrigin } from "@/lib/origins";
+import MarketplaceHomeLink from "@/components/layout/MarketplaceHomeLink";
 
 export const metadata: Metadata = {
   title: "Tairo ampianaro — Formations en ligne",
@@ -13,8 +13,6 @@ export default function AmpianaroLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const marketplace = getMarketplaceOrigin();
-
   return (
     <div className="min-h-screen bg-background text-foreground">
       <header className="sticky top-0 z-40 border-b border-border bg-background/95 backdrop-blur">
@@ -35,12 +33,7 @@ export default function AmpianaroLayout({
               </Link>
             </nav>
           </div>
-          <a
-            href={marketplace}
-            className="text-sm text-muted-foreground hover:text-foreground"
-          >
-            ← Tairo ampio
-          </a>
+          <MarketplaceHomeLink />
         </div>
       </header>
       <main>{children}</main>
