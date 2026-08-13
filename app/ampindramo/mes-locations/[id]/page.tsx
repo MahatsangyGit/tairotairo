@@ -22,6 +22,13 @@ type Rental = {
     amount: number;
     depositAmount: number;
   } | null;
+  serviceBooking: {
+    id: string;
+    status: string;
+    title: string | null;
+    date: string | null;
+    dateLabel: string;
+  } | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -123,6 +130,18 @@ export default function RentalDetailPage() {
         {new Date(rental.startDate).toLocaleDateString("fr-MG")} →{" "}
         {new Date(rental.endDate).toLocaleDateString("fr-MG")}
       </p>
+      {rental.serviceBooking ? (
+        <p className="mb-6 rounded-lg bg-muted/50 px-3 py-2 text-sm">
+          Prestation liée :{" "}
+          <strong>
+            {rental.serviceBooking.title || "Réservation"}
+          </strong>
+          <span className="text-muted-foreground">
+            {" "}
+            · {rental.serviceBooking.dateLabel}
+          </span>
+        </p>
+      ) : null}
       <div className="mb-6 rounded-xl border border-border p-4">
         <p>
           Loyer :{" "}

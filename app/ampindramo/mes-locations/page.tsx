@@ -14,6 +14,10 @@ type Rental = {
   depositAmount: number;
   displayTitle: string | null;
   equipment: { id: string; title: string; photoUrl: string | null } | null;
+  serviceBooking: {
+    title: string | null;
+    dateLabel: string;
+  } | null;
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -89,10 +93,15 @@ export default function MyRentalsPage() {
                     {b.displayTitle || b.equipment?.title || "Location"}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(b.startDate).toLocaleDateString("fr-MG")} →{" "}
-                    {new Date(b.endDate).toLocaleDateString("fr-MG")} ·{" "}
-                    {STATUS_LABELS[b.status] ?? b.status}
+                    {b.serviceBooking
+                      ? `${b.serviceBooking.dateLabel} · ${STATUS_LABELS[b.status] ?? b.status}`
+                      : `${new Date(b.startDate).toLocaleDateString("fr-MG")} → ${new Date(b.endDate).toLocaleDateString("fr-MG")} · ${STATUS_LABELS[b.status] ?? b.status}`}
                   </p>
+                  {b.serviceBooking?.title ? (
+                    <p className="text-xs text-muted-foreground">
+                      Prestation : {b.serviceBooking.title}
+                    </p>
+                  ) : null}
                 </div>
                 <p className="text-sm font-medium">
                   {b.totalAmount.toLocaleString("fr-MG")} Ar
