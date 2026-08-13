@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   canTransitionRental,
   computeRentalTotalAmount,
@@ -8,6 +8,7 @@ import { isSubscriptionActive } from "@/lib/subscription";
 import {
   absoluteVerticalUrl,
   getAllowedHostnames,
+  getMarketplaceHomeHref,
   resolveVerticalFromHost,
 } from "@/lib/origins";
 
@@ -80,6 +81,9 @@ describe("subscription gating for learning", () => {
 });
 
 describe("origins multi-host", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+  });
   it("defaults to marketplace without hosts", () => {
     expect(resolveVerticalFromHost("localhost:3000")).toBe("marketplace");
   });
@@ -91,5 +95,24 @@ describe("origins multi-host", () => {
 
   it("lists allowed hostnames from env safely", () => {
     expect(Array.isArray(getAllowedHostnames())).toBe(true);
+  });
+
+  it("keeps Tairo ampio on the same origin for path-based verticals", () => {
+    expect(getMarketplaceHomeHref("localhost:3000")).toBe("/");
+    expect(getMarketplaceHomeHref("tairotairo.vercel.app")).toBe("/");
+    expect(getMarketplaceHomeHref(null)).toBe("/");
+  });
+
+  it("points Tairo ampio to the marketplace origin on dedicated vertical hosts", () => {
+    vi.stubEnv("NEXT_PUBLIC_APP_URL", "https://tairo-ampio.mg");
+    vi.stubEnv("RENTAL_HOST", "ampindramo.tairo-ampio.mg");
+    vi.stubEnv("LEARNING_HOST", "ampianaro.tairo-ampio.mg");
+    expect(getMarketplaceHomeHref("ampindramo.tairo-ampio.mg")).toBe(
+      "https://tairo-ampio.mg"
+    );
+    expect(getMarketplaceHomeHref("ampianaro.tairo-ampio.mg")).toBe(
+      "https://tairo-ampio.mg"
+    );
+    expect(getMarketplaceHomeHref("tairo-ampio.mg")).toBe("/");
   });
 });
