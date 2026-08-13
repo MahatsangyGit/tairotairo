@@ -1,7 +1,7 @@
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 
 export const SUBSCRIPTION_MONTHLY_PRICE_MGA = Number(
-  process.env.SUBSCRIPTION_MONTHLY_PRICE_MGA ?? 75_000
+  process.env.SUBSCRIPTION_MONTHLY_PRICE_MGA ?? 29_000
 );
 
 export type SubscriptionPlanId = "1-month" | "3-months";
