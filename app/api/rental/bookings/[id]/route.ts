@@ -28,22 +28,13 @@ import {
   notifyRentalReturnRequested,
 } from "@/lib/rental/notify";
 import { serializeRental } from "@/lib/rental/serialize";
+import { rentalBookingInclude } from "@/lib/rental/include";
 import { PaymentError } from "@/lib/payments";
 import { AppError } from "@/lib/errors";
 
 export const dynamic = "force-dynamic";
 
-const include = {
-  equipment: { select: { id: true, title: true, photoKeys: true } },
-  transaction: {
-    select: {
-      id: true,
-      status: true,
-      amount: true,
-      depositAmount: true,
-    },
-  },
-} as const;
+const include = rentalBookingInclude;
 
 export const GET = withApiHandler(
   "GET /api/rental/bookings/[id]",

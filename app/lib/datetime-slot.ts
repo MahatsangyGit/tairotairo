@@ -71,6 +71,17 @@ export function madagascarDateTime(
   return new Date(`${y}-${mo}-${d}T${hh}:${mm}:00${BUSINESS_UTC_OFFSET}`);
 }
 
+/** Journée calendaire métier (minuit → minuit lendemain, fuseau Madagascar). */
+export function calendarDayRangeInBusinessTz(date: Date): {
+  start: Date;
+  end: Date;
+} {
+  const { year, month, day } = calendarPartsInBusinessTz(date);
+  const start = madagascarDateTime(Number(year), Number(month), Number(day), 0, 0);
+  const end = new Date(start.getTime() + 24 * 60 * 60 * 1000);
+  return { start, end };
+}
+
 export function applySlotToDate(base: Date, slotStart: string | null): Date {
   const { year, month, day } = calendarPartsInBusinessTz(base);
   if (slotStart) {
