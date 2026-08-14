@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { cuidSchema } from "@/lib/schemas/shared";
+import { cuidSchema, requiredPhoneInput } from "@/lib/schemas/shared";
 
 export const bookingStatusPatchSchema = z.object({
   status: z.enum(
@@ -21,7 +21,7 @@ export const bookingPaySchema = z.object({
   paymentMethod: z.enum(["ORANGE_MONEY", "MVOLA", "AIRTEL_MONEY"], {
     error: "Mode de paiement invalide",
   }),
-  phone: z.string().trim().min(1, "Numéro de téléphone requis"),
+  phone: requiredPhoneInput,
 });
 
 export const createBookingSchema = z.object({

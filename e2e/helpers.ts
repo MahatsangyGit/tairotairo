@@ -151,6 +151,14 @@ export async function verifyUserEmail(email: string) {
   }
 }
 
+export function uniqueMgPhone(seed: string): string {
+  let hash = 0;
+  for (const character of seed) {
+    hash = (hash * 31 + character.charCodeAt(0)) >>> 0;
+  }
+  return `034${String(hash % 10_000_000).padStart(7, "0")}`;
+}
+
 export async function registerUser(
   request: APIRequestContext,
   data: {
@@ -161,8 +169,9 @@ export async function registerUser(
     phone?: string;
   }
 ) {
+  const phone = data.phone ?? uniqueMgPhone(data.email);
   const res = await request.post("/api/auth/register", {
-    data: { ...data, ...turnstileFields() },
+    data: { ...data, phone, ...turnstileFields() },
     headers: identityHeaders(data.email),
   });
   const body = await res.json();

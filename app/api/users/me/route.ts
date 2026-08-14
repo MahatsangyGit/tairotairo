@@ -8,6 +8,7 @@ import {
 } from "@/lib/api-schemas";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import { isProfessionalClient } from "@/lib/client-kind";
+import { MG_PHONE_DUPLICATE, MG_PHONE_REQUIRED } from "@/lib/phone";
 
 const userSelect = {
   id: true,
@@ -79,11 +80,18 @@ export const PATCH = withApiHandler("PATCH /api/users/me", async (req) => {
   const canEditLegal =
     professional || auth.role === "PROVIDER" || auth.role === "ADMIN";
 
-  if (professional && phone === null) {
-    return NextResponse.json(
-      { error: "Téléphone obligatoire pour un compte entreprise" },
-      { status: 400 }
-    );
+  if (phone === null) {
+    return NextResponse.json({ error: MG_PHONE_REQUIRED }, { status: 400 });
+  }
+
+  if (phone) {
+    const taken = await prisma.user.findFirst({
+      where: { phone, id: { not: auth.userId } },
+      select: { id: true },
+    });
+    if (taken) {
+      return NextResponse.json({ error: MG_PHONE_DUPLICATE }, { status: 400 });
+    }
   }
 
   if (

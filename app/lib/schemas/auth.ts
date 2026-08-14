@@ -1,7 +1,7 @@
 import { z } from "zod";
 import {
   emailSchema,
-  optionalPhoneInput,
+  requiredPhoneInput,
   passwordFieldSchema,
 } from "@/lib/schemas/shared";
 import { FIELD_LIMITS } from "@/lib/field-limits";
@@ -24,7 +24,7 @@ export const registerSchema = z
       .optional(),
     email: emailSchema,
     password: passwordFieldSchema,
-    phone: optionalPhoneInput,
+    phone: requiredPhoneInput,
     role: z.string().optional(),
     clientKind: z.enum(["INDIVIDUAL", "PROFESSIONAL"]).optional(),
     companyName: z
@@ -67,13 +67,6 @@ export const registerSchema = z
           code: "custom",
           path: ["companyAddress"],
           message: "Adresse sociale obligatoire",
-        });
-      }
-      if (!data.phone) {
-        ctx.addIssue({
-          code: "custom",
-          path: ["phone"],
-          message: "Téléphone obligatoire",
         });
       }
       if (!data.nif) {

@@ -19,6 +19,7 @@ import {
 } from "@/lib/api-schemas";
 import { verifyTurnstileToken } from "@/lib/turnstile";
 import { withApiHandler } from "@/lib/api-handler";
+import { MG_PHONE_DUPLICATE } from "@/lib/phone";
 
 const REGISTRATION_FAILED_MESSAGE =
   "Impossible de créer le compte avec ces informations.";
@@ -62,6 +63,18 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
       { error: REGISTRATION_FAILED_MESSAGE },
       { status: 400 }
     );
+  }
+
+  const existingPhone = await prisma.user.findUnique({
+    where: { phone },
+    select: { id: true },
+  });
+  if (existingPhone) {
+    logSecurityEventFromRequest("auth.register_duplicate", req, {
+      email,
+      detail: "phone",
+    });
+    return NextResponse.json({ error: MG_PHONE_DUPLICATE }, { status: 400 });
   }
 
   const hashedPassword = await bcrypt.hash(password, getBcryptRounds());
