@@ -1,6 +1,7 @@
 import prisma from "@/lib/prisma";
 import { averageRating } from "@/lib/advanced-search";
 import { activeSubscriptionWhere } from "@/lib/featured-home";
+import { isEntrepriseIndividuelle } from "@/lib/provider-legal";
 
 export const SUBSCRIBED_SUGGESTIONS_LIMIT = 8;
 
@@ -25,6 +26,9 @@ export async function getSubscribedProviderSuggestions(
       name: true,
       avatar: true,
       bio: true,
+      nif: true,
+      stat: true,
+      rcs: true,
       reviewsReceived: { select: { rating: true } },
       _count: { select: { services: { where: { available: true } } } },
     },
@@ -38,6 +42,7 @@ export async function getSubscribedProviderSuggestions(
       avatar: p.avatar,
       bio: p.bio,
       serviceCount: p._count.services,
+      isEntrepriseIndividuelle: isEntrepriseIndividuelle(p),
       ...rating,
     };
   });

@@ -3,6 +3,7 @@ import { withAnonymousRls } from "@/lib/rls";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { withCoverImageUrl } from "@/lib/listing-cover";
 import { getProviderRatingMap } from "@/lib/rating-sort-search";
+import { withEiFlag, isEntrepriseIndividuelle } from "@/lib/provider-legal";
 
 export const MAX_FEATURED_PROVIDERS = 8;
 export const MAX_FEATURED_SERVICES = 8;
@@ -43,6 +44,9 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       name: true,
       avatar: true,
       bio: true,
+      nif: true,
+      stat: true,
+      rcs: true,
       _count: {
         select: {
           services: { where: { available: true } },
@@ -80,6 +84,7 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       avatar: p.avatar,
       bio: p.bio,
       serviceCount: p._count.services,
+      isEntrepriseIndividuelle: isEntrepriseIndividuelle(p),
       ...rating,
     };
   });
@@ -105,6 +110,9 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
           id: true,
           name: true,
           avatar: true,
+          nif: true,
+          stat: true,
+          rcs: true,
         },
       },
     },
@@ -126,7 +134,7 @@ export async function getFeaturedServicesForHome(limit = MAX_FEATURED_SERVICES) 
       location: s.location,
       coverImageMime: s.coverImageMime,
       updatedAt: s.updatedAt,
-      provider: { ...s.provider, ...rating },
+      provider: { ...withEiFlag(s.provider), ...rating },
     });
   });
   });

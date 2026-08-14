@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 
@@ -13,6 +14,7 @@ export interface FeaturedProviderCard {
   serviceCount: number;
   averageRating: number | null;
   reviewCount: number;
+  isEntrepriseIndividuelle?: boolean;
 }
 
 export default function FeaturedProvidersSection({
@@ -47,8 +49,11 @@ export default function FeaturedProvidersSection({
             <div className="flex items-center gap-3">
               <UserAvatar name={provider.name} avatar={provider.avatar} size="md" />
               <div className="min-w-0">
-                <h3 className="font-semibold text-foreground truncate group-hover:text-brand-700 transition-colors">
-                  {provider.name}
+                <h3 className="font-semibold text-foreground group-hover:text-brand-700 transition-colors flex items-center gap-1.5 min-w-0">
+                  <span className="truncate">{provider.name}</span>
+                  {provider.isEntrepriseIndividuelle ? (
+                    <EntrepriseIndividuelleBadge />
+                  ) : null}
                 </h3>
                 <ProviderRatingBadge
                   averageRating={provider.averageRating}

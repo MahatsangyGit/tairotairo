@@ -15,6 +15,10 @@ model User {
   kycSubmittedAt  DateTime?
   featuredOnHomepage   Boolean   @default(false)
   featuredOnHomepageAt DateTime?
+  /// Identifiants légaux Madagascar (optionnels) — NIF, STAT, RCS.
+  nif           String?
+  stat          String?
+  rcs           String?
   suspendedAt          DateTime?
   failedLoginAttempts  Int       @default(0)
   loginLockedAt        DateTime?
