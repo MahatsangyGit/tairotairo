@@ -3,6 +3,7 @@ export const SERVICE_CATEGORIES = [
   "Mécanique",
   "Électricité",
   "Jardinage",
+  "Agriculture",
   "Ménage",
   "Informatique",
   "Cuisine",
@@ -11,8 +12,10 @@ export const SERVICE_CATEGORIES = [
   "Evénementiel",
   "Animaux",
   "Bricolage",
+  "BTP",
   "Déménagement",
   "Arts",
+  "Couture",
   "Musiques",
 ] as const;
 
@@ -87,6 +90,12 @@ export const CATEGORY_META: CategoryMeta[] = [
       "Jardiniers et entretien d'espaces verts à Madagascar. Tonte, taille et aménagement.",
   },
   {
+    name: "Agriculture",
+    slug: "agriculture",
+    description:
+      "Services agricoles à Madagascar. Cultures, élevage, mécanisation et travaux des champs.",
+  },
+  {
     name: "Ménage",
     slug: "menage",
     description:
@@ -134,6 +143,12 @@ export const CATEGORY_META: CategoryMeta[] = [
       "Bricoleurs et petits travaux à Madagascar. Montage, réparations et aménagements légers.",
   },
   {
+    name: "BTP",
+    slug: "btp",
+    description:
+      "Professionnels du BTP à Madagascar. Maçonnerie, gros œuvre, rénovation et chantier.",
+  },
+  {
     name: "Déménagement",
     slug: "demenagement",
     description:
@@ -144,6 +159,12 @@ export const CATEGORY_META: CategoryMeta[] = [
     slug: "arts",
     description:
       "Artistes et créatifs à Madagascar. Peinture, dessin, artisanat d'art et prestations artistiques.",
+  },
+  {
+    name: "Couture",
+    slug: "couture",
+    description:
+      "Couturiers et retouches à Madagascar. Confection, ajustements et créations sur mesure.",
   },
   {
     name: "Musiques",
