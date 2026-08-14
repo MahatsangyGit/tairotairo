@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { formatMgPhone, formatMgPhoneInput } from "@/lib/phone";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import type { SubscriptionPlanId } from "@/lib/subscription-plans";
 
@@ -93,7 +94,7 @@ export default function ProviderSubscriptionPage() {
     fetch("/api/users/me")
       .then((r) => r.json())
       .then((data) => {
-        if (data.user?.phone) setPhone(data.user.phone.replace(/\D/g, ""));
+        if (data.user?.phone) setPhone(formatMgPhone(data.user.phone));
       })
       .catch(() => {});
   }, [load]);
@@ -259,8 +260,8 @@ export default function ProviderSubscriptionPage() {
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    placeholder="034 12 345 67"
+                    onChange={(e) => setPhone(formatMgPhoneInput(e.target.value))}
+                    placeholder="032 74 617 90"
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
                   />
                   <p className="text-xs text-muted-foreground mt-1">

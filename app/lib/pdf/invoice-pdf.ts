@@ -1,5 +1,6 @@
 import type { InvoiceData } from "@/lib/invoice";
 import { formatStat } from "@/lib/provider-legal";
+import { formatMgPhone } from "@/lib/phone";
 
 /**
  * Générateur PDF minimaliste et autoporté (aucune dépendance externe).
@@ -177,7 +178,7 @@ function buildInvoicePdf(data: InvoiceData): Buffer {
   b.text(MARGIN, partyY - 14, data.seller.name, { size: 11, bold: true });
   let sy = partyY - 28;
   if (data.seller.phone) {
-    b.text(MARGIN, sy, `Tél : ${data.seller.phone}`, { size: 9 });
+    b.text(MARGIN, sy, `Tél : ${formatMgPhone(data.seller.phone)}`, { size: 9 });
     sy -= 12;
   }
   sy = b.textBlock(MARGIN, sy, data.seller.email, { size: 9 });
@@ -203,7 +204,7 @@ function buildInvoicePdf(data: InvoiceData): Buffer {
   b.text(rightX, partyY - 14, data.buyer.name, { size: 11, bold: true });
   let by = partyY - 28;
   if (data.buyer.phone) {
-    b.text(rightX, by, `Tél : ${data.buyer.phone}`, { size: 9 });
+    b.text(rightX, by, `Tél : ${formatMgPhone(data.buyer.phone)}`, { size: 9 });
     by -= 12;
   }
   by = b.textBlock(rightX, by, data.buyer.email, { size: 9, maxLineWidth: 190 });

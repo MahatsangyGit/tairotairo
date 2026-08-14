@@ -10,6 +10,7 @@ import {
   promoteToAdmin,
   registerUser,
   turnstileFields,
+  uniqueMgPhone,
   verifyUserEmail,
 } from "./helpers";
 import {
@@ -214,6 +215,7 @@ test.describe.serial("Auth — chemins d'échec", () => {
         email: clientEmail,
         password: "AnotherPass!99",
         role: "CLIENT",
+        phone: uniqueMgPhone(`dup-${clientEmail}`),
         ...turnstileFields(),
       },
     });

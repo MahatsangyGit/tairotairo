@@ -21,6 +21,7 @@ import { FormField } from "@/components/ui/form-field";
 import { Input } from "@/components/ui/input";
 import { StatusAlert } from "@/components/ui/status-alert";
 import { Textarea } from "@/components/ui/textarea";
+import PhoneField from "@/components/profile/PhoneField";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
 import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
 import { cn } from "@/lib/utils";
@@ -105,7 +106,7 @@ function RegisterPageContent() {
         body: JSON.stringify({
           email,
           password,
-          phone: phone.trim() || null,
+          phone: phone.trim(),
           role: accountType === "PROVIDER" ? "PROVIDER" : "CLIENT",
           clientKind: isPro ? "PROFESSIONAL" : "INDIVIDUAL",
           name: isPro ? companyName.trim() : name.trim(),
@@ -259,18 +260,6 @@ function RegisterPageContent() {
                       onChange={(e) => setCompanyAddress(e.target.value)}
                     />
                   </FormField>
-                  <FormField label="Téléphone" htmlFor="phone">
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="034 00 000 00"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </FormField>
-                  <p className="pt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-                    Accès au compte
-                  </p>
                 </>
               ) : (
                 <>
@@ -283,17 +272,16 @@ function RegisterPageContent() {
                       onChange={(e) => setName(e.target.value)}
                     />
                   </FormField>
-                  <FormField label="Téléphone" htmlFor="phone">
-                    <Input
-                      id="phone"
-                      type="tel"
-                      placeholder="034 00 000 00"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </FormField>
                 </>
               )}
+
+              <PhoneField value={phone} onChange={setPhone} />
+
+              {isPro ? (
+                <p className="pt-2 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+                  Accès au compte
+                </p>
+              ) : null}
 
               <FormField label="Adresse email" htmlFor="email">
                 <Input
