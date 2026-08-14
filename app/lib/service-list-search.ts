@@ -11,11 +11,15 @@ import {
   findServiceIdsByProviderRating,
   getProviderRatingMap,
 } from "@/lib/rating-sort-search";
+import { withEiFlag } from "@/lib/provider-legal";
 
 const providerSelect = {
   id: true,
   name: true,
   avatar: true,
+  nif: true,
+  stat: true,
+  rcs: true,
 } as const;
 
 function serializeService(
@@ -33,6 +37,9 @@ function serializeService(
       id: string;
       name: string;
       avatar: string | null;
+      nif: string | null;
+      stat: string | null;
+      rcs: string | null;
     };
   },
   rating: { averageRating: number | null; reviewCount: number }
@@ -47,7 +54,7 @@ function serializeService(
     coverImageMime: service.coverImageMime,
     updatedAt: service.updatedAt,
     createdAt: service.createdAt,
-    provider: service.provider,
+    provider: withEiFlag(service.provider),
     ...rating,
   });
 }

@@ -19,6 +19,7 @@ import {
   patchServiceSchema,
 } from "@/lib/api-schemas";
 import { paidReviewWhere } from "@/lib/paid-reviews";
+import { withEiFlag } from "@/lib/provider-legal";
 
 // ─── GET /api/services/[id] ───────────────────────────────────────────────────
 
@@ -38,6 +39,9 @@ export const GET = withApiHandler(
             bio: true,
             phone: true,
             kycStatus: true,
+            nif: true,
+            stat: true,
+            rcs: true,
           },
         },
       },
@@ -85,7 +89,7 @@ export const GET = withApiHandler(
     return NextResponse.json({
       service: withCoverImageUrl("service", {
         ...service,
-        provider: stripPhone(service.provider),
+        provider: withEiFlag(stripPhone(service.provider)),
       }),
       reviews,
       averageRating,

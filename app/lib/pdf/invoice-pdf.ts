@@ -1,4 +1,5 @@
 import type { InvoiceData } from "@/lib/invoice";
+import { formatStat } from "@/lib/provider-legal";
 
 /**
  * Générateur PDF minimaliste et autoporté (aucune dépendance externe).
@@ -180,6 +181,18 @@ function buildInvoicePdf(data: InvoiceData): Buffer {
     sy -= 12;
   }
   sy = b.textBlock(MARGIN, sy, data.seller.email, { size: 9 });
+  if (data.seller.nif) {
+    b.text(MARGIN, sy, `NIF : ${data.seller.nif}`, { size: 9 });
+    sy -= 12;
+  }
+  if (data.seller.stat) {
+    b.text(MARGIN, sy, `STAT : ${formatStat(data.seller.stat)}`, { size: 9 });
+    sy -= 12;
+  }
+  if (data.seller.rcs) {
+    b.text(MARGIN, sy, `RCS : ${data.seller.rcs}`, { size: 8 });
+    sy -= 12;
+  }
 
   b.text(rightX, partyY, "CLIENT", { size: 9, bold: true, color: brand });
   b.text(rightX, partyY - 14, data.buyer.name, { size: 11, bold: true });

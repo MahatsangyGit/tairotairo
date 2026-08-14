@@ -49,7 +49,8 @@ export default function ProviderProfilePage() {
         <div className="mb-2">
           <h1 className="text-2xl font-bold text-foreground mb-1">Mon profil</h1>
           <p className="text-muted-foreground text-sm">
-            Photo, coordonnées, présentation, vérification email et identité (KYC)
+            Photo, coordonnées, présentation, NIF / STAT / RCS (optionnel),
+            vérification email et identité (KYC)
           </p>
         </div>
         {user && (

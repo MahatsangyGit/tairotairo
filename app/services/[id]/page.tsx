@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { MapPinIcon, StarIcon } from "@/components/ui/app-icons";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
 import ContactProviderButton from "@/components/messages/ContactProviderButton";
 import NegotiateServiceButton from "@/components/messages/NegotiateServiceButton";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
@@ -17,6 +18,7 @@ interface Provider {
   name:   string;
   avatar: string | null;
   bio:    string | null;
+  isEntrepriseIndividuelle?: boolean;
 }
 
 interface Service {
@@ -256,9 +258,12 @@ export default function ServiceDetailPage() {
                   <div>
                     <Link
                       href={`/providers/${service.provider.id}`}
-                      className="font-semibold text-foreground hover:text-brand-600"
+                      className="font-semibold text-foreground hover:text-brand-600 inline-flex items-center gap-1.5"
                     >
                       {service.provider.name}
+                      {service.provider.isEntrepriseIndividuelle ? (
+                        <EntrepriseIndividuelleBadge />
+                      ) : null}
                     </Link>
                     <Link
                       href={`/providers/${service.provider.id}`}

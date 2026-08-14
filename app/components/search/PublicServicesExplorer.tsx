@@ -8,6 +8,7 @@ import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import SuggestedProvidersSection, {
   type SuggestedProvider,
 } from "@/components/search/SuggestedProvidersSection";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
 import UserAvatar from "@/components/profile/UserAvatar";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import {
@@ -20,6 +21,7 @@ interface Provider {
   id: string;
   name: string;
   avatar: string | null;
+  isEntrepriseIndividuelle?: boolean;
 }
 
 interface Service {
@@ -197,8 +199,13 @@ export default function PublicServicesExplorer({
                     avatar={service.provider.avatar}
                     size="xs"
                   />
-                  <span className="text-muted-foreground text-xs truncate">
-                    {service.provider.name}
+                  <span className="flex items-center gap-1 min-w-0">
+                    <span className="text-muted-foreground text-xs truncate">
+                      {service.provider.name}
+                    </span>
+                    {service.provider.isEntrepriseIndividuelle ? (
+                      <EntrepriseIndividuelleBadge />
+                    ) : null}
                   </span>
                 </div>
                 <ProviderRatingBadge

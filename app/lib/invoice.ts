@@ -12,6 +12,9 @@ export interface InvoiceData {
     name: string;
     email: string;
     phone: string | null;
+    nif: string | null;
+    stat: string | null;
+    rcs: string | null;
   };
   buyer: {
     name: string;
@@ -104,7 +107,7 @@ export async function getInvoiceData(
           select: { id: true, name: true, email: true, phone: true },
         },
         provider: {
-          select: { id: true, name: true, email: true, phone: true },
+          select: { id: true, name: true, email: true, phone: true, nif: true, stat: true, rcs: true },
         },
         transaction: {
           select: {
@@ -140,6 +143,9 @@ export async function getInvoiceData(
         name: booking.provider.name,
         email: booking.provider.email,
         phone: booking.provider.phone,
+        nif: booking.provider.nif,
+        stat: booking.provider.stat,
+        rcs: booking.provider.rcs,
       },
       buyer: {
         name: booking.client.name,
