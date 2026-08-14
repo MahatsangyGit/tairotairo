@@ -12,12 +12,21 @@ describe("retired Cours Particuliers category", () => {
     expect(SERVICE_CATEGORIES).not.toContain("Cours Particuliers");
   });
 
-  it("exposes Arts and Musiques", () => {
+  it("exposes Arts, Musiques, BTP, Couture and Agriculture", () => {
     expect(SERVICE_CATEGORIES).toEqual(
-      expect.arrayContaining(["Arts", "Musiques"])
+      expect.arrayContaining([
+        "Arts",
+        "Musiques",
+        "BTP",
+        "Couture",
+        "Agriculture",
+      ])
     );
     expect(slugToCategory("arts")).toBe("Arts");
     expect(slugToCategory("musiques")).toBe("Musiques");
+    expect(slugToCategory("btp")).toBe("BTP");
+    expect(slugToCategory("couture")).toBe("Couture");
+    expect(slugToCategory("agriculture")).toBe("Agriculture");
   });
 
   it("maps legacy names and slugs to Informatique", () => {
