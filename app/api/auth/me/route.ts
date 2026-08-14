@@ -24,6 +24,8 @@ export const GET = withApiHandler("GET /api/auth/me", async (req) => {
       avatar: true,
       bio: true,
       emailVerified: true,
+      clientKind: true,
+      companyName: true,
     },
   });
 

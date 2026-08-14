@@ -194,7 +194,12 @@ function buildInvoicePdf(data: InvoiceData): Buffer {
     sy -= 12;
   }
 
-  b.text(rightX, partyY, "CLIENT", { size: 9, bold: true, color: brand });
+  b.text(
+    rightX,
+    partyY,
+    data.buyer.isProfessional ? "CLIENT (SOCIÉTÉ)" : "CLIENT",
+    { size: 9, bold: true, color: brand }
+  );
   b.text(rightX, partyY - 14, data.buyer.name, { size: 11, bold: true });
   let by = partyY - 28;
   if (data.buyer.phone) {
@@ -202,6 +207,24 @@ function buildInvoicePdf(data: InvoiceData): Buffer {
     by -= 12;
   }
   by = b.textBlock(rightX, by, data.buyer.email, { size: 9, maxLineWidth: 190 });
+  if (data.buyer.companyAddress) {
+    by = b.textBlock(rightX, by, data.buyer.companyAddress, {
+      size: 8,
+      maxLineWidth: 190,
+    });
+  }
+  if (data.buyer.nif) {
+    b.text(rightX, by, `NIF : ${data.buyer.nif}`, { size: 8 });
+    by -= 11;
+  }
+  if (data.buyer.stat) {
+    b.text(rightX, by, `STAT : ${formatStat(data.buyer.stat)}`, { size: 8 });
+    by -= 11;
+  }
+  if (data.buyer.rcs) {
+    b.text(rightX, by, `RCS : ${data.buyer.rcs}`, { size: 8 });
+    by -= 11;
+  }
 
   // ── Désignation ──────────────────────────────────────────────────────────
   const tableTop = Math.min(sy, by) - 28;

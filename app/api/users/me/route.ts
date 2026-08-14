@@ -7,6 +7,7 @@ import {
   patchUserProfileSchema,
 } from "@/lib/api-schemas";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
+import { isProfessionalClient } from "@/lib/client-kind";
 
 const userSelect = {
   id: true,
@@ -19,6 +20,9 @@ const userSelect = {
   nif: true,
   stat: true,
   rcs: true,
+  clientKind: true,
+  companyName: true,
+  companyAddress: true,
   emailVerified: true,
   emailVerifiedAt: true,
   notifyEmail: true,
@@ -52,19 +56,65 @@ export const PATCH = withApiHandler("PATCH /api/users/me", async (req) => {
   const parsed = parseBody(patchUserProfileSchema, json.body);
   if (!parsed.ok) return parsed.response;
 
-  const { name, phone, bio, nif, stat, rcs } = parsed.data;
+  const current = await prisma.user.findUnique({
+    where: { id: auth.userId },
+    select: { role: true, clientKind: true },
+  });
+
+  if (!current) {
+    throwNotFound("Utilisateur introuvable");
+  }
+
+  const {
+    name,
+    phone,
+    bio,
+    nif,
+    stat,
+    rcs,
+    companyName,
+    companyAddress,
+  } = parsed.data;
+  const professional = isProfessionalClient(current);
   const canEditLegal =
-    auth.role === "PROVIDER" || auth.role === "ADMIN";
+    professional || auth.role === "PROVIDER" || auth.role === "ADMIN";
+
+  if (professional && phone === null) {
+    return NextResponse.json(
+      { error: "Téléphone obligatoire pour un compte entreprise" },
+      { status: 400 }
+    );
+  }
+
+  if (
+    professional &&
+    (nif === null || stat === null || rcs === null || companyAddress === null)
+  ) {
+    return NextResponse.json(
+      { error: "NIF, STAT, RCS et adresse sociale sont obligatoires" },
+      { status: 400 }
+    );
+  }
+
+  const nextCompanyName = professional
+    ? companyName ?? name
+    : undefined;
 
   const user = await prisma.user.update({
     where: { id: auth.userId },
     data: {
-      ...(name !== undefined && { name }),
+      ...(name !== undefined && !professional && { name }),
+      ...(nextCompanyName !== undefined && {
+        name: nextCompanyName,
+        companyName: nextCompanyName,
+      }),
       ...(phone !== undefined && { phone }),
       ...(bio !== undefined && { bio }),
       ...(canEditLegal && nif !== undefined && { nif }),
       ...(canEditLegal && stat !== undefined && { stat }),
       ...(canEditLegal && rcs !== undefined && { rcs }),
+      ...(professional &&
+        companyAddress !== undefined && { companyAddress }),
     },
     select: userSelect,
   });

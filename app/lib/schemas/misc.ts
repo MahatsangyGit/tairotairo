@@ -41,6 +41,11 @@ export const patchUserProfileSchema = z.object({
   nif: optionalNifSchema,
   stat: optionalStatSchema,
   rcs: optionalRcsSchema,
+  companyName: optionalNonEmptyText("Nom de la société", FIELD_LIMITS.USER_NAME),
+  companyAddress: optionalNonEmptyText(
+    "Adresse sociale",
+    FIELD_LIMITS.USER_COMPANY_ADDRESS
+  ),
 });
 
 export const portfolioCommentSchema = z.object({

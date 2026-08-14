@@ -12,6 +12,7 @@ import ListingFormFields from "@/components/listings/ListingFormFields";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 import { useListingCrud } from "@/hooks/useListingCrud";
 import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
+import ClientPageHeader from "@/components/layout/ClientPageHeader";
 
 interface ServiceRequest {
   id: string;
@@ -275,12 +276,7 @@ export default function ClientRequestsPage() {
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 py-10">
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
-          <p className="text-muted-foreground text-sm">
-            Publiez une demande pour trouver un prestataire près de chez vous
-          </p>
-        </div>
+        <ClientPageHeader subtitle="Publiez une demande pour trouver un prestataire près de chez vous" />
 
         {actionError && (
           <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
