@@ -226,14 +226,34 @@ async function main() {
     await client.query("CREATE SCHEMA IF NOT EXISTS app");
     await client.query('ALTER TABLE IF EXISTS public."_TairoMigration" SET SCHEMA app');
 
-    log("[migration] synchronisation du schéma Prisma sur Neon…");
-    await run(
-      process.platform === "win32" ? "npx.cmd" : "npx",
-      ["prisma", "db", "push"],
-      { ...process.env, DATABASE_URL: url }
+    const tables = await client.query(
+      `SELECT to_regclass('public."User"') IS NOT NULL AS "hasUser"`
     );
+    const hasUserTable = Boolean(tables.rows[0]?.hasUser);
 
-    await applyMigrations(client, files);
+    async function pushSchema() {
+      log("[migration] synchronisation du schéma Prisma sur Neon…");
+      await run(
+        process.platform === "win32" ? "npx.cmd" : "npx",
+        ["prisma", "db", "push"],
+        { ...process.env, DATABASE_URL: url }
+      );
+    }
+
+    if (hasUserTable) {
+      // Base déjà provisionnée : le SQL (ex. 028) dédoublonne et pose les
+      // uniques avant `db push`. Un push trop tôt refuse d'ajouter `User.phone`
+      // @unique sans --accept-data-loss, même si le SQL doit d'abord nettoyer.
+      log("[migration] application des migrations SQL (nettoyage + index)…");
+      await applyMigrations(client, files);
+      await pushSchema();
+    } else {
+      // Base vide : 011+ lit `"User"`. Prisma crée d'abord les tables.
+      await pushSchema();
+      log("[migration] application des migrations SQL…");
+      await applyMigrations(client, files);
+    }
+
     await verify(client, files.length);
   } finally {
     await client.query("SELECT pg_advisory_unlock($1)", [LOCK_ID]).catch(() => undefined);

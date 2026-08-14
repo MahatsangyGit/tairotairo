@@ -31,4 +31,4 @@ SET phone = NULL
 FROM ranked r
 WHERE u.id = r.id AND r.rn > 1;
 
-CREATE UNIQUE INDEX IF NOT EXISTS "User_phone_key" ON "User" (phone);
+CREATE UNIQUE INDEX IF NOT EXISTS "User_phone_key" ON "User" ("phone");
