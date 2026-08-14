@@ -67,6 +67,13 @@ export default function JoinUsModal({
             <User className="size-4 shrink-0" aria-hidden />
             M&apos;inscrire avec un e-mail
           </Link>
+          <Link
+            href={`${registerHref}${registerHref.includes("?") ? "&" : "?"}type=pro`}
+            onClick={() => onOpenChange(false)}
+            className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+          >
+            Compte entreprise
+          </Link>
 
           <p className="text-sm text-muted-foreground">
             Déjà inscrit ?{" "}

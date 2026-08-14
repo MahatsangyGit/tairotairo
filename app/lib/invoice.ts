@@ -3,6 +3,7 @@ import { withBypassRls } from "@/lib/rls";
 import { getBookingDisplayInfo } from "@/lib/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { SITE_NAME, PARENT_COMPANY } from "@/lib/site";
+import { isProfessionalClient } from "@/lib/client-kind";
 
 export interface InvoiceData {
   invoiceNumber: string;
@@ -20,6 +21,11 @@ export interface InvoiceData {
     name: string;
     email: string;
     phone: string | null;
+    nif: string | null;
+    stat: string | null;
+    rcs: string | null;
+    companyAddress: string | null;
+    isProfessional: boolean;
   };
   platform: {
     name: string;
@@ -104,7 +110,18 @@ export async function getInvoiceData(
           },
         },
         client: {
-          select: { id: true, name: true, email: true, phone: true },
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            nif: true,
+            stat: true,
+            rcs: true,
+            clientKind: true,
+            companyName: true,
+            companyAddress: true,
+          },
         },
         provider: {
           select: { id: true, name: true, email: true, phone: true, nif: true, stat: true, rcs: true },
@@ -148,9 +165,14 @@ export async function getInvoiceData(
         rcs: booking.provider.rcs,
       },
       buyer: {
-        name: booking.client.name,
+        name: booking.client.companyName?.trim() || booking.client.name,
         email: booking.client.email,
         phone: booking.client.phone,
+        nif: booking.client.nif,
+        stat: booking.client.stat,
+        rcs: booking.client.rcs,
+        companyAddress: booking.client.companyAddress,
+        isProfessional: isProfessionalClient(booking.client),
       },
       platform: {
         name: SITE_NAME,

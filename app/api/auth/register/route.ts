@@ -4,6 +4,7 @@ import { getBcryptRounds } from "@/lib/env";
 import prisma from "../../../lib/prisma";
 import { sendWelcomeEmail } from "@/lib/email";
 import { parsePublicRegistrationRole } from "@/lib/roles";
+import { parseClientKind } from "@/lib/client-kind";
 import { PostHogEvents } from "@/lib/posthog";
 import {
   captureServerEvent,
@@ -32,7 +33,20 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
   const parsed = parseBody(registerSchema, json.body);
   if (!parsed.ok) return parsed.response;
 
-  const { name, email, password, phone, role, turnstileToken } = parsed.data;
+  const {
+    name,
+    email,
+    password,
+    phone,
+    role,
+    clientKind,
+    companyName,
+    companyAddress,
+    nif,
+    stat,
+    rcs,
+    turnstileToken,
+  } = parsed.data;
   const turnstile = await verifyTurnstileToken(req, turnstileToken, "register");
   if (!turnstile.ok) {
     return NextResponse.json({ error: turnstile.error }, { status: 400 });
@@ -52,14 +66,26 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
 
   const hashedPassword = await bcrypt.hash(password, getBcryptRounds());
   const safeRole = parsePublicRegistrationRole(role);
+  const safeClientKind =
+    safeRole === "CLIENT" ? parseClientKind(clientKind) : "INDIVIDUAL";
+  const isProfessional = safeClientKind === "PROFESSIONAL";
+  const displayName = isProfessional
+    ? (companyName || name || "").trim()
+    : (name || "").trim();
 
   const user = await prisma.user.create({
     data: {
-      name,
+      name: displayName,
       email,
       password: hashedPassword,
       phone,
       role: safeRole,
+      clientKind: safeClientKind,
+      companyName: isProfessional ? displayName : null,
+      companyAddress: isProfessional ? companyAddress ?? null : null,
+      nif: isProfessional ? nif ?? null : null,
+      stat: isProfessional ? stat ?? null : null,
+      rcs: isProfessional ? rcs ?? null : null,
     },
   });
 
@@ -69,9 +95,11 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
     email: user.email,
     name: user.name,
     role: user.role,
+    clientKind: user.clientKind,
   }).catch(console.error);
   void captureServerEvent(user.id, PostHogEvents.USER_SIGNED_UP, {
     role: user.role,
+    clientKind: user.clientKind,
   }).catch(console.error);
 
   return NextResponse.json(

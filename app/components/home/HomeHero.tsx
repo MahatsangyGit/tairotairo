@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { isProfessionalClient } from "@/lib/client-kind";
 
 function ArrowIcon() {
   return (
@@ -103,10 +104,15 @@ export default function HomeHero() {
         : "/dashboard/admin";
   const roleLabel =
     user.role === "CLIENT"
-      ? "vos réservations et demandes"
+      ? isProfessionalClient(user)
+        ? "les prestations de votre société"
+        : "vos réservations et demandes"
       : user.role === "PROVIDER"
         ? "votre activité de prestataire"
         : "l’administration";
+  const helloName = isProfessionalClient(user)
+    ? user.name
+    : user.name.split(" ")[0];
 
   return (
     <section className="border-b border-border bg-background text-foreground">
@@ -117,7 +123,7 @@ export default function HomeHero() {
               Votre écosystème Tairo
             </p>
             <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
-              Bonjour {user.name.split(" ")[0]}
+              Bonjour {helloName}
             </h1>
             <p className="mt-3 text-muted-foreground">
               Retrouvez vos services, louez du matériel et développez vos

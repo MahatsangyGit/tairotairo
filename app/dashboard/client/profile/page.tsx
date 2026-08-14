@@ -45,9 +45,15 @@ export default function ClientProfilePage() {
   return (
       <div className="max-w-4xl mx-auto px-4 py-10">
         <div className="mb-2">
-          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
+          <h1 className="text-2xl font-bold text-foreground mb-1">
+            {user?.clientKind === "PROFESSIONAL"
+              ? "Espace entreprise"
+              : "Espace client"}
+          </h1>
           <p className="text-muted-foreground text-sm">
-            Mon profil, photo et vérification email
+            {user?.clientKind === "PROFESSIONAL"
+              ? "Fiche société, identifiants légaux et vérification email"
+              : "Mon profil, photo et vérification email"}
           </p>
         </div>
         {loading && <p className="text-muted-foreground">Chargement...</p>}
