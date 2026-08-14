@@ -5,6 +5,7 @@ import { registerSchema } from "@/lib/schemas/auth";
 const base = {
   email: "pro@example.com",
   password: "Motdepasse1!",
+  phone: "032 74 617 90",
 };
 
 describe("client professionnel", () => {
@@ -33,6 +34,19 @@ describe("client professionnel", () => {
       role: "CLIENT",
     });
     expect(parsed.success).toBe(true);
+    if (parsed.success) {
+      expect(parsed.data.phone).toBe("0327461790");
+    }
+  });
+
+  it("refuse l'inscription sans téléphone", () => {
+    const parsed = registerSchema.safeParse({
+      email: base.email,
+      password: base.password,
+      name: "Jean Dupont",
+      role: "CLIENT",
+    });
+    expect(parsed.success).toBe(false);
   });
 
   it("exige NIF, STAT, RCS, adresse et téléphone pour une entreprise", () => {

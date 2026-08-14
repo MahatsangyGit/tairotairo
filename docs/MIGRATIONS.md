@@ -33,11 +33,18 @@ la chaîne de connexion réelle.
 Le script `npm run db:migrate:neon` est exécuté par `vercel-build`, là où
 `DATABASE_URL_UNPOOLED` est réellement injectée. Il :
 
-1. synchronise le schéma Prisma sans accepter de suppression de données ;
-2. ignore les migrations historiques `001` à `010` en snake_case ;
-3. applique dans l'ordre les migrations actives `011+` ;
-4. enregistre leur état dans `app."_TairoMigration"` ;
+1. ignore les migrations historiques `001` à `010` en snake_case ;
+2. si `"User"` existe déjà : applique les migrations SQL `011+` (nettoyage
+   inclus, ex. dédoublonnage `User.phone`) **puis** `prisma db push` ;
+3. si la base est vide : `prisma db push` d'abord (les tables n'existent pas
+   encore), puis le SQL `011+` ;
+4. enregistre l'état dans `app."_TairoMigration"` ;
 5. vérifie les tables principales et les politiques RLS.
+
+`prisma db push` s'exécute **sans** `--accept-data-loss`. Sur une base déjà
+peuplée, un push qui *ajoute* un unique (ex. `User.phone`) échoue avec un
+avertissement « data loss » : le SQL doit donc poser l'index après nettoyage,
+avant que Prisma ne tente de l'ajouter.
 
 L'exécution est protégée par un verrou PostgreSQL et peut être rejouée sans
 réappliquer les migrations déjà enregistrées.

@@ -2,6 +2,11 @@ import { z } from "zod";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { FIELD_LIMITS } from "@/lib/field-limits";
 import { validatePassword } from "@/lib/password-policy";
+import {
+  MG_PHONE_ERROR,
+  MG_PHONE_REQUIRED,
+  parseMgPhone,
+} from "@/lib/phone";
 
 /** Rejette les chaînes "false" / "true" — uniquement des booléens JSON natifs. */
 export const strictBoolean = z.boolean();
@@ -43,21 +48,48 @@ export function optionalNonEmptyText(label: string, maxLength: number) {
 export const optionalPhoneInput = z
   .union([z.string(), z.null(), z.undefined()])
   .optional()
-  .transform((value) => {
-    if (value == null || value === "") return null;
-    return String(value).trim();
-  })
-  .pipe(
-    z.union([
-      z.null(),
-      z
-        .string()
-        .max(
-          FIELD_LIMITS.USER_PHONE,
-          `Téléphone trop long (max ${FIELD_LIMITS.USER_PHONE} caractères)`
-        ),
-    ])
-  );
+  .transform((value, ctx) => {
+    if (value == null || String(value).trim() === "") return null;
+    const parsed = parseMgPhone(String(value));
+    if (!parsed) {
+      ctx.addIssue({ code: "custom", message: MG_PHONE_ERROR });
+      return z.NEVER;
+    }
+    return parsed;
+  });
+
+export const requiredPhoneInput = z
+  .union([z.string(), z.null(), z.undefined()])
+  .transform((value, ctx) => {
+    if (value == null || String(value).trim() === "") {
+      ctx.addIssue({ code: "custom", message: MG_PHONE_REQUIRED });
+      return z.NEVER;
+    }
+    const parsed = parseMgPhone(String(value));
+    if (!parsed) {
+      ctx.addIssue({ code: "custom", message: MG_PHONE_ERROR });
+      return z.NEVER;
+    }
+    return parsed;
+  });
+
+/** PATCH profil : omis = inchangé ; vide/null = refusé. */
+export const profilePhoneInput = z
+  .union([z.string(), z.null(), z.undefined()])
+  .optional()
+  .transform((value, ctx) => {
+    if (value === undefined) return undefined;
+    if (value === null || String(value).trim() === "") {
+      ctx.addIssue({ code: "custom", message: MG_PHONE_REQUIRED });
+      return z.NEVER;
+    }
+    const parsed = parseMgPhone(String(value));
+    if (!parsed) {
+      ctx.addIssue({ code: "custom", message: MG_PHONE_ERROR });
+      return z.NEVER;
+    }
+    return parsed;
+  });
 
 export const cuidSchema = z
   .string()

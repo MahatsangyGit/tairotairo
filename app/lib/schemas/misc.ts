@@ -6,6 +6,8 @@ import {
   optionalNonEmptyText,
   optionalNullableText,
   requiredText,
+  profilePhoneInput,
+  requiredPhoneInput,
   strictBoolean,
 } from "@/lib/schemas/shared";
 import {
@@ -36,7 +38,7 @@ export const pushUnsubscribeSchema = z.object({
 
 export const patchUserProfileSchema = z.object({
   name: optionalNonEmptyText("Nom", FIELD_LIMITS.USER_NAME),
-  phone: optionalNullableText("Téléphone", FIELD_LIMITS.USER_PHONE),
+  phone: profilePhoneInput,
   bio: optionalNullableText("Bio", FIELD_LIMITS.USER_BIO),
   nif: optionalNifSchema,
   stat: optionalStatSchema,
@@ -80,7 +82,7 @@ export const subscriptionPurchaseSchema = z.object({
   paymentMethod: z.enum(paymentMethodIds, {
     error: "Mode de paiement invalide",
   }),
-  phone: z.string().trim().min(1, "Numéro de téléphone requis"),
+  phone: requiredPhoneInput,
 });
 
 export const adminSubscriptionSchema = z.object({

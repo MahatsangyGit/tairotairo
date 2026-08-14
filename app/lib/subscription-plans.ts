@@ -60,11 +60,7 @@ export const PAYMENT_METHOD_OPTIONS = [
   { id: "AIRTEL_MONEY" as const, label: "Airtel Money", hint: "Application Airtel" },
 ];
 
-export function isValidMgPhone(phone: string): boolean {
-  const digits = phone.replace(/\D/g, "");
-  return /^0(3[0-9]{8}|20[0-9]{7})$/.test(digits);
-}
-
-export function normalizeMgPhone(phone: string): string {
-  return phone.replace(/\D/g, "");
-}
+export {
+  isValidMgPhone,
+  normalizeMgPhone,
+} from "@/lib/phone";

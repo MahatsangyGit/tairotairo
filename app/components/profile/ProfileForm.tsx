@@ -4,6 +4,7 @@ import { useState } from "react";
 import EmailVerification from "@/components/auth/EmailVerification";
 import ProfileAvatarUpload from "@/components/profile/ProfileAvatarUpload";
 import { isProfessionalClient } from "@/lib/client-kind";
+import { formatMgPhone, formatMgPhoneInput } from "@/lib/phone";
 import { formatStat } from "@/lib/provider-legal";
 
 export interface ProfileUser {
@@ -34,7 +35,9 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
   const [name, setName] = useState(
     professional ? (initialUser.companyName ?? initialUser.name) : initialUser.name
   );
-  const [phone, setPhone] = useState(initialUser.phone ?? "");
+  const [phone, setPhone] = useState(
+    initialUser.phone ? formatMgPhone(initialUser.phone) : ""
+  );
   const [bio, setBio] = useState(initialUser.bio ?? "");
   const [companyAddress, setCompanyAddress] = useState(
     initialUser.companyAddress ?? ""
@@ -102,6 +105,7 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
       setNif(data.user.nif ?? "");
       setStat(data.user.stat ? formatStat(data.user.stat) : "");
       setRcs(data.user.rcs ?? "");
+      setPhone(data.user.phone ? formatMgPhone(data.user.phone) : "");
       setSuccess("Profil mis à jour");
     } catch {
       setError("Une erreur est survenue");
@@ -160,14 +164,20 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
           className="w-full rounded-lg border border-border bg-muted/40 px-4 py-3 text-muted-foreground"
         />
         <label className="block text-sm">
-          Téléphone
+          Numéro de téléphone
           <input
             type="tel"
-            placeholder="Téléphone"
+            inputMode="numeric"
+            autoComplete="tel"
+            placeholder="032 74 617 90"
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
+            onChange={(e) => setPhone(formatMgPhoneInput(e.target.value))}
+            required
             className={`mt-1 ${inputClass}`}
           />
+          <span className="mt-1 block text-xs text-muted-foreground">
+            Format : 032 74 617 90 — unique, obligatoire
+          </span>
         </label>
         {professional ? (
           <label className="block text-sm">
