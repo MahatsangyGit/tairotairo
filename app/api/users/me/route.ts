@@ -16,6 +16,9 @@ const userSelect = {
   phone: true,
   avatar: true,
   bio: true,
+  nif: true,
+  stat: true,
+  rcs: true,
   emailVerified: true,
   emailVerifiedAt: true,
   notifyEmail: true,
@@ -49,7 +52,9 @@ export const PATCH = withApiHandler("PATCH /api/users/me", async (req) => {
   const parsed = parseBody(patchUserProfileSchema, json.body);
   if (!parsed.ok) return parsed.response;
 
-  const { name, phone, bio } = parsed.data;
+  const { name, phone, bio, nif, stat, rcs } = parsed.data;
+  const canEditLegal =
+    auth.role === "PROVIDER" || auth.role === "ADMIN";
 
   const user = await prisma.user.update({
     where: { id: auth.userId },
@@ -57,6 +62,9 @@ export const PATCH = withApiHandler("PATCH /api/users/me", async (req) => {
       ...(name !== undefined && { name }),
       ...(phone !== undefined && { phone }),
       ...(bio !== undefined && { bio }),
+      ...(canEditLegal && nif !== undefined && { nif }),
+      ...(canEditLegal && stat !== undefined && { stat }),
+      ...(canEditLegal && rcs !== undefined && { rcs }),
     },
     select: userSelect,
   });

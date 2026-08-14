@@ -6,12 +6,14 @@ import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import { buildPageMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import UserAvatar from "@/components/profile/UserAvatar";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
 import ProviderPortfolioPublic from "@/components/portfolio/ProviderPortfolioPublic";
 import { MapPinIcon, StarIcon } from "@/components/ui/app-icons";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
 } from "@/lib/portfolio-serialize";
+import { withEiFlag } from "@/lib/provider-legal";
 
 export const revalidate = 300;
 
@@ -29,6 +31,9 @@ async function loadProvider(id: string) {
       bio: true,
       emailVerified: true,
       kycStatus: true,
+      nif: true,
+      stat: true,
+      rcs: true,
       createdAt: true,
       services: {
         where: { available: true },
@@ -73,7 +78,7 @@ async function loadProvider(id: string) {
   });
 
   return {
-    provider: { ...provider, services },
+    provider: { ...withEiFlag(provider), services },
     portfolio: portfolioRows.map(serializePortfolioItem),
     reviews,
     averageRating,
@@ -138,7 +143,12 @@ export default async function ProviderProfilePage({ params }: PageProps) {
               size="lg"
             />
             <div>
-              <h1 className="text-2xl font-bold text-foreground">{provider.name}</h1>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-2xl font-bold text-foreground">{provider.name}</h1>
+                {provider.isEntrepriseIndividuelle ? (
+                  <EntrepriseIndividuelleBadge />
+                ) : null}
+              </div>
               <div className="flex flex-wrap gap-2 mt-1">
                 {provider.emailVerified && (
                   <span className="text-xs text-brand-600 font-medium">

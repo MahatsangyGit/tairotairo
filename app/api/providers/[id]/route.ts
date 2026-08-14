@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import { paidReviewWhere } from "@/lib/paid-reviews";
+import { withEiFlag } from "@/lib/provider-legal";
 
 export const GET = withApiHandler(
   "GET /api/providers/[id]",
@@ -17,6 +18,9 @@ export const GET = withApiHandler(
         bio: true,
         phone: true,
         emailVerified: true,
+        nif: true,
+        stat: true,
+        rcs: true,
         createdAt: true,
         services: {
           where: { available: true },
@@ -62,7 +66,7 @@ export const GET = withApiHandler(
     const { phone: _phone, ...publicProvider } = provider;
 
     return NextResponse.json({
-      provider: publicProvider,
+      provider: withEiFlag(publicProvider),
       reviews,
       averageRating,
       totalReviews,

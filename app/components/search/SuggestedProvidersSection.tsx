@@ -1,4 +1,5 @@
 import Link from "next/link";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import { SITE_NAME } from "@/lib/site";
@@ -11,6 +12,7 @@ export interface SuggestedProvider {
   serviceCount: number;
   averageRating: number | null;
   reviewCount: number;
+  isEntrepriseIndividuelle?: boolean;
 }
 
 export default function SuggestedProvidersSection({
@@ -40,8 +42,11 @@ export default function SuggestedProvidersSection({
                 size="md"
               />
               <div className="min-w-0 flex-1">
-                <h3 className="font-semibold text-foreground truncate">
-                  {provider.name}
+                <h3 className="font-semibold text-foreground flex items-center gap-1.5 min-w-0">
+                  <span className="truncate">{provider.name}</span>
+                  {provider.isEntrepriseIndividuelle ? (
+                    <EntrepriseIndividuelleBadge />
+                  ) : null}
                 </h3>
                 <ProviderRatingBadge
                   averageRating={provider.averageRating}

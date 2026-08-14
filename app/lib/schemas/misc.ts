@@ -8,6 +8,11 @@ import {
   requiredText,
   strictBoolean,
 } from "@/lib/schemas/shared";
+import {
+  optionalNifSchema,
+  optionalRcsSchema,
+  optionalStatSchema,
+} from "@/lib/schemas/provider-legal";
 
 export const notificationPreferencesSchema = z.object({
   notifyEmail: strictBoolean.optional(),
@@ -33,6 +38,9 @@ export const patchUserProfileSchema = z.object({
   name: optionalNonEmptyText("Nom", FIELD_LIMITS.USER_NAME),
   phone: optionalNullableText("Téléphone", FIELD_LIMITS.USER_PHONE),
   bio: optionalNullableText("Bio", FIELD_LIMITS.USER_BIO),
+  nif: optionalNifSchema,
+  stat: optionalStatSchema,
+  rcs: optionalRcsSchema,
 });
 
 export const portfolioCommentSchema = z.object({

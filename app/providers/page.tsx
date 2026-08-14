@@ -7,6 +7,8 @@ import { averageRating } from "@/lib/advanced-search";
 import { providersListMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import { StarIcon } from "@/components/ui/app-icons";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
+import { isEntrepriseIndividuelle } from "@/lib/provider-legal";
 
 export const metadata: Metadata = providersListMetadata();
 
@@ -27,6 +29,9 @@ async function loadProviders() {
       name: true,
       avatar: true,
       bio: true,
+      nif: true,
+      stat: true,
+      rcs: true,
       services: {
         where: { available: true },
         take: 1,
@@ -44,6 +49,7 @@ async function loadProviders() {
       name: p.name,
       avatar: p.avatar,
       bio: p.bio,
+      isEntrepriseIndividuelle: isEntrepriseIndividuelle(p),
       category: primary?.category ?? null,
       location: primary?.location ?? null,
       ...rating,
@@ -88,8 +94,11 @@ export default async function ProvidersPage() {
                     size="sm"
                   />
                   <div className="min-w-0">
-                    <h2 className="font-semibold text-foreground truncate group-hover:text-brand-700 transition-colors">
-                      {provider.name}
+                    <h2 className="font-semibold text-foreground group-hover:text-brand-700 transition-colors flex items-center gap-1.5 min-w-0">
+                      <span className="truncate">{provider.name}</span>
+                      {provider.isEntrepriseIndividuelle ? (
+                        <EntrepriseIndividuelleBadge />
+                      ) : null}
                     </h2>
                     {provider.category && (
                       <p className="text-xs text-muted-foreground truncate">

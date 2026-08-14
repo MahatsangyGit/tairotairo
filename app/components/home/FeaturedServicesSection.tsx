@@ -1,6 +1,7 @@
 "use client";
 
 import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
+import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ProviderRatingBadge from "@/components/search/ProviderRatingBadge";
 import OptimizedImage from "@/components/ui/OptimizedImage";
@@ -20,6 +21,7 @@ export interface FeaturedServiceCard {
     avatar: string | null;
     averageRating: number | null;
     reviewCount: number;
+    isEntrepriseIndividuelle?: boolean;
   };
 }
 
@@ -79,8 +81,13 @@ export default function FeaturedServicesSection({
                     avatar={service.provider.avatar}
                     size="xs"
                   />
-                  <span className="text-xs text-muted-foreground truncate">
-                    {service.provider.name}
+                  <span className="flex items-center gap-1 min-w-0">
+                    <span className="text-xs text-muted-foreground truncate">
+                      {service.provider.name}
+                    </span>
+                    {service.provider.isEntrepriseIndividuelle ? (
+                      <EntrepriseIndividuelleBadge />
+                    ) : null}
                   </span>
                 </div>
                 <ProviderRatingBadge
