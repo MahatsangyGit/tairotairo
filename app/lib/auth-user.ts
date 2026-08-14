@@ -4,4 +4,6 @@ export type AuthUser = {
   email: string;
   role: "CLIENT" | "PROVIDER" | "ADMIN";
   avatar: string | null;
+  clientKind?: "INDIVIDUAL" | "PROFESSIONAL";
+  companyName?: string | null;
 };

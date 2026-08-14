@@ -33,6 +33,7 @@ interface UserRow {
   email: string;
   phone: string | null;
   role: Role;
+  clientKind?: "INDIVIDUAL" | "PROFESSIONAL";
   suspendedAt: string | null;
   loginLockedAt: string | null;
   failedLoginAttempts: number;
@@ -58,7 +59,13 @@ const ROLE_LABEL: Record<Role, string> = {
   ADMIN: "Administrateur",
 };
 
-function RoleBadge({ role }: { role: Role }) {
+function RoleBadge({
+  role,
+  clientKind,
+}: {
+  role: Role;
+  clientKind?: "INDIVIDUAL" | "PROFESSIONAL";
+}) {
   if (role === "ADMIN") {
     return <Badge variant="default">Admin</Badge>;
   }
@@ -66,6 +73,13 @@ function RoleBadge({ role }: { role: Role }) {
     return (
       <Badge variant="outline" className="border-brand-200 bg-brand-50 text-brand-800">
         Prestataire
+      </Badge>
+    );
+  }
+  if (clientKind === "PROFESSIONAL") {
+    return (
+      <Badge variant="outline" className="border-slate-300 bg-slate-900 text-white">
+        Client pro
       </Badge>
     );
   }
@@ -297,6 +311,11 @@ export default function AdminUsersPanel() {
                         {u.phone && (
                           <p className="text-xs text-muted-foreground">{u.phone}</p>
                         )}
+                        {u.role === "CLIENT" && u.clientKind === "PROFESSIONAL" ? (
+                          <Badge variant="outline" className="mt-1 border-slate-300">
+                            Entreprise
+                          </Badge>
+                        ) : null}
                         {isSelf(u.id) && (
                           <Badge variant="outline" className="mt-1">
                             Vous
@@ -305,7 +324,7 @@ export default function AdminUsersPanel() {
                       </TableCell>
                       <TableCell>
                         {isSelf(u.id) ? (
-                          <RoleBadge role={u.role} />
+                          <RoleBadge role={u.role} clientKind={u.clientKind} />
                         ) : (
                           <Select
                             value={u.role}

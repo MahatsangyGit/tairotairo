@@ -54,6 +54,8 @@ export const POST = withApiHandler("POST /api/auth/login", async (req) => {
       suspendedAt: true,
       loginLockedAt: true,
       tokenVersion: true,
+      clientKind: true,
+      companyName: true,
     },
   });
 

@@ -13,6 +13,7 @@ import {
   CLIENT_BOOKING_FILTERS,
 } from "@/lib/booking-status";
 import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
+import ClientPageHeader from "@/components/layout/ClientPageHeader";
 
 interface Booking extends BookingCardData {
   createdAt: string;
@@ -240,12 +241,7 @@ export default function ClientDashboardPage() {
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
 
-        <div className="mb-2">
-          <h1 className="text-2xl font-bold text-foreground mb-1">Espace client</h1>
-          <p className="text-muted-foreground text-sm">
-            Suivez l&apos;état de vos réservations de services
-          </p>
-        </div>
+        <ClientPageHeader subtitle="Suivez l'état de vos réservations de services" />
 
         {actionError && (
           <div className="bg-error-50 border border-red-100 rounded-xl px-4 py-3 mb-4">

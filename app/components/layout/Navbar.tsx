@@ -7,12 +7,14 @@ import NotificationBell from "@/components/notifications/NotificationBell";
 import MessageInboxLink from "@/components/messages/MessageInboxLink";
 import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
+import ClientProBadge from "@/components/profile/ClientProBadge";
 import { useAuth } from "@/components/auth/AuthProvider";
 import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
 import { notifyAuthChanged } from "@/lib/auth-client";
 import { isNavLinkActive } from "@/lib/nav-active";
 import { SITE_NAME } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { isProfessionalClient } from "@/lib/client-kind";
 
 export default function Navbar() {
   const router = useRouter();
@@ -192,15 +194,21 @@ export default function Navbar() {
                   {profileHref ? (
                     <Link href={profileHref} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                       <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                      <span className="text-sm font-medium text-foreground max-w-28 truncate">
-                        {user.name}
+                      <span className="flex max-w-36 items-center gap-1.5">
+                        <span className="truncate text-sm font-medium text-foreground">
+                          {user.name}
+                        </span>
+                        {isProfessionalClient(user) ? <ClientProBadge /> : null}
                       </span>
                     </Link>
                   ) : (
                     <div className="flex items-center gap-2">
                       <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                      <span className="text-sm font-medium text-foreground max-w-28 truncate">
-                        {user.name}
+                      <span className="flex max-w-36 items-center gap-1.5">
+                        <span className="truncate text-sm font-medium text-foreground">
+                          {user.name}
+                        </span>
+                        {isProfessionalClient(user) ? <ClientProBadge /> : null}
                       </span>
                     </div>
                   )}
@@ -341,7 +349,10 @@ export default function Navbar() {
                   >
                     <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <span className="truncate">{user.name}</span>
+                        {isProfessionalClient(user) ? <ClientProBadge /> : null}
+                      </p>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </Link>
@@ -349,13 +360,21 @@ export default function Navbar() {
                   <div className="flex items-center gap-3 px-3 py-2">
                     <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-foreground truncate">{user.name}</p>
+                      <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                        <span className="truncate">{user.name}</span>
+                        {isProfessionalClient(user) ? <ClientProBadge /> : null}
+                      </p>
                       <p className="text-xs text-muted-foreground truncate">{user.email}</p>
                     </div>
                   </div>
                 )}
                 {profileHref && user.role === "CLIENT" && (
-                  <MobileNavLink href={profileHref} label="Mon profil" active={isActive(profileHref)} onClick={close} />
+                  <MobileNavLink
+                    href={profileHref}
+                    label={isProfessionalClient(user) ? "Fiche société" : "Mon profil"}
+                    active={isActive(profileHref)}
+                    onClick={close}
+                  />
                 )}
                 {adminHref && (
                   <MobileNavLink href={adminHref} label="Administration" active={isActive(adminHref)} onClick={close} />
@@ -380,6 +399,13 @@ export default function Navbar() {
                   className="mt-1 block text-center bg-brand-600 text-white px-4 py-2.5 rounded-lg text-sm font-semibold hover:bg-brand-700 transition-colors"
                 >
                   S&apos;inscrire
+                </Link>
+                <Link
+                  href="/auth/register?type=pro"
+                  onClick={close}
+                  className="mt-1 block text-center rounded-lg border border-border px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50"
+                >
+                  Compte entreprise
                 </Link>
               </>
             )}

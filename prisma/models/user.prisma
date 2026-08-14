@@ -19,6 +19,10 @@ model User {
   nif           String?
   stat          String?
   rcs           String?
+  /// CLIENT uniquement : particulier ou entreprise.
+  clientKind      ClientKind @default(INDIVIDUAL)
+  companyName     String?
+  companyAddress  String?
   suspendedAt          DateTime?
   failedLoginAttempts  Int       @default(0)
   loginLockedAt        DateTime?
@@ -62,12 +66,18 @@ model User {
   @@index([role])
   @@index([kycStatus])
   @@index([featuredOnHomepage])
+  @@index([clientKind])
 }
 
 enum Role {
   CLIENT
   PROVIDER
   ADMIN
+}
+
+enum ClientKind {
+  INDIVIDUAL
+  PROFESSIONAL
 }
 
 enum KycStatus {

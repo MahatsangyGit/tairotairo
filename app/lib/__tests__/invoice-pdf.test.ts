@@ -22,6 +22,11 @@ function sampleInvoice(
       name: "Marie Client",
       email: "marie@example.com",
       phone: null,
+      nif: null,
+      stat: null,
+      rcs: null,
+      companyAddress: null,
+      isProfessional: false,
     },
     platform: {
       name: "Tairo ampio",
@@ -50,6 +55,27 @@ describe("facture PDF identifiants légaux", () => {
       })
     );
     const text = pdf.toString("latin1");
+    expect(text).toContain("NIF : 3002064702");
+    expect(text).toContain("STAT : 41002 52 2015 0 00152");
+  });
+
+  it("affiche NIF et STAT du client professionnel", () => {
+    const pdf = generateInvoicePdf({
+      ...sampleInvoice(),
+      buyer: {
+        name: "Andry SARL",
+        email: "contact@andry.mg",
+        phone: "0340000000",
+        nif: "3002064702",
+        stat: "41002522015000152",
+        rcs: "RCS Antananarivo A 2024 00031",
+        companyAddress: "Lot II A 12 Antananarivo",
+        isProfessional: true,
+      },
+    });
+    const text = pdf.toString("latin1");
+    expect(text).toContain("Andry SARL");
+    expect(text).toContain("CLIENT \\(SOCI");
     expect(text).toContain("NIF : 3002064702");
     expect(text).toContain("STAT : 41002 52 2015 0 00152");
   });
