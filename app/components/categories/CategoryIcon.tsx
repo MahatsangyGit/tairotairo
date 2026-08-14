@@ -9,11 +9,14 @@ import {
   IconDroplet,
   IconEngine,
   IconHammer,
+  IconHelmet,
   IconMusic,
+  IconNeedleThread,
   IconPalette,
   IconPaw,
   IconShovel,
   IconSpray,
+  IconTractor,
   IconTruck,
   IconWall,
 } from "@tabler/icons-react";
@@ -28,6 +31,7 @@ const CATEGORY_ICONS: Record<string, Icon> = {
   mecanique: IconEngine,
   electricite: IconBolt,
   jardinage: IconShovel,
+  agriculture: IconTractor,
   menage: IconSpray,
   informatique: IconDeviceDesktop,
   cuisine: IconChefHat,
@@ -36,8 +40,10 @@ const CATEGORY_ICONS: Record<string, Icon> = {
   evenementiel: IconConfetti,
   animaux: IconPaw,
   bricolage: IconHammer,
+  btp: IconHelmet,
   demenagement: IconTruck,
   arts: IconPalette,
+  couture: IconNeedleThread,
   musiques: IconMusic,
 };
 
