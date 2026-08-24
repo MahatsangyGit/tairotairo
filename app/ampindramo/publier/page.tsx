@@ -9,6 +9,8 @@ import {
 } from "@/lib/rental/constants";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
+import { isProfessionalClient } from "@/lib/client-kind";
+import RentalCommissionHint from "@/components/economy/RentalCommissionHint";
 
 export default function PublishEquipmentPage() {
   const { user } = useAuth();
@@ -43,7 +45,7 @@ export default function PublishEquipmentPage() {
           category,
           location,
           dailyPrice: Number(dailyPrice),
-          depositAmount: Number(depositAmount),
+          depositAmount: Number(depositAmount || 0),
           submitForReview: true,
         }),
       });
@@ -130,17 +132,20 @@ export default function PublishEquipmentPage() {
             />
           </label>
           <label className="block text-sm">
-            Caution (Ar)
+            Caution (Ar, optionnel)
             <input
-              required
               type="number"
               min={0}
               value={depositAmount}
               onChange={(e) => setDepositAmount(e.target.value)}
+              placeholder="0"
               className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
             />
           </label>
         </div>
+        <RentalCommissionHint
+          ownerIsProfessionalClient={isProfessionalClient(user)}
+        />
         <fieldset>
           <legend className="text-sm font-medium text-foreground">Photo</legend>
           <p className="mt-1 text-xs text-muted-foreground">

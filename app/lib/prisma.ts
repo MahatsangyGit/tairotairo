@@ -57,7 +57,7 @@ function createPrismaClient(): PrismaClient {
 }
 
 /** Incrémenter après chaque changement de schéma pour invalider le singleton en dev. */
-const PRISMA_CLIENT_GENERATION = 10;
+const PRISMA_CLIENT_GENERATION = 11;
 
 type PrismaClientWithGeneration = PrismaClient & { __generation?: number };
 

@@ -6,6 +6,7 @@ import {
   COURSE_CATEGORY_LABELS,
 } from "@/lib/learning/constants";
 import AmpianaroFilters from "@/ampianaro/AmpianaroFilters";
+import AmpianaroB2bOffer from "@/components/economy/AmpianaroB2bOffer";
 
 export const dynamic = "force-dynamic";
 
@@ -51,10 +52,12 @@ export default async function AmpianaroHomePage({
           Apprenez le DIY, le bricolage, l&apos;électricité
         </h1>
         <p className="text-muted-foreground">
-          Catalogue de vidéos d&apos;apprentissage gratuit pour les utilisateurs
-          de Tairo Ampio.
+          Catalogue de vidéos d&apos;apprentissage. Connectez-vous avec un
+          compte client ou prestataire pour regarder les leçons.
         </p>
       </div>
+
+      <AmpianaroB2bOffer />
 
       <AmpianaroFilters
         initialCategory={category ?? ""}

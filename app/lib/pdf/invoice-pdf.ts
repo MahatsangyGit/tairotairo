@@ -249,16 +249,35 @@ function buildInvoicePdf(data: InvoiceData): Buffer {
   b.text(colAmountX, line1Y + 2, data.amountLabel, { size: 10 });
   b.line(colDescX, line1Y - rowH + 4, PAGE_W - MARGIN, line1Y - rowH + 4, 0.4);
 
+  let cursorY = line1Y - rowH - 4;
+
+  if (data.audience === "provider") {
+    const commissionPct = `${(data.commissionRate * 100).toString().replace(".", ",")} %`;
+    b.text(colDescX + 8, cursorY + 2, `Commission Tairo (${commissionPct})`, { size: 9 });
+    b.text(colAmountX, cursorY + 2, data.commissionLabel, { size: 9 });
+    b.line(colDescX, cursorY - rowH + 12, PAGE_W - MARGIN, cursorY - rowH + 12, 0.4);
+    cursorY -= rowH + 4;
+
+    b.text(colDescX + 8, cursorY + 2, "Net prestataire", { size: 9 });
+    b.text(colAmountX, cursorY + 2, data.netAmountLabel, { size: 9 });
+    b.line(colDescX, cursorY - rowH + 12, PAGE_W - MARGIN, cursorY - rowH + 12, 0.4);
+    cursorY -= rowH + 4;
+  }
+
   // Ligne date
-  const line2Y = line1Y - rowH - 4;
+  const line2Y = cursorY;
   b.text(colDescX + 8, line2Y + 2, `Date de prestation : ${data.service.dateLabel}`, { size: 9 });
   b.line(colDescX, line2Y - rowH + 12, PAGE_W - MARGIN, line2Y - rowH + 12, 0.6);
 
   // ── Total ────────────────────────────────────────────────────────────────
   const totalY = line2Y - rowH;
+  const totalCaption =
+    data.audience === "provider" ? "NET A VERSER" : "TOTAL PAYE";
+  const totalAmountLabel =
+    data.audience === "provider" ? data.netAmountLabel : data.amountLabel;
   b.rectFill(colAmountX - 110, totalY - rowH, PAGE_W - MARGIN - colAmountX + 110, rowH, brand);
-  b.text(colAmountX - 100, totalY - 15, "TOTAL À VERSER", { size: 10, bold: true, color: [1, 1, 1] });
-  b.text(colAmountX, totalY - 15, data.amountLabel, { size: 11, bold: true, color: [1, 1, 1] });
+  b.text(colAmountX - 100, totalY - 15, totalCaption, { size: 10, bold: true, color: [1, 1, 1] });
+  b.text(colAmountX, totalY - 15, totalAmountLabel, { size: 11, bold: true, color: [1, 1, 1] });
 
   // ── Informations de règlement ─────────────────────────────────────────────
   const payY = totalY - rowH - 24;

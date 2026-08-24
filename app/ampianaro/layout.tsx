@@ -5,7 +5,7 @@ import MarketplaceHomeLink from "@/components/layout/MarketplaceHomeLink";
 export const metadata: Metadata = {
   title: "Tairo ampianaro — Formations en ligne",
   description:
-    "Formations DIY, bricolage et électricité pour les prestataires Tairo ampio abonnés.",
+    "Formations DIY, bricolage et électricité. Accessibles avec un compte Tairo.",
 };
 
 export default function AmpianaroLayout({
@@ -37,6 +37,11 @@ export default function AmpianaroLayout({
         </div>
       </header>
       <main>{children}</main>
+      <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
+        <Link href="/cgu" className="hover:text-foreground">
+          CGU
+        </Link>
+      </footer>
     </div>
   );
 }

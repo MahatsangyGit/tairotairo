@@ -1,6 +1,7 @@
 "use client";
 
 import ListingCoverField from "@/components/listings/ListingCoverField";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 export interface ListingFormValues {
   title: string;
@@ -105,6 +106,12 @@ export default function ListingFormFields({
           </select>
         </div>
       </div>
+      {kind === "service" ? (
+        <ServiceCommissionHint
+          category={form.category}
+          price={Number(form.amount)}
+        />
+      ) : null}
       <div>
         <label htmlFor="listing-location" className="sr-only">
           Ville

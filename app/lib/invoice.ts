@@ -42,6 +42,12 @@ export interface InvoiceData {
   amount: number;
   currency: string;
   amountLabel: string;
+  audience: "client" | "provider";
+  commissionRate: number;
+  commissionAmount: number;
+  commissionLabel: string;
+  netAmount: number;
+  netAmountLabel: string;
 }
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
@@ -69,9 +75,10 @@ function formatAmount(amount: number, currency: string): string {
   return `${amount.toLocaleString("fr-MG")} ${currency}`;
 }
 
-/** Récupère les données nécessaires à l'émission d'une facture prestataire. */
+/** Récupère les données nécessaires à l'émission d'une facture. */
 export async function getInvoiceData(
-  bookingId: string
+  bookingId: string,
+  audience: "client" | "provider" = "provider"
 ): Promise<InvoiceData | null> {
   return withBypassRls(async () => {
     const booking = await prisma.booking.findUnique({
@@ -86,6 +93,8 @@ export async function getInvoiceData(
         displayPrice: true,
         displayCategory: true,
         displayLocation: true,
+        commissionRate: true,
+        commissionAmount: true,
         service: {
           select: {
             id: true,
@@ -146,7 +155,11 @@ export async function getInvoiceData(
     if (tx.status !== "RELEASED") return null;
     if (!tx.releasedAt) return null;
 
-    const display = getBookingDisplayInfo(booking, { viewer: "provider" });
+    const display = getBookingDisplayInfo(booking, { viewer: audience });
+    const gross = tx.amount;
+    const commissionRate = booking.commissionRate ?? 0;
+    const commissionAmount = booking.commissionAmount ?? 0;
+    const netAmount = gross - commissionAmount;
 
     return {
       invoiceNumber: invoiceNumberFor(tx.id, tx.releasedAt),
@@ -187,9 +200,15 @@ export async function getInvoiceData(
       paymentMethod:
         PAYMENT_METHOD_LABELS[tx.paymentMethod] ?? tx.paymentMethod,
       transactionReference: tx.id,
-      amount: tx.amount,
+      amount: gross,
       currency: tx.currency,
-      amountLabel: formatAmount(tx.amount, tx.currency),
+      amountLabel: formatAmount(gross, tx.currency),
+      audience,
+      commissionRate,
+      commissionAmount,
+      commissionLabel: formatAmount(commissionAmount, tx.currency),
+      netAmount,
+      netAmountLabel: formatAmount(netAmount, tx.currency),
     };
   });
 }

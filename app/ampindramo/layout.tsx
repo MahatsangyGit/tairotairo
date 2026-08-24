@@ -49,6 +49,11 @@ export default function AmpindramoLayout({
         </div>
       </header>
       <main>{children}</main>
+      <footer className="border-t border-border px-4 py-6 text-center text-sm text-muted-foreground">
+        <Link href="/cgu" className="hover:text-foreground">
+          CGU
+        </Link>
+      </footer>
     </div>
   );
 }

@@ -122,6 +122,7 @@ export async function releaseEscrowToProvider(
         id: true,
         status: true,
         providerId: true,
+        commissionAmount: true,
         transaction: true,
       },
     });
@@ -174,7 +175,7 @@ export async function releaseEscrowToProvider(
         data: {
           providerId: booking.providerId,
           transactionId: transaction.id,
-          amount: transaction.amount,
+          amount: Math.max(0, transaction.amount - (booking.commissionAmount ?? 0)),
           currency: transaction.currency,
           status: "PENDING",
         },

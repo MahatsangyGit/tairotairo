@@ -87,7 +87,6 @@ export default function CoursePage() {
 
   const active = course.lessons.find((l) => l.id === activeLessonId);
   const completed = new Set(course.enrollment?.completedLessonIds ?? []);
-  const subscribeUrl = "/dashboard/provider";
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-10 sm:px-6">
@@ -100,14 +99,16 @@ export default function CoursePage() {
       {!course.canWatch ? (
         <div className="mb-8 rounded-xl border border-brand-500/40 bg-brand-50 p-4 dark:bg-brand-950/30">
           <p className="mb-2 font-medium">
-            Vidéos réservées aux prestataires abonnés Tairo ampio
+            Connectez-vous pour regarder les vidéos
           </p>
           <p className="mb-3 text-sm text-muted-foreground">
-            Le catalogue est public. Pour regarder les leçons, activez un
-            abonnement prestataire sur Tairo ampio.
+            Le catalogue est public. Les leçons vidéo sont accessibles avec un
+            compte client ou prestataire.
           </p>
           <Button asChild>
-            <a href={subscribeUrl}>Gérer mon abonnement</a>
+            <a href={`/auth/login?callbackUrl=/ampianaro/cours/${slug}`}>
+              Se connecter
+            </a>
           </Button>
         </div>
       ) : null}

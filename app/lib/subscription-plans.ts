@@ -1,10 +1,10 @@
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 
 export const SUBSCRIPTION_MONTHLY_PRICE_MGA = Number(
-  process.env.SUBSCRIPTION_MONTHLY_PRICE_MGA ?? 29_000
+  process.env.SUBSCRIPTION_MONTHLY_PRICE_MGA ?? 24_000
 );
 
-export type SubscriptionPlanId = "1-month" | "3-months";
+export type SubscriptionPlanId = "1-month";
 
 export interface SubscriptionPlan {
   id: SubscriptionPlanId;
@@ -32,14 +32,6 @@ export function getSubscriptionPlans(): SubscriptionPlan[] {
       label: "1 mois",
       description: `${SUBSCRIPTION_PERIOD_DAYS} jours de visibilité premium`,
       priceMGA: monthly,
-    },
-    {
-      id: "3-months",
-      months: 3,
-      label: "3 mois",
-      description: `${SUBSCRIPTION_PERIOD_DAYS * 3} jours de visibilité premium`,
-      priceMGA: Math.round(monthly * 3 * 0.9),
-      savingsLabel: "−10 %",
     },
   ];
 }

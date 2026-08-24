@@ -20,7 +20,7 @@ export const createEquipmentSchema = z.object({
   category: equipmentCategorySchema,
   location: requiredText("Ville", FIELD_LIMITS.LISTING_LOCATION),
   dailyPrice: nonNegativePriceSchema,
-  depositAmount: nonNegativePriceSchema,
+  depositAmount: nonNegativePriceSchema.optional().default(0),
   /** Admin only — matériel catalogue Tairo */
   isPlatformOwned: z.boolean().optional(),
   submitForReview: z.boolean().optional(),

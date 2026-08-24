@@ -6,6 +6,7 @@ import { notifyBookingCreated } from "@/lib/notify-booking";
 import { prepareBookingForApi } from "@/lib/booking-status";
 import { bookingIncludeForRole } from "@/lib/booking-include";
 import { snapshotFromService } from "@/lib/booking-display";
+import { withServiceCommission } from "@/lib/economy";
 import { assertEmailVerified } from "@/lib/email-verification";
 import {
   parseScheduleInput,
@@ -111,13 +112,15 @@ export const POST = withApiHandler("POST /api/bookings", async (req) => {
       date: bookingDate!,
       slotStart: dbSlotStart,
       slotEnd: dbSlotEnd,
-      ...snapshotFromService({
-        id: service.id,
-        title: service.title,
-        price: service.price,
-        category: service.category,
-        location: service.location,
-      }),
+      ...withServiceCommission(
+        snapshotFromService({
+          id: service.id,
+          title: service.title,
+          price: service.price,
+          category: service.category,
+          location: service.location,
+        })
+      ),
     },
     include: {
       service: {

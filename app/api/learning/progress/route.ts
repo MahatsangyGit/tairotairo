@@ -22,7 +22,7 @@ export const POST = withApiHandler(
     const canWatch = await hasLearningVideoAccess(user.userId, user.role);
     if (!canWatch) {
       throwForbidden(
-        "Réservé aux prestataires avec un abonnement Tairo ampio actif"
+        "Connectez-vous avec un compte client ou prestataire pour regarder les vidéos"
       );
     }
 
