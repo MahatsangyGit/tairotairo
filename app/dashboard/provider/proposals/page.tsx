@@ -13,6 +13,7 @@ import {
 } from "@/lib/request-response-status";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MapPinIcon } from "@/components/ui/app-icons";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 interface RequestSummary {
   id: string;
@@ -225,9 +226,11 @@ export default function ProviderProposalsPage() {
                 </p>
 
                 {response.proposedPrice !== null && (
-                  <p className="text-brand-600 font-semibold text-sm mb-4">
-                    Votre prix : {response.proposedPrice.toLocaleString("fr-MG")} Ar
-                  </p>
+                  <ServiceCommissionHint
+                    className="mb-4"
+                    category={response.request.category}
+                    price={response.proposedPrice}
+                  />
                 )}
 
                 <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-100">

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { apiFetchJson } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
+import { formatMgaAmount } from "@/lib/economy";
 
 type Rental = {
   id: string;
@@ -13,6 +14,9 @@ type Rental = {
   totalAmount: number;
   depositAmount: number;
   displayTitle: string | null;
+  commissionRate: number;
+  commissionAmount: number;
+  platformOwned: boolean;
   equipment: { id: string; title: string; photoUrl: string | null } | null;
   serviceBooking: {
     title: string | null;
@@ -103,8 +107,15 @@ export default function MyRentalsPage() {
                     </p>
                   ) : null}
                 </div>
-                <p className="text-sm font-medium">
+                <p className="text-sm font-medium text-right">
                   {b.totalAmount.toLocaleString("fr-MG")} Ar
+                  {as === "owner" ? (
+                    <span className="mt-1 block text-xs font-normal text-muted-foreground">
+                      Prélevé {formatMgaAmount(b.commissionAmount)} · vous
+                      recevez{" "}
+                      {formatMgaAmount(b.totalAmount - b.commissionAmount)}
+                    </span>
+                  ) : null}
                 </p>
               </Link>
             </li>

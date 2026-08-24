@@ -13,11 +13,7 @@ import {
   bookingStatusLabel,
   paymentStatusLabel,
 } from "@/lib/booking-status";
-import {
-  formatCommissionPercent,
-  formatMgaAmount,
-  splitAmount,
-} from "@/lib/economy";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 export interface BookingCardData {
   id: string;
@@ -200,19 +196,21 @@ export default function BookingCard({
           <p className="text-sm font-semibold text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
-          {viewer === "provider" && (booking.commissionRate ?? 0) > 0 && (
-            <p className="text-xs text-muted-foreground mt-1">
-              Commission {formatCommissionPercent(booking.commissionRate ?? 0)}{" "}
-              — vous recevrez{" "}
-              {formatMgaAmount(
-                splitAmount(
-                  display.price,
-                  booking.commissionRate ?? 0
-                ).net
-              )}
-            </p>
-          )}
         </div>
+        {viewer === "provider" && (
+          <div className="col-span-2">
+            <ServiceCommissionHint
+              category={display.category}
+              price={display.price}
+              frozenRate={
+                typeof booking.commissionRate === "number"
+                  ? booking.commissionRate
+                  : undefined
+              }
+              tariffLabel="Prix convenu"
+            />
+          </div>
+        )}
         {counterparty && (
           <>
             <div>
@@ -348,11 +346,6 @@ export default function BookingCard({
         {onStatusChange && viewer === "provider" && booking.status === "CONFIRMED" && (
           <p className="text-xs text-muted-foreground">
             En attente du paiement du client. Vous serez notifié dès réception.
-            {(booking.commissionRate ?? 0) > 0
-              ? ` Vous recevrez ${formatMgaAmount(
-                  splitAmount(display.price, booking.commissionRate ?? 0).net
-                )} après commission.`
-              : ""}
           </p>
         )}
         {onStatusChange && viewer === "provider" && booking.status === "PAID" && (

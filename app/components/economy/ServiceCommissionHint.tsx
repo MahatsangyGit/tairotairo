@@ -1,39 +1,36 @@
 "use client";
 
-import {
-  formatCommissionPercent,
-  formatMgaAmount,
-  serviceCommissionRate,
-  splitAmount,
-} from "@/lib/economy";
+import { serviceCommissionRate } from "@/lib/economy";
+import CommissionBreakdown from "@/components/economy/CommissionBreakdown";
 
 export default function ServiceCommissionHint({
   category,
   price,
+  frozenRate,
+  tariffLabel = "Prix de la prestation",
+  className,
+  variant = "default",
+  tone = "default",
 }: {
   category: string;
   price?: number;
+  frozenRate?: number | null;
+  tariffLabel?: string;
+  className?: string;
+  variant?: "default" | "compact";
+  tone?: "default" | "onAccent" | "onSoft";
 }) {
-  const rate = serviceCommissionRate(category);
-  const amount = Number.isFinite(price) && (price ?? 0) > 0 ? (price as number) : null;
-  const split = amount != null ? splitAmount(amount, rate) : null;
+  const rate = frozenRate ?? serviceCommissionRate(category);
 
   return (
-    <p className="text-sm text-muted-foreground rounded-lg border border-border bg-muted/40 px-3 py-2">
-      Commission Tairo {formatCommissionPercent(rate)}
-      {split ? (
-        <>
-          {" "}
-          — vous recevrez{" "}
-          <span className="font-medium text-foreground">
-            {formatMgaAmount(split.net)}
-          </span>
-          {" "}
-          (brut {formatMgaAmount(split.gross)}).
-        </>
-      ) : (
-        <> sur le prix final de chaque réservation.</>
-      )}
-    </p>
+    <CommissionBreakdown
+      rate={rate}
+      gross={price}
+      tariffLabel={tariffLabel}
+      emptyHint="Saisissez un prix pour voir le montant prélevé automatiquement."
+      className={className}
+      variant={variant}
+      tone={tone}
+    />
   );
 }
