@@ -13,6 +13,7 @@ import { syncListingCover } from "@/lib/listing-cover-sync";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import { useListingCrud } from "@/hooks/useListingCrud";
 import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 interface Service {
   id: string;
@@ -541,6 +542,12 @@ export default function ProviderServicesPage() {
                         Voir la fiche publique →
                       </Link>
                     </div>
+                    <ServiceCommissionHint
+                      className="mt-3"
+                      category={service.category}
+                      price={service.price}
+                      variant="compact"
+                    />
                   </div>
                 </div>
 

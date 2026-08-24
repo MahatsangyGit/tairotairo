@@ -13,6 +13,7 @@ import {
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { MapPinIcon } from "@/components/ui/app-icons";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 interface Client {
   id: string;
@@ -348,6 +349,11 @@ export default function RequestDetailPage() {
                       onChange={(e) => setProposedPrice(e.target.value)}
                       className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-brand-500 mb-3"
                     />
+                    <ServiceCommissionHint
+                      className="mb-3"
+                      category={request.category}
+                      price={Number(proposedPrice)}
+                    />
                     <button
                       onClick={handleSubmitProposal}
                       disabled={submitting}
@@ -370,9 +376,11 @@ export default function RequestDetailPage() {
                     </div>
                     <p className="text-muted-foreground text-sm mb-3">{ownResponse.message}</p>
                     {ownResponse.proposedPrice !== null && (
-                      <p className="text-brand-600 text-sm font-medium mb-3">
-                        {ownResponse.proposedPrice.toLocaleString("fr-MG")} Ar
-                      </p>
+                      <ServiceCommissionHint
+                        className="mb-3"
+                        category={request.category}
+                        price={ownResponse.proposedPrice}
+                      />
                     )}
                     <div className="mb-3">
                       <OpenUserChatButton

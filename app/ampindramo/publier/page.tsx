@@ -145,6 +145,8 @@ export default function PublishEquipmentPage() {
         </div>
         <RentalCommissionHint
           ownerIsProfessionalClient={isProfessionalClient(user)}
+          totalAmount={Number(dailyPrice)}
+          tariffLabel="Tarif / jour"
         />
         <fieldset>
           <legend className="text-sm font-medium text-foreground">Photo</legend>
