@@ -74,6 +74,10 @@ model RentalBooking {
   displayCategory String?
   displayLocation String?
   displayDailyPrice Float?
+  /// Taux figé à la demande (0 = héritage ou catalogue Tairo).
+  commissionRate    Float        @default(0)
+  commissionAmount  Float        @default(0)
+  platformOwnedSnapshot Boolean  @default(false)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
 
@@ -131,6 +135,8 @@ model RentalPayout {
   amount        Float
   currency      String       @default("MGA")
   status        PayoutStatus @default(PENDING)
+  /// Catalogue Tairo : loyer versé sur le Mobile Money plateforme.
+  isPlatformRevenue Boolean  @default(false)
   reference     String?
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt

@@ -84,10 +84,12 @@ export default async function AmpindramoHomePage({
                   <p className="text-sm text-muted-foreground">{item.location}</p>
                   <p className="mt-2 text-sm font-medium">
                     {item.dailyPrice.toLocaleString("fr-MG")} Ar / jour
-                    <span className="font-normal text-muted-foreground">
-                      {" "}
-                      · caution {item.depositAmount.toLocaleString("fr-MG")} Ar
-                    </span>
+                    {item.depositAmount > 0 ? (
+                      <span className="font-normal text-muted-foreground">
+                        {" "}
+                        · caution {item.depositAmount.toLocaleString("fr-MG")} Ar
+                      </span>
+                    ) : null}
                   </p>
                 </div>
               </Link>

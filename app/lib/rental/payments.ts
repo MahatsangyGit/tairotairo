@@ -115,6 +115,10 @@ export async function settleRental(
       transaction.depositAmount
     );
     const depositRefund = transaction.depositAmount - retained;
+    const ownerNet = Math.max(
+      0,
+      transaction.amount - (rental.commissionAmount ?? 0)
+    );
 
     const result = await prisma.$transaction(async (tx) => {
       const updatedTx = await tx.rentalTransaction.update({
@@ -131,9 +135,10 @@ export async function settleRental(
         data: {
           ownerId: rental.ownerId,
           transactionId: transaction.id,
-          amount: transaction.amount + retained,
+          amount: ownerNet + retained,
           currency: transaction.currency,
           status: "PENDING",
+          isPlatformRevenue: rental.platformOwnedSnapshot,
         },
       });
 

@@ -210,7 +210,7 @@ Helper : `app.is_rental_participant(rental_booking_id)`.
 | SELECT | `PUBLISHED` (cours) / leçons du cours publié | Tous |
 | CUD | — | ✓ |
 
-La clé `videoKey` n’est jamais exposée aux clients ; lecture via `/api/learning/lessons/[id]/video` après contrôle d’abonnement.
+La clé `videoKey` n’est jamais exposée publiquement ; lecture via `/api/learning/lessons/[id]/video` pour un compte client, prestataire ou admin connecté.
 
 ### `CourseEnrollment` / `LessonProgress`
 

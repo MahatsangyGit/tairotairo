@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import AdminEconomyPanel from "@/components/admin/AdminEconomyPanel";
 
 interface AdminStats {
   generatedAt: string;
@@ -293,6 +294,8 @@ export default function AdminStatsPanel() {
           </dl>
         </div>
       </section>
+
+      <AdminEconomyPanel />
 
       <section>
         <h2 className="text-lg font-semibold text-foreground mb-2">Exports CSV</h2>

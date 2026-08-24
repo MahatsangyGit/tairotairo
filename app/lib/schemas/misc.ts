@@ -78,7 +78,14 @@ const paymentMethodIds = PAYMENT_METHOD_OPTIONS.map((m) => m.id) as [
 ];
 
 export const subscriptionPurchaseSchema = z.object({
-  months: z.coerce.number().int().min(1).max(12).optional().default(1),
+  months: z.coerce
+    .number()
+    .int()
+    .refine((value) => value === 1, {
+      message: "Seul l'abonnement mensuel est disponible",
+    })
+    .optional()
+    .default(1),
   paymentMethod: z.enum(paymentMethodIds, {
     error: "Mode de paiement invalide",
   }),

@@ -12,6 +12,8 @@ import {
   ACTIVE_RENTAL_STATUSES,
   computeRentalTotalAmount,
 } from "@/lib/rental/status";
+import { isProfessionalClient } from "@/lib/client-kind";
+import { rentalCommissionSplit } from "@/lib/economy";
 import { requireEligibleServiceBookingForRental } from "@/lib/rental/service-booking";
 import { rentalBookingInclude } from "@/lib/rental/include";
 import { notifyRentalRequested } from "@/lib/rental/notify";
@@ -68,6 +70,9 @@ export const POST = withApiHandler(
 
     const equipment = await prisma.equipmentItem.findUnique({
       where: { id: parsed.data.equipmentId },
+      include: {
+        owner: { select: { role: true, clientKind: true } },
+      },
     });
     if (!equipment || equipment.status !== "PUBLISHED") {
       throwNotFound("Matériel introuvable ou non publié");
@@ -97,6 +102,11 @@ export const POST = withApiHandler(
       startDate,
       endDate
     );
+    const commission = rentalCommissionSplit({
+      isPlatformOwned: equipment.isPlatformOwned,
+      ownerIsProfessionalClient: isProfessionalClient(equipment.owner),
+      totalAmount,
+    });
 
     try {
       const rental = await prisma.rentalBooking.create({
@@ -113,6 +123,9 @@ export const POST = withApiHandler(
           displayCategory: equipment.category,
           displayLocation: equipment.location,
           displayDailyPrice: equipment.dailyPrice,
+          commissionRate: commission.rate,
+          commissionAmount: commission.commissionAmount,
+          platformOwnedSnapshot: equipment.isPlatformOwned,
           status: "REQUESTED",
         },
         include: rentalBookingInclude,

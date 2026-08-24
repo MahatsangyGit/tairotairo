@@ -402,7 +402,8 @@ export default function ProviderDashboardPage() {
                   booking.service?.title ??
                   booking.requestResponse?.request?.title ??
                   "Prestation";
-                const amount = booking.transaction?.amount ?? booking.displayPrice ?? 0;
+                const gross = booking.transaction?.amount ?? booking.displayPrice ?? 0;
+                const amount = gross - (booking.commissionAmount ?? 0);
                 const dateLabel = booking.transaction?.releasedAt
                   ? new Date(booking.transaction.releasedAt).toLocaleDateString("fr-FR", {
                       day: "2-digit",

@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { apiFetchJson } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/components/auth/AuthProvider";
+import RentalCommissionHint from "@/components/economy/RentalCommissionHint";
+import { RENTAL_PARTICULAR_COMMISSION_RATE } from "@/lib/economy";
 
 type Rental = {
   id: string;
@@ -16,6 +18,9 @@ type Rental = {
   displayTitle: string | null;
   renterId: string;
   ownerId: string;
+  commissionRate: number;
+  commissionAmount: number;
+  platformOwned: boolean;
   transaction: {
     id: string;
     status: string;
@@ -147,10 +152,27 @@ export default function RentalDetailPage() {
           Loyer :{" "}
           <strong>{rental.totalAmount.toLocaleString("fr-MG")} Ar</strong>
         </p>
-        <p>
-          Caution :{" "}
-          <strong>{rental.depositAmount.toLocaleString("fr-MG")} Ar</strong>
-        </p>
+        {rental.depositAmount > 0 ? (
+          <p>
+            Caution :{" "}
+            <strong>{rental.depositAmount.toLocaleString("fr-MG")} Ar</strong>
+          </p>
+        ) : (
+          <p className="text-sm text-muted-foreground">Pas de caution</p>
+        )}
+        {isOwner ? (
+          <div className="mt-3">
+            <RentalCommissionHint
+              isPlatformOwned={rental.platformOwned}
+              ownerIsProfessionalClient={
+                !rental.platformOwned &&
+                rental.commissionRate !== RENTAL_PARTICULAR_COMMISSION_RATE
+              }
+              totalAmount={rental.totalAmount}
+              frozenRate={rental.commissionRate}
+            />
+          </div>
+        ) : null}
         {rental.transaction ? (
           <p className="mt-2 text-sm text-muted-foreground">
             Transaction : {rental.transaction.status}

@@ -44,7 +44,10 @@ export const GET = withApiHandler(
       throwForbidden("Vous n'avez pas accès à cette facture");
     }
 
-    const data = await getInvoiceData(id);
+    const audience: "client" | "provider" =
+      isClient && !isProvider ? "client" : "provider";
+
+    const data = await getInvoiceData(id, audience);
     if (!data) {
       return NextResponse.json(
         {
@@ -56,7 +59,10 @@ export const GET = withApiHandler(
     }
 
     const pdf = generateInvoicePdf(data);
-    const filename = `facture-${data.invoiceNumber}.pdf`;
+    const filename =
+      data.audience === "client"
+        ? `facture-client-${data.invoiceNumber}.pdf`
+        : `facture-${data.invoiceNumber}.pdf`;
 
     return new NextResponse(new Uint8Array(pdf), {
       status: 200,

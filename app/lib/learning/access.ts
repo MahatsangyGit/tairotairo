@@ -1,31 +1,13 @@
-import prisma from "@/lib/prisma";
-import { isSubscriptionActive } from "@/lib/subscription";
-import { withBypassRls } from "@/lib/rls";
 import { COURSE_CATEGORY_LABELS } from "@/lib/learning/constants";
 
 /**
- * Lecture vidéo réservée aux prestataires avec abonnement Tairo ampio actif,
- * ou aux admins.
+ * Lecture vidéo : compte client, prestataire ou admin connecté.
  */
 export async function hasLearningVideoAccess(
-  userId: string,
+  _userId: string,
   role?: string
 ): Promise<boolean> {
-  if (role === "ADMIN") return true;
-
-  return withBypassRls(async () => {
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: {
-        role: true,
-        providerSubscription: { select: { expiresAt: true } },
-      },
-    });
-    if (!user) return false;
-    if (user.role === "ADMIN") return true;
-    if (user.role !== "PROVIDER") return false;
-    return isSubscriptionActive(user.providerSubscription?.expiresAt);
-  });
+  return role === "ADMIN" || role === "PROVIDER" || role === "CLIENT";
 }
 
 export function slugifyCourseTitle(title: string): string {
