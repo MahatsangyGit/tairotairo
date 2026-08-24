@@ -12,6 +12,9 @@ export function serializeRental(rental: {
   displayCategory: string | null;
   displayLocation: string | null;
   displayDailyPrice: number | null;
+  commissionRate?: number;
+  commissionAmount?: number;
+  platformOwnedSnapshot?: boolean;
   equipmentId: string;
   renterId: string;
   ownerId: string;
@@ -49,6 +52,9 @@ export function serializeRental(rental: {
     displayCategory: rental.displayCategory,
     displayLocation: rental.displayLocation,
     displayDailyPrice: rental.displayDailyPrice,
+    commissionRate: rental.commissionRate ?? 0,
+    commissionAmount: rental.commissionAmount ?? 0,
+    platformOwned: rental.platformOwnedSnapshot ?? false,
     equipmentId: rental.equipmentId,
     renterId: rental.renterId,
     ownerId: rental.ownerId,

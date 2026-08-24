@@ -16,6 +16,10 @@ model Booking {
   displaySource     String?
   displayTargetId   String?
 
+  /// Taux figé à la création (0 = réservation héritée, sans commission).
+  commissionRate    Float         @default(0)
+  commissionAmount  Float         @default(0)
+
   client      User          @relation("ClientBookings", fields: [clientId], references: [id])
   clientId    String
   provider    User          @relation("ProviderBookings", fields: [providerId], references: [id])

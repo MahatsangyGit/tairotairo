@@ -162,9 +162,15 @@ export default function EquipmentDetailPage() {
       </p>
       <p className="mb-8 text-lg font-semibold">
         {item.dailyPrice.toLocaleString("fr-MG")} Ar / jour
-        <span className="ml-2 text-sm font-normal text-muted-foreground">
-          Caution {item.depositAmount.toLocaleString("fr-MG")} Ar
-        </span>
+        {item.depositAmount > 0 ? (
+          <span className="ml-2 text-sm font-normal text-muted-foreground">
+            Caution {item.depositAmount.toLocaleString("fr-MG")} Ar
+          </span>
+        ) : (
+          <span className="ml-2 text-sm font-normal text-muted-foreground">
+            Sans caution
+          </span>
+        )}
       </p>
 
       <section className="rounded-xl border border-border p-4 sm:p-6">

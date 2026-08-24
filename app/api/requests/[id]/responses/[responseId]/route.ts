@@ -10,6 +10,7 @@ import {
   resolveBookingSchedule,
   snapshotFromRequest,
 } from "@/lib/booking-display";
+import { withServiceCommission } from "@/lib/economy";
 import { notifyBookingConfirmed } from "@/lib/notify-booking";
 import { notifyRequestResponseAccepted } from "@/lib/notify-requests";
 import {
@@ -144,9 +145,11 @@ export const PATCH = withApiHandler(
             slotStart: schedule.slotStart,
             slotEnd: schedule.slotEnd,
             status: "CONFIRMED",
-            ...snapshotFromRequest(
-              requestForSnapshot,
-              response.proposedPrice
+            ...withServiceCommission(
+              snapshotFromRequest(
+                requestForSnapshot,
+                response.proposedPrice
+              )
             ),
           },
           include: {

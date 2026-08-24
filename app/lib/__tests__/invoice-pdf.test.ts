@@ -43,6 +43,12 @@ function sampleInvoice(
     amount: 50000,
     currency: "MGA",
     amountLabel: "50 000 MGA",
+    audience: "provider",
+    commissionRate: 0.1,
+    commissionAmount: 5000,
+    commissionLabel: "5 000 MGA",
+    netAmount: 45000,
+    netAmountLabel: "45 000 MGA",
   };
 }
 
@@ -80,8 +86,28 @@ describe("facture PDF identifiants légaux", () => {
     expect(text).toContain("STAT : 41002 52 2015 0 00152");
   });
 
-  it("n'affiche pas NIF/STAT s'ils sont absents", () => {
+  it("affiche brut, commission et net sur la facture prestataire", () => {
     const pdf = generateInvoicePdf(sampleInvoice());
+    const text = pdf.toString("latin1");
+    expect(text).toContain("Commission Tairo");
+    expect(text).toContain("Net prestataire");
+    expect(text).toContain("NET A VERSER");
+  });
+
+  it("n'affiche pas la commission sur la facture client", () => {
+    const pdf = generateInvoicePdf({
+      ...sampleInvoice(),
+      audience: "client",
+    });
+    const text = pdf.toString("latin1");
+    expect(text).not.toContain("Commission Tairo");
+    expect(text).toContain("TOTAL PAYE");
+  });
+
+  it("n'affiche pas NIF/STAT s'ils sont absents", () => {
+    const pdf = generateInvoicePdf(
+      sampleInvoice({ nif: null, stat: null, rcs: null })
+    );
     const text = pdf.toString("latin1");
     expect(text).not.toContain("NIF :");
     expect(text).not.toContain("STAT :");

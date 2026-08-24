@@ -5,6 +5,7 @@ import {
   snapshotFromRequest,
   snapshotFromService,
 } from "@/lib/booking-display";
+import { withServiceCommission } from "@/lib/economy";
 import { formatPriceAcceptedBody } from "@/lib/message-serialize";
 import {
   notifyBookingConfirmed,
@@ -104,7 +105,7 @@ export async function acceptRequestPriceOffer(
           slotStart: schedule.slotStart,
           slotEnd: schedule.slotEnd,
           status: "CONFIRMED",
-          ...snapshot,
+          ...withServiceCommission(snapshot),
         },
       });
     } else if (booking) {
@@ -121,7 +122,7 @@ export async function acceptRequestPriceOffer(
 
       booking = await tx.booking.update({
         where: { id: booking.id },
-        data: snapshot,
+        data: withServiceCommission(snapshot, booking.commissionRate),
       });
     } else if (response.status === "ACCEPTED") {
       const snapshot = snapshotFromRequest(
@@ -150,7 +151,7 @@ export async function acceptRequestPriceOffer(
           slotStart: scheduleAccepted.slotStart,
           slotEnd: scheduleAccepted.slotEnd,
           status: "CONFIRMED",
-          ...snapshot,
+          ...withServiceCommission(snapshot),
         },
       });
     }
@@ -228,7 +229,6 @@ export async function acceptServicePriceOffer(
       tx
     );
 
-    const snapshot = snapshotFromService(service, price);
     const pairWhere = {
       clientId: offer.conversation.clientId,
       providerId: offer.conversation.providerId,
@@ -240,6 +240,11 @@ export async function acceptServicePriceOffer(
       where: pairWhere,
       orderBy: { updatedAt: "desc" },
     });
+
+    const snapshot = withServiceCommission(
+      snapshotFromService(service, price),
+      existing?.commissionRate
+    );
 
     const wasNew = !existing;
 

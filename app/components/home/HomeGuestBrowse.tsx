@@ -98,6 +98,9 @@ export function HomeFooterLinks() {
           S&apos;inscrire
         </Link>
       )}
+      <Link href="/cgu" className="hover:text-foreground transition-colors">
+        CGU
+      </Link>
     </div>
   );
 }

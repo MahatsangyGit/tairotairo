@@ -13,6 +13,11 @@ import {
   bookingStatusLabel,
   paymentStatusLabel,
 } from "@/lib/booking-status";
+import {
+  formatCommissionPercent,
+  formatMgaAmount,
+  splitAmount,
+} from "@/lib/economy";
 
 export interface BookingCardData {
   id: string;
@@ -43,6 +48,8 @@ export interface BookingCardData {
   displayLocation?: string | null;
   displaySource?: string | null;
   displayTargetId?: string | null;
+  commissionRate?: number | null;
+  commissionAmount?: number | null;
   provider?: { name: string; phone: string | null };
   client?: { name: string; phone: string | null; email?: string };
   transaction?: {
@@ -193,6 +200,18 @@ export default function BookingCard({
           <p className="text-sm font-semibold text-brand-600">
             {display.price.toLocaleString("fr-MG")} Ar
           </p>
+          {viewer === "provider" && (booking.commissionRate ?? 0) > 0 && (
+            <p className="text-xs text-muted-foreground mt-1">
+              Commission {formatCommissionPercent(booking.commissionRate ?? 0)}{" "}
+              — vous recevrez{" "}
+              {formatMgaAmount(
+                splitAmount(
+                  display.price,
+                  booking.commissionRate ?? 0
+                ).net
+              )}
+            </p>
+          )}
         </div>
         {counterparty && (
           <>
@@ -329,6 +348,11 @@ export default function BookingCard({
         {onStatusChange && viewer === "provider" && booking.status === "CONFIRMED" && (
           <p className="text-xs text-muted-foreground">
             En attente du paiement du client. Vous serez notifié dès réception.
+            {(booking.commissionRate ?? 0) > 0
+              ? ` Vous recevrez ${formatMgaAmount(
+                  splitAmount(display.price, booking.commissionRate ?? 0).net
+                )} après commission.`
+              : ""}
           </p>
         )}
         {onStatusChange && viewer === "provider" && booking.status === "PAID" && (
@@ -377,6 +401,18 @@ export default function BookingCard({
             validation du client.
           </p>
         )}
+        {viewer === "client" &&
+          booking.status === "COMPLETED" &&
+          booking.transaction?.status === "RELEASED" && (
+            <a
+              href={`/api/bookings/${booking.id}/invoice`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 transition-colors"
+            >
+              Facture (PDF)
+            </a>
+          )}
         {onStatusChange &&
           viewer === "provider" &&
           booking.status === "COMPLETED" &&
