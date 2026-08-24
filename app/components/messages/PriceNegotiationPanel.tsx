@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import type { NegotiationContext } from "@/lib/price-negotiation-types";
+import { useAuth } from "@/components/auth/AuthProvider";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 interface PriceNegotiationPanelProps {
   conversationId: string;
@@ -14,6 +16,9 @@ export default function PriceNegotiationPanel({
   negotiation,
   onUpdated,
 }: PriceNegotiationPanelProps) {
+  const { user } = useAuth();
+  const isProvider = user?.role === "PROVIDER";
+
   const referencePrice =
     negotiation.source === "service"
       ? negotiation.listPrice
@@ -34,6 +39,7 @@ export default function PriceNegotiationPanel({
   );
   const [proposing, setProposing] = useState(false);
   const [error, setError] = useState("");
+  const offerPrice = Number(priceInput);
 
   const handlePropose = async () => {
     const price = parseFloat(priceInput);
@@ -164,6 +170,17 @@ export default function PriceNegotiationPanel({
           {proposing ? "..." : "Proposer un prix"}
         </button>
       </div>
+
+      {isProvider && (
+        <ServiceCommissionHint
+          className="mt-3"
+          category={negotiation.category}
+          price={offerPrice}
+          frozenRate={
+            negotiation.bookingId ? negotiation.commissionRate : undefined
+          }
+        />
+      )}
 
       {error && <p className="text-red-600 text-xs mt-2">{error}</p>}
     </div>

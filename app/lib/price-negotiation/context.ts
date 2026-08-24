@@ -43,6 +43,7 @@ export async function findServiceNegotiation(
       status: true,
       displayPrice: true,
       serviceId: true,
+      commissionRate: true,
     },
   });
 
@@ -70,6 +71,8 @@ export async function findServiceNegotiation(
     source: "service",
     serviceId: service.id,
     serviceTitle: service.title,
+    category: service.category,
+    commissionRate: booking?.commissionRate ?? null,
     listPrice: service.price,
     currentPrice,
     bookingId: booking?.id ?? null,
@@ -96,12 +99,13 @@ async function findRequestNegotiation(
               id: true,
               title: true,
               budget: true,
+              category: true,
               desiredDate: true,
               desiredSlotStart: true,
               desiredSlotEnd: true,
             },
           },
-          booking: { select: { id: true, status: true } },
+          booking: { select: { id: true, status: true, commissionRate: true } },
         },
       })
     : await prisma.requestResponse.findFirst({
@@ -117,12 +121,13 @@ async function findRequestNegotiation(
               id: true,
               title: true,
               budget: true,
+              category: true,
               desiredDate: true,
               desiredSlotStart: true,
               desiredSlotEnd: true,
             },
           },
-          booking: { select: { id: true, status: true } },
+          booking: { select: { id: true, status: true, commissionRate: true } },
         },
       });
 
@@ -142,6 +147,8 @@ async function findRequestNegotiation(
     requestResponseId: response.id,
     requestId: response.request.id,
     requestTitle: response.request.title,
+    category: response.request.category,
+    commissionRate: response.booking?.commissionRate ?? null,
     responseStatus: response.status,
     currentPrice: response.proposedPrice,
     referencePrice: response.request.budget,

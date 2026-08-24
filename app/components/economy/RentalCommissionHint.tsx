@@ -1,12 +1,11 @@
 "use client";
 
+import CommissionBreakdown from "@/components/economy/CommissionBreakdown";
 import {
   formatCommissionPercent,
-  formatMgaAmount,
   RENTAL_PARTICULAR_COMMISSION_RATE,
   RENTAL_PRO_TIERS,
-  rentalCommissionSplit,
-  splitAmount,
+  rentalCommissionRate,
 } from "@/lib/economy";
 
 export default function RentalCommissionHint({
@@ -14,11 +13,13 @@ export default function RentalCommissionHint({
   ownerIsProfessionalClient,
   totalAmount,
   frozenRate,
+  tariffLabel = "Loyer",
 }: {
   isPlatformOwned?: boolean;
   ownerIsProfessionalClient: boolean;
   totalAmount?: number;
   frozenRate?: number;
+  tariffLabel?: string;
 }) {
   if (isPlatformOwned) {
     return (
@@ -29,76 +30,51 @@ export default function RentalCommissionHint({
     );
   }
 
-  if (ownerIsProfessionalClient) {
-    const knownTotal =
-      Number.isFinite(totalAmount) && (totalAmount ?? 0) > 0
-        ? (totalAmount as number)
-        : null;
-    const split =
-      knownTotal != null
-        ? frozenRate != null
-          ? splitAmount(knownTotal, frozenRate)
-          : rentalCommissionSplit({
-              isPlatformOwned: false,
-              ownerIsProfessionalClient: true,
-              totalAmount: knownTotal,
-            })
-        : null;
-
-    return (
-      <div className="text-sm text-muted-foreground rounded-lg border border-border bg-muted/40 px-3 py-2 space-y-2">
-        <p>
-          Commission Tairo sur le <strong className="text-foreground">total</strong> de
-          chaque location (hors caution) :
-        </p>
-        <ul className="list-disc pl-5 space-y-0.5">
-          {RENTAL_PRO_TIERS.map((tier) => (
-            <li key={tier.label}>
-              {formatCommissionPercent(tier.rate)} {tier.label}
-            </li>
-          ))}
-        </ul>
-        {split ? (
-          <p>
-            Cette location : {formatCommissionPercent(split.rate)} — vous
-            recevrez{" "}
-            <span className="font-medium text-foreground">
-              {formatMgaAmount(split.net)}
-            </span>
-            .
-          </p>
-        ) : null}
-      </div>
-    );
-  }
-
-  const particularTotal =
-    Number.isFinite(totalAmount) && (totalAmount ?? 0) > 0
-      ? (totalAmount as number)
+  const amount =
+    typeof totalAmount === "number" && Number.isFinite(totalAmount) && totalAmount > 0
+      ? totalAmount
       : null;
-  const particularSplit =
-    particularTotal != null
-      ? splitAmount(
-          particularTotal,
-          frozenRate ?? RENTAL_PARTICULAR_COMMISSION_RATE
-        )
-      : null;
+
+  const rate =
+    frozenRate ??
+    (amount != null
+      ? rentalCommissionRate({
+          isPlatformOwned: false,
+          ownerIsProfessionalClient,
+          totalAmount: amount,
+        })
+      : RENTAL_PARTICULAR_COMMISSION_RATE);
 
   return (
-    <p className="text-sm text-muted-foreground rounded-lg border border-border bg-muted/40 px-3 py-2">
-      Commission Tairo {formatCommissionPercent(RENTAL_PARTICULAR_COMMISSION_RATE)}{" "}
-      sur le loyer de chaque location. La caution, si vous en demandez une,
-      n&apos;est pas commissionnée.
-      {particularSplit ? (
-        <>
-          {" "}
-          Vous recevrez{" "}
-          <span className="font-medium text-foreground">
-            {formatMgaAmount(particularSplit.net)}
-          </span>
-          .
-        </>
-      ) : null}
-    </p>
+    <div className="space-y-2">
+      {ownerIsProfessionalClient ? (
+        <p className="text-xs text-muted-foreground">
+          Le pourcentage dépend du total de chaque location (hors caution) :{" "}
+          {RENTAL_PRO_TIERS.map((tier, index) => (
+            <span key={tier.label}>
+              {formatCommissionPercent(tier.rate)} {tier.label}
+              {index < RENTAL_PRO_TIERS.length - 1 ? " · " : ""}
+            </span>
+          ))}
+          . L&apos;aperçu se met à jour selon le tarif saisi.
+        </p>
+      ) : (
+        <p className="text-xs text-muted-foreground">
+          Commission fixe {formatCommissionPercent(RENTAL_PARTICULAR_COMMISSION_RATE)}{" "}
+          sur le loyer. La caution n&apos;est pas commissionnée.
+        </p>
+      )}
+      {amount != null ? (
+        <CommissionBreakdown
+          rate={rate}
+          gross={amount}
+          tariffLabel={tariffLabel}
+        />
+      ) : (
+        <p className="text-sm text-muted-foreground rounded-lg border border-border bg-muted/40 px-3 py-2">
+          Saisissez un tarif pour voir le montant prélevé automatiquement.
+        </p>
+      )}
+    </div>
   );
 }

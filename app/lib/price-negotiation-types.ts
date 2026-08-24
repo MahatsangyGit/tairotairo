@@ -3,6 +3,8 @@ export type RequestNegotiationContext = {
   requestResponseId: string;
   requestId: string;
   requestTitle: string;
+  category: string;
+  commissionRate: number | null;
   responseStatus: string;
   currentPrice: number | null;
   referencePrice: number;
@@ -15,6 +17,8 @@ export type ServiceNegotiationContext = {
   source: "service";
   serviceId: string;
   serviceTitle: string;
+  category: string;
+  commissionRate: number | null;
   listPrice: number;
   currentPrice: number;
   bookingId: string | null;

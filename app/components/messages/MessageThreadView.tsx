@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import PriceNegotiationPanel from "@/components/messages/PriceNegotiationPanel";
 import UserAvatar from "@/components/profile/UserAvatar";
+import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
+import { useAuth } from "@/components/auth/AuthProvider";
 import {
   useMessagingRealtime,
   useMessagingRealtimeContext,
@@ -61,6 +63,8 @@ export default function MessageThreadView({
   const bottomRef = useRef<HTMLDivElement>(null);
   const sendingRef = useRef(false);
   const { userId } = useMessagingRealtimeContext() ?? { userId: null };
+  const { user } = useAuth();
+  const isProvider = user?.role === "PROVIDER";
 
   const appendMessageUnique = useCallback((msg: SerializedMessage) => {
     setMessages((prev) => {
@@ -354,6 +358,23 @@ export default function MessageThreadView({
                       ? `${m.offerPrice.toLocaleString("fr-MG")} Ar`
                       : m.body}
                   </p>
+                  {isProvider &&
+                    isPriceOffer &&
+                    negotiation &&
+                    m.offerPrice != null && (
+                      <ServiceCommissionHint
+                        className="mt-1.5"
+                        category={negotiation.category}
+                        price={m.offerPrice}
+                        frozenRate={
+                          negotiation.bookingId
+                            ? negotiation.commissionRate
+                            : undefined
+                        }
+                        variant="compact"
+                        tone={m.isMine ? "onAccent" : "onSoft"}
+                      />
+                    )}
                   {m.offerStatus === "ACCEPTED" && (
                     <p
                       className={`text-xs mt-1 font-medium ${
