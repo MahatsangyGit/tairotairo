@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuth, requireAuthOrThrow, requireRole } from "@/lib/auth";
-import { withApiHandler, throwNotFound } from "@/lib/api-handler";
+import { requireAuth, requireAuthOrThrow, requireRole, requireEmailVerified } from "@/lib/auth";
+import { withApiHandler, throwNotFound, throwUnlessOk } from "@/lib/api-handler";
 import { notifyNewRequestResponse } from "@/lib/notify-requests";
 import { assertProviderKycApproved } from "@/lib/provider-kyc";
-import { assertEmailVerified } from "@/lib/email-verification";
 import {
   parseBody,
   parseJsonBody,
@@ -93,21 +92,8 @@ export const POST = withApiHandler(
     requireRole(user, ["PROVIDER", "ADMIN"], "Seuls les prestataires peuvent proposer");
 
     if (user.role === "PROVIDER") {
-      const emailCheck = await assertEmailVerified(user.userId, user.role);
-      if (!emailCheck.ok) {
-        return NextResponse.json(
-          { error: emailCheck.error },
-          { status: emailCheck.status }
-        );
-      }
-
-      const kycCheck = await assertProviderKycApproved(user.userId, user.role);
-      if (!kycCheck.ok) {
-        return NextResponse.json(
-          { error: kycCheck.error },
-          { status: kycCheck.status }
-        );
-      }
+      await requireEmailVerified(user);
+      throwUnlessOk(await assertProviderKycApproved(user.userId, user.role));
     }
 
     const { id } = await params;

@@ -1,19 +1,27 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import ProviderKycBanner from "@/components/kyc/ProviderKycBanner";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import ListingFormFields from "@/components/listings/ListingFormFields";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import { useListingCrud } from "@/hooks/useListingCrud";
-import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
+import { apiFetch, apiFetchJson } from "@/lib/api-client";
 import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
+import {
+  ListingActionError,
+  ListingDeleteDialog,
+  ListingEmptyState,
+  ListingErrorState,
+  ListingListSkeleton,
+  useListingEditor,
+  useListingFormFocus,
+} from "@/components/dashboard/ListingCrudChrome";
 
 interface Service {
   id: string;
@@ -58,7 +66,6 @@ const EMPTY_FORM: ServiceForm = {
 
 export default function ProviderServicesPage() {
   const router = useRouter();
-
   const {
     items: services,
     setItems: setServices,
@@ -76,35 +83,12 @@ export default function ProviderServicesPage() {
     forbiddenRedirect: "/dashboard/client",
   });
 
-  const [actionError, setActionError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const editor = useListingEditor();
   const [form, setForm] = useState<ServiceForm>(EMPTY_FORM);
   const [spotlight, setSpotlight] = useState<SpotlightState | null>(null);
   const [spotlightBusyId, setSpotlightBusyId] = useState<string | null>(null);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [removeCover, setRemoveCover] = useState(false);
-  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
   const [subscription, setSubscription] = useState<SubscriptionState>(null);
-  const formSectionRef = useRef<HTMLDivElement>(null);
-
-  const focusListingForm = useCallback(() => {
-    formSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    const titleInput = document.getElementById(
-      "listing-title"
-    ) as HTMLInputElement | null;
-    titleInput?.focus({ preventScroll: true });
-  }, []);
-
-  // Après ouverture du formulaire (création ou édition), scroller vers lui.
-  useEffect(() => {
-    if (!showForm) return;
-    const id = window.setTimeout(focusListingForm, 50);
-    return () => window.clearTimeout(id);
-  }, [showForm, editingId, focusListingForm]);
+  useListingFormFocus(showForm, editingId, editor.focusListingForm);
 
   const fetchSpotlight = useCallback(async () => {
     try {
@@ -127,10 +111,15 @@ export default function ProviderServicesPage() {
     setForm(EMPTY_FORM);
     setEditingId(null);
     setShowForm(false);
-    setActionError("");
-    setCoverFile(null);
-    setRemoveCover(false);
-    setCurrentCoverUrl(null);
+    editor.setActionError("");
+    editor.resetCover();
+  };
+
+  const openNewForm = () => {
+    setShowForm(true);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    editor.resetCover();
   };
 
   const startEdit = (service: Service) => {
@@ -142,23 +131,20 @@ export default function ProviderServicesPage() {
       category: service.category,
       location: service.location,
     });
-    setCoverFile(null);
-    setRemoveCover(false);
-    setCurrentCoverUrl(service.coverImageUrl);
+    editor.setCoverFile(null);
+    editor.setRemoveCover(false);
+    editor.setCurrentCoverUrl(service.coverImageUrl);
     setShowForm(true);
-    setActionError("");
+    editor.setActionError("");
   };
 
   const handleSubmit = async () => {
-    setActionError("");
-
+    editor.setActionError("");
     if (!form.title || !form.description || !form.price || !form.location) {
-      setActionError("Tous les champs sont obligatoires");
+      editor.setActionError("Tous les champs sont obligatoires");
       return;
     }
-
-    setSaving(true);
-
+    editor.setSaving(true);
     try {
       const payload = {
         title: form.title,
@@ -167,12 +153,12 @@ export default function ProviderServicesPage() {
         category: form.category,
         location: form.location,
       };
-
       const data = editingId
-        ? await apiFetchJson<{ service: Service }>(
-            `/api/services/${editingId}`,
-            { method: "PATCH", body: payload, router }
-          )
+        ? await apiFetchJson<{ service: Service }>(`/api/services/${editingId}`, {
+            method: "PATCH",
+            body: payload,
+            router,
+          })
         : await apiFetchJson<{ service: Service }>("/api/services", {
             method: "POST",
             body: payload,
@@ -181,18 +167,16 @@ export default function ProviderServicesPage() {
 
       const savedId = editingId ?? data.service.id;
       const coverSync = await syncListingCover("service", savedId, {
-        file: coverFile,
-        removeExisting: removeCover,
+        file: editor.coverFile,
+        removeExisting: editor.removeCover,
       });
-
       if (!coverSync.ok) {
-        setActionError(
+        editor.setActionError(
           editingId
             ? `Annonce enregistrée, mais photo : ${coverSync.error}`
             : coverSync.error
         );
       }
-
       try {
         const refreshData = await apiFetch<{ services: Service[] }>(
           "/api/services?mine=true",
@@ -208,36 +192,23 @@ export default function ProviderServicesPage() {
           setServices((prev) => [data.service, ...prev]);
         }
       }
-
       if (coverSync.ok) resetForm();
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     } finally {
-      setSaving(false);
+      editor.setSaving(false);
     }
   };
 
   const toggleAvailable = async (service: Service) => {
-    setActionError("");
-
+    editor.setActionError("");
     try {
       const data = await apiFetchJson<{ service: Service }>(
         `/api/services/${service.id}`,
-        {
-          method: "PATCH",
-          body: { available: !service.available },
-          router,
-        }
+        { method: "PATCH", body: { available: !service.available }, router }
       );
-
       const updated = data.service;
-      setServices((prev) =>
-        prev.map((s) => (s.id === service.id ? updated : s))
-      );
+      setServices((prev) => prev.map((s) => (s.id === service.id ? updated : s)));
       if (!updated.available && updated.featuredOnHomepage === false) {
         setSpotlight((prev) =>
           prev?.featuredService?.id === service.id
@@ -246,27 +217,20 @@ export default function ProviderServicesPage() {
         );
       }
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     }
   };
 
   const toggleFeaturedService = async (service: Service) => {
-    setActionError("");
+    editor.setActionError("");
     setSpotlightBusyId(service.id);
-
     const nextId = service.featuredOnHomepage ? null : service.id;
-
     try {
       await apiFetchJson("/api/provider/featured-service", {
         method: "PATCH",
         body: { serviceId: nextId },
         router,
       });
-
       setServices((prev) =>
         prev.map((s) => ({
           ...s,
@@ -279,38 +243,26 @@ export default function ProviderServicesPage() {
               ...prev,
               providerFeatured: nextId !== null || prev.providerFeatured,
               featuredService:
-                nextId === null
-                  ? null
-                  : { id: service.id, title: service.title },
+                nextId === null ? null : { id: service.id, title: service.title },
             }
           : prev
       );
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     } finally {
       setSpotlightBusyId(null);
     }
   };
 
   const runDelete = async (id: string) => {
-    setActionError("");
-
+    editor.setActionError("");
     try {
       await apiFetchJson(`/api/services/${id}`, { method: "DELETE", router });
-
       setServices((prev) => prev.filter((s) => s.id !== id));
       if (editingId === id) resetForm();
-      setDeleteTarget(null);
+      editor.setDeleteTarget(null);
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     }
   };
 
@@ -328,14 +280,11 @@ export default function ProviderServicesPage() {
             <p className="font-medium">Abonnement actif — mise en avant automatique</p>
             <p className="text-brand-800 mt-1">
               Votre profil apparaît dans « Nos prestataires du mois » sur l&apos;accueil
-              jusqu&apos;au{" "}
-              {new Date(subscription.expiresAt).toLocaleDateString("fr-MG")}.
-              Choisissez une annonce en ligne à mettre en avant dans « Annonces du
-              moment ».
+              jusqu&apos;au {new Date(subscription.expiresAt).toLocaleDateString("fr-MG")}.
+              Choisissez une annonce en ligne à mettre en avant dans « Annonces du moment ».
             </p>
           </div>
         )}
-
         {subscription?.isActive && !spotlight?.canFeature && (
           <div className="mb-6 bg-amber-50 border border-amber-100 rounded-xl px-4 py-4 text-sm text-amber-900">
             <p className="font-medium">Abonnement actif</p>
@@ -345,7 +294,6 @@ export default function ProviderServicesPage() {
             </p>
           </div>
         )}
-
         {!subscription?.isActive && (
           <div className="mb-6 bg-muted/40 border border-border rounded-xl px-4 py-4 text-sm text-muted-foreground">
             <p>
@@ -361,30 +309,19 @@ export default function ProviderServicesPage() {
           </div>
         )}
 
-        {actionError && (
-          <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-            {actionError}
-          </p>
-        )}
+        <ListingActionError message={editor.actionError} />
 
         {!showForm ? (
           <button
             type="button"
-            onClick={() => {
-              setShowForm(true);
-              setEditingId(null);
-              setForm(EMPTY_FORM);
-              setCoverFile(null);
-              setRemoveCover(false);
-              setCurrentCoverUrl(null);
-            }}
+            onClick={openNewForm}
             className="mb-6 bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 transition-colors"
           >
             + Nouvelle annonce
           </button>
         ) : (
           <div
-            ref={formSectionRef}
+            ref={editor.formSectionRef}
             id="listing-form"
             className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6 scroll-mt-24"
           >
@@ -411,19 +348,19 @@ export default function ProviderServicesPage() {
                   })
                 }
                 categories={SERVICE_CATEGORIES}
-                currentCoverUrl={currentCoverUrl}
-                coverFile={coverFile}
-                onCoverFileChange={setCoverFile}
-                removeCover={removeCover}
-                onRemoveCoverChange={setRemoveCover}
+                currentCoverUrl={editor.currentCoverUrl}
+                coverFile={editor.coverFile}
+                onCoverFileChange={editor.setCoverFile}
+                removeCover={editor.removeCover}
+                onRemoveCoverChange={editor.setRemoveCover}
               />
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={handleSubmit}
-                  disabled={saving}
+                  disabled={editor.saving}
                   className="bg-brand-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-brand-700 disabled:opacity-50"
                 >
-                  {saving ? "Enregistrement..." : editingId ? "Enregistrer" : "Publier"}
+                  {editor.saving ? "Enregistrement..." : editingId ? "Enregistrer" : "Publier"}
                 </button>
                 <button
                   onClick={resetForm}
@@ -436,46 +373,20 @@ export default function ProviderServicesPage() {
           </div>
         )}
 
-        {loading && (
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-card rounded-2xl border border-border p-6 animate-pulse h-32"
-              />
-            ))}
-          </div>
-        )}
-
+        {loading && <ListingListSkeleton />}
         {!loading && error && (
-          <div className="text-center py-16">
-            <p className="text-red-500 mb-4">{error}</p>
-            <button
-              onClick={() => fetchServices()}
-              className="text-brand-600 font-medium hover:underline"
-            >
-              Réessayer
-            </button>
-          </div>
+          <ListingErrorState error={error} onRetry={() => fetchServices()} />
         )}
-
         {!loading && !error && services.length === 0 && (
-          <div className="text-center py-16 bg-card rounded-2xl border border-border">
-            <p className="text-muted-foreground mb-2">Aucune annonce publiée</p>
-            <p className="text-muted-foreground text-sm mb-4">
-              Créez votre première offre pour recevoir des réservations
-            </p>
-            {!showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="text-brand-600 font-medium hover:underline"
-              >
-                Créer une annonce
-              </button>
-            )}
-          </div>
+          <ListingEmptyState
+            title="Aucune annonce publiée"
+            hint="Créez votre première offre pour recevoir des réservations"
+            ctaLabel="Créer une annonce"
+            onCta={() => setShowForm(true)}
+            ctaClassName="text-brand-600 font-medium hover:underline"
+            showCta={!showForm}
+          />
         )}
-
         {!loading && !error && services.length > 0 && (
           <div className="flex flex-col gap-4">
             {services.map((service) => (
@@ -500,7 +411,6 @@ export default function ProviderServicesPage() {
                       </span>
                     </div>
                   )}
-
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-4 mb-3">
                       <div className="min-w-0">
@@ -529,16 +439,14 @@ export default function ProviderServicesPage() {
                         )}
                       </div>
                     </div>
-
                     <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
                       <span className="text-brand-600 font-bold">
                         {service.price.toLocaleString("fr-MG")} Ar
                       </span>
-                      <span><MapPinIcon /> {service.location}</span>
-                      <Link
-                        href={`/services/${service.id}`}
-                        className="text-brand-600 hover:underline"
-                      >
+                      <span>
+                        <MapPinIcon /> {service.location}
+                      </span>
+                      <Link href={`/services/${service.id}`} className="text-brand-600 hover:underline">
                         Voir la fiche publique →
                       </Link>
                     </div>
@@ -550,7 +458,6 @@ export default function ProviderServicesPage() {
                     />
                   </div>
                 </div>
-
                 <div className="flex flex-wrap gap-2 px-6 pb-6 pt-4 border-t border-border">
                   <button
                     type="button"
@@ -584,7 +491,7 @@ export default function ProviderServicesPage() {
                     </button>
                   )}
                   <button
-                    onClick={() => setDeleteTarget(service.id)}
+                    onClick={() => editor.setDeleteTarget(service.id)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50"
                   >
                     Supprimer
@@ -594,20 +501,16 @@ export default function ProviderServicesPage() {
             ))}
           </div>
         )}
-
       </div>
-
-      <ConfirmDialog
-        open={deleteTarget != null}
+      <ListingDeleteDialog
+        open={editor.deleteTarget != null}
         onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
+          if (!open) editor.setDeleteTarget(null);
         }}
         title="Supprimer l'annonce"
         description="Supprimer cette annonce ?"
-        confirmLabel="Supprimer"
-        destructive
         onConfirm={() => {
-          if (deleteTarget) runDelete(deleteTarget);
+          if (editor.deleteTarget) runDelete(editor.deleteTarget);
         }}
       />
     </>

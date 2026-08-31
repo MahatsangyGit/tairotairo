@@ -1,13 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthOrThrow } from "@/lib/auth";
+import { requireAuthOrThrow, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
 import { notifyBookingCreated } from "@/lib/notify-booking";
 import { prepareBookingForApi } from "@/lib/booking-status";
 import { bookingIncludeForRole } from "@/lib/booking-include";
 import { snapshotFromService } from "@/lib/booking-display";
 import { withServiceCommission } from "@/lib/economy";
-import { assertEmailVerified } from "@/lib/email-verification";
 import {
   parseScheduleInput,
   scheduleFieldsForDb,
@@ -65,13 +64,7 @@ export const POST = withApiHandler("POST /api/bookings", async (req) => {
     throwForbidden("Seuls les clients peuvent faire une réservation");
   }
 
-  const emailCheck = await assertEmailVerified(user.userId, user.role);
-  if (!emailCheck.ok) {
-    return NextResponse.json(
-      { error: emailCheck.error },
-      { status: emailCheck.status }
-    );
-  }
+  await requireEmailVerified(user);
 
   const json = await parseJsonBody(req);
   if (!json.ok) return json.response;

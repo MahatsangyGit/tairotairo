@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler } from "@/lib/api-handler";
-import { assertEmailVerified } from "@/lib/email-verification";
 import {
   deleteKycFile,
   resolveCinSlot,
@@ -32,13 +31,7 @@ export const POST = withApiHandler("POST /api/provider/kyc/upload", async (req) 
   const tooLarge = rejectInvalidUploadContentLength(req);
   if (tooLarge) return tooLarge;
 
-  const emailCheck = await assertEmailVerified(auth.userId, auth.role);
-  if (!emailCheck.ok) {
-    return NextResponse.json(
-      { error: emailCheck.error },
-      { status: emailCheck.status }
-    );
-  }
+  await requireEmailVerified(auth);
 
   const formData = await req.formData();
   const type = formData.get("type") as string | null;
