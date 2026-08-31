@@ -52,7 +52,7 @@ export function homeMetadata(): Metadata {
   return buildPageMetadata({
     title: `${SITE_NAME} — ${SITE_TAGLINE}`,
     description:
-      "Trouvez un prestataire de confiance ou publiez votre demande de service à Madagascar. Plomberie, électricité, ménage, transport et plus.",
+      "Réservez le prestataire idéal à Madagascar. Recherchez un service, comparez les avis, puis réservez un prestataire vérifié près de chez vous.",
     path: "/",
   });
 }

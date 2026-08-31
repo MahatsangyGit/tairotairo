@@ -2,11 +2,13 @@ import prisma from "@/lib/prisma";
 import { withAnonymousRls } from "@/lib/rls";
 import { isSubscriptionActive } from "@/lib/subscription";
 import { withCoverImageUrl } from "@/lib/listing-cover";
+import { paidReviewTransactionFilter } from "@/lib/paid-reviews";
 import { getProviderRatingMap } from "@/lib/rating-sort-search";
 import { withEiFlag, isEntrepriseIndividuelle } from "@/lib/provider-legal";
 
 export const MAX_FEATURED_PROVIDERS = 8;
 export const MAX_FEATURED_SERVICES = 8;
+export const MAX_HOME_REVIEWS = 6;
 
 const now = () => new Date();
 
@@ -47,6 +49,20 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       nif: true,
       stat: true,
       rcs: true,
+      services: {
+        where: { available: true },
+        orderBy: [{ featuredOnHomepageAt: "desc" }, { updatedAt: "desc" }],
+        take: 1,
+        select: {
+          id: true,
+          title: true,
+          price: true,
+          category: true,
+          location: true,
+          coverImageMime: true,
+          updatedAt: true,
+        },
+      },
       _count: {
         select: {
           services: { where: { available: true } },
@@ -78,6 +94,10 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       averageRating: null,
       reviewCount: 0,
     };
+    const listing = p.services[0];
+    const cover = listing
+      ? withCoverImageUrl("service", listing)
+      : null;
     return {
       id: p.id,
       name: p.name,
@@ -85,9 +105,91 @@ export async function getFeaturedProvidersForHome(limit = MAX_FEATURED_PROVIDERS
       bio: p.bio,
       serviceCount: p._count.services,
       isEntrepriseIndividuelle: isEntrepriseIndividuelle(p),
+      category: listing?.category ?? null,
+      price: listing?.price ?? null,
+      location: listing?.location ?? null,
+      coverImageUrl: cover?.coverImageUrl ?? null,
       ...rating,
     };
   });
+  });
+}
+
+export type HomeReviewCard = {
+  id: string;
+  rating: number;
+  comment: string;
+  createdAt: string;
+  authorName: string;
+  provider: { id: string; name: string; avatar: string | null };
+  serviceTitle: string;
+  category: string | null;
+  location: string | null;
+};
+
+export async function getHomeSocialProof() {
+  return withAnonymousRls(async () => {
+    const [providerCount, completedCount, reviewRows] = await Promise.all([
+      prisma.user.count({
+        where: { role: "PROVIDER", kycStatus: "APPROVED" },
+      }),
+      prisma.booking.count({ where: { status: "COMPLETED" } }),
+      prisma.review.findMany({
+        where: {
+          comment: { not: null },
+          ...paidReviewTransactionFilter(),
+        },
+        orderBy: { createdAt: "desc" },
+        take: MAX_HOME_REVIEWS,
+        select: {
+          id: true,
+          rating: true,
+          comment: true,
+          createdAt: true,
+          author: { select: { name: true } },
+          target: { select: { id: true, name: true, avatar: true } },
+          booking: {
+            select: {
+              displayTitle: true,
+              displayCategory: true,
+              displayLocation: true,
+              service: {
+                select: { title: true, category: true, location: true },
+              },
+            },
+          },
+        },
+      }),
+    ]);
+
+    const reviews: HomeReviewCard[] = reviewRows
+      .map((row) => {
+        const comment = row.comment?.trim() ?? "";
+        if (!comment) return null;
+        return {
+          id: row.id,
+          rating: row.rating,
+          comment,
+          createdAt: row.createdAt.toISOString(),
+          authorName: row.author.name,
+          provider: row.target,
+          serviceTitle:
+            row.booking.displayTitle ||
+            row.booking.service?.title ||
+            "Prestation",
+          category:
+            row.booking.displayCategory ||
+            row.booking.service?.category ||
+            null,
+          location:
+            row.booking.displayLocation ||
+            row.booking.service?.location ||
+            null,
+        };
+      })
+      .filter((row): row is HomeReviewCard => row != null);
+
+    return { providerCount, completedCount, reviews };
   });
 }
 
