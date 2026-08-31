@@ -22,6 +22,7 @@ type Lesson = {
   title: string;
   position: number;
   hasVideo: boolean;
+  viewCount: number;
 };
 
 export default function AdminLearningPanel() {
@@ -199,6 +200,13 @@ export default function AdminLearningPanel() {
                 <span>
                   {l.position + 1}. {l.title}{" "}
                   {l.hasVideo ? "(vidéo ✓)" : "(sans vidéo)"}
+                  {l.hasVideo ? (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · {l.viewCount.toLocaleString("fr-MG")} vue
+                      {l.viewCount === 1 ? "" : "s"}
+                    </span>
+                  ) : null}
                 </span>
                 <input
                   type="file"

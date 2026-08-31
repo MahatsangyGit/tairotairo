@@ -50,6 +50,7 @@ export const PATCH = withApiHandler(
         position: lesson.position,
         durationSec: lesson.durationSec,
         hasVideo: Boolean(lesson.videoKey),
+        viewCount: lesson.viewCount,
       });
     } catch (error) {
       if (isPrismaKnownError(error) && error.code === "P2002") {

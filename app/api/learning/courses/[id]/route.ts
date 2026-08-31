@@ -28,6 +28,7 @@ export const GET = withApiHandler(
             position: true,
             durationSec: true,
             videoKey: true,
+            viewCount: true,
           },
         },
       },
@@ -80,6 +81,7 @@ export const GET = withApiHandler(
         position: l.position,
         durationSec: l.durationSec,
         hasVideo: Boolean(l.videoKey),
+        viewCount: l.viewCount,
       })),
     });
   }

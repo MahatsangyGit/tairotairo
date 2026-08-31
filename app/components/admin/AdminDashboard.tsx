@@ -6,6 +6,7 @@ import AdminKycPanel from "@/components/admin/AdminKycPanel";
 import AdminUsersPanel from "@/components/admin/AdminUsersPanel";
 import AdminRentalEquipmentPanel from "@/components/admin/AdminRentalEquipmentPanel";
 import AdminLearningPanel from "@/components/admin/AdminLearningPanel";
+import AdminSiteReportPanel from "@/components/admin/AdminSiteReportPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 export default function AdminDashboard() {
@@ -13,9 +14,10 @@ export default function AdminDashboard() {
     <Tabs defaultValue="stats" className="gap-8">
       <TabsList
         variant="line"
-        className="w-full justify-start border-b border-border rounded-none pb-0"
+        className="h-auto w-full flex-wrap justify-start rounded-none border-b border-border pb-0"
       >
         <TabsTrigger value="stats">Statistiques</TabsTrigger>
+        <TabsTrigger value="report">Rapport</TabsTrigger>
         <TabsTrigger value="kyc">Vérification KYC</TabsTrigger>
         <TabsTrigger value="subscriptions">Abonnements</TabsTrigger>
         <TabsTrigger value="users">Utilisateurs</TabsTrigger>
@@ -25,6 +27,9 @@ export default function AdminDashboard() {
 
       <TabsContent value="stats">
         <AdminStatsPanel />
+      </TabsContent>
+      <TabsContent value="report">
+        <AdminSiteReportPanel />
       </TabsContent>
       <TabsContent value="kyc">
         <AdminKycPanel />
