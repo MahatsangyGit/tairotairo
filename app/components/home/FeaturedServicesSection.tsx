@@ -33,7 +33,7 @@ export default function FeaturedServicesSection({
   if (services.length === 0) return null;
 
   return (
-    <section className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <section className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="flex items-end justify-between gap-4 mb-8">
         <div>
           <h2 className="text-2xl font-bold text-foreground">Annonces du moment</h2>
@@ -54,7 +54,7 @@ export default function FeaturedServicesSection({
             className="group bg-card rounded-2xl border border-border shadow-sm hover:shadow-md hover:border-brand-200 transition-all overflow-hidden text-left"
           >
             {service.coverImageUrl && (
-              <div className="relative w-full h-28 bg-muted">
+              <div className="relative w-full h-40 bg-muted">
                 <OptimizedImage
                   src={service.coverImageUrl}
                   alt=""

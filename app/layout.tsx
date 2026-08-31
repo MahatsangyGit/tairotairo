@@ -33,7 +33,7 @@ export const metadata: Metadata = {
     template: `%s | ${SITE_NAME}`,
   },
   description:
-    "Trouvez un prestataire de confiance ou publiez votre demande de service à Madagascar.",
+    "Réservez le prestataire idéal à Madagascar. Recherchez un service, comparez les avis, puis réservez.",
   metadataBase: new URL(
     process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
   ),
