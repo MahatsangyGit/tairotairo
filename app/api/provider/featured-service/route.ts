@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthOrThrow, requireRole } from "@/lib/auth";
+import { requireAuthOrThrow, requireRole, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler } from "@/lib/api-handler";
-import { assertEmailVerified } from "@/lib/email-verification";
 import { setProviderFeaturedService } from "@/lib/provider-spotlight";
 import {
   featuredServiceSchema,
@@ -16,13 +15,7 @@ export const PATCH = withApiHandler("PATCH /api/provider/featured-service", asyn
   const auth = await requireAuthOrThrow(req);
   requireRole(auth, "PROVIDER", "Réservé aux prestataires");
 
-  const emailCheck = await assertEmailVerified(auth.userId, auth.role);
-  if (!emailCheck.ok) {
-    return NextResponse.json(
-      { error: emailCheck.error },
-      { status: emailCheck.status }
-    );
-  }
+  await requireEmailVerified(auth);
 
   const json = await parseJsonBody(req);
   if (!json.ok) return json.response;

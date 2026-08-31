@@ -8,6 +8,8 @@ import {
   strictBoolean,
 } from "@/lib/schemas/shared";
 
+export type { ListingKind } from "@/lib/listing-cover";
+
 export const createServiceSchema = z.object({
   title: requiredText("Titre", FIELD_LIMITS.LISTING_TITLE),
   description: requiredText("Description", FIELD_LIMITS.LISTING_DESCRIPTION),

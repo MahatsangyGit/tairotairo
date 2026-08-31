@@ -47,3 +47,45 @@ export async function getSubscribedProviderSuggestions(
     };
   });
 }
+
+export async function loadVerifiedProvidersDirectory(take = 60) {
+  const rows = await prisma.user.findMany({
+    where: {
+      role: { in: ["PROVIDER", "ADMIN"] },
+      kycStatus: "APPROVED",
+      services: { some: { available: true } },
+    },
+    orderBy: { updatedAt: "desc" },
+    take,
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+      bio: true,
+      nif: true,
+      stat: true,
+      rcs: true,
+      services: {
+        where: { available: true },
+        take: 1,
+        select: { category: true, location: true },
+      },
+      reviewsReceived: { select: { rating: true } },
+    },
+  });
+
+  return rows.map((p) => {
+    const rating = averageRating(p.reviewsReceived);
+    const primary = p.services[0];
+    return {
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      bio: p.bio,
+      isEntrepriseIndividuelle: isEntrepriseIndividuelle(p),
+      category: primary?.category ?? null,
+      location: primary?.location ?? null,
+      ...rating,
+    };
+  });
+}

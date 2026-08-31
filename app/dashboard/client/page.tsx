@@ -1,8 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import BookingCard, { type BookingCardData } from "@/components/booking/BookingCard";
 import ReviewForm from "@/components/reviews/ReviewForm";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -11,10 +10,20 @@ import {
   type BookingStatus,
   BOOKING_STATUS_LABEL,
   CLIENT_BOOKING_FILTERS,
+  isBookingPaidViaApp,
 } from "@/lib/booking-status";
-import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
+import { apiFetchJson } from "@/lib/api-client";
+import { messageFromApiAction } from "@/lib/api-action-error";
 import ClientPageHeader from "@/components/layout/ClientPageHeader";
 import AmpianaroB2bOffer from "@/components/economy/AmpianaroB2bOffer";
+import { useBookingsDashboard } from "@/hooks/useBookingsDashboard";
+import {
+  BookingsActionError,
+  BookingsEmptyFilter,
+  BookingsErrorState,
+  BookingsFilterChips,
+  BookingsListSkeleton,
+} from "@/components/dashboard/BookingsDashboardStates";
 
 interface Booking extends BookingCardData {
   createdAt: string;
@@ -24,16 +33,25 @@ interface Booking extends BookingCardData {
 
 const STAT_CARDS: BookingStatus[] = ["PENDING", "CONFIRMED", "COMPLETED", "CANCELLED"];
 
-// ─── Component principal ──────────────────────────────────────────────────────
-
 export default function ClientDashboardPage() {
-  const router = useRouter();
+  const {
+    router,
+    bookings,
+    loading,
+    error,
+    actionError,
+    setActionError,
+    activeFilter,
+    setActiveFilter,
+    filtered,
+    counts,
+    fetchBookings,
+    updateBookingInState,
+  } = useBookingsDashboard<Booking>({
+    listUrl: "/api/bookings",
+    viewer: "client",
+  });
 
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [actionError, setActionError] = useState("");
-  const [activeFilter, setActiveFilter] = useState<BookingStatus | "ALL">("ALL");
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelTarget, setCancelTarget] = useState<string | null>(null);
   const [payTarget, setPayTarget] = useState<string | null>(null);
@@ -41,71 +59,17 @@ export default function ClientDashboardPage() {
   const [validatingId, setValidatingId] = useState<string | null>(null);
   const [schedulingId, setSchedulingId] = useState<string | null>(null);
 
-  const fetchBookings = useCallback(async (options?: { silent?: boolean }) => {
-    if (!options?.silent) {
-      setLoading(true);
-    }
-    setError("");
-
-    try {
-      const data = await apiFetch<{
-        role?: string;
-        bookings: Booking[];
-      }>("/api/bookings", { cache: "no-store", router });
-
-      if (data.role === "PROVIDER") {
-        router.push("/dashboard/provider");
-        return;
-      }
-
-      setBookings(data.bookings);
-    } catch (err) {
-      if (err instanceof ApiClientError) {
-        if (err.status !== 401 && !options?.silent) {
-          setError(err.message);
-        }
-      } else if (!options?.silent) {
-        setError("Une erreur est survenue");
-      }
-    } finally {
-      if (!options?.silent) {
-        setLoading(false);
-      }
-    }
-  }, [router]);
-
-  useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
-
-  useEffect(() => {
-    const onVisible = () => {
-      if (document.visibilityState === "visible") fetchBookings({ silent: true });
-    };
-    document.addEventListener("visibilitychange", onVisible);
-    return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [fetchBookings]);
-
-  const handleCancel = (id: string) => {
-    setCancelTarget(id);
-  };
-
-  const updateBookingInState = (id: string, updated: Partial<Booking>) => {
-    setBookings((prev) =>
-      prev.map((b) => (b.id === id ? { ...b, ...updated } : b))
-    );
-  };
+  const bookingById = (id: string | null) =>
+    id ? bookings.find((b) => b.id === id) ?? null : null;
 
   const runCancel = async (id: string) => {
     setCancellingId(id);
     setActionError("");
-
     try {
       const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
         `/api/bookings/${id}`,
         { method: "PATCH", body: { status: "CANCELLED" }, router }
       );
-
       const updated = data.booking ?? { status: "CANCELLED" };
       updateBookingInState(id, {
         status: updated.status ?? "CANCELLED",
@@ -113,18 +77,11 @@ export default function ClientDashboardPage() {
       });
       setCancelTarget(null);
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      const message = messageFromApiAction(err);
+      if (message) setActionError(message);
     } finally {
       setCancellingId(null);
     }
-  };
-
-  const handlePay = (id: string) => {
-    setPayTarget(id);
   };
 
   const runPay = async (
@@ -133,7 +90,6 @@ export default function ClientDashboardPage() {
   ) => {
     setPayingId(id);
     setActionError("");
-
     try {
       const data = await apiFetchJson<{
         booking?: Partial<Booking>;
@@ -143,7 +99,6 @@ export default function ClientDashboardPage() {
         body: { paymentMethod },
         router,
       });
-
       const updated = data.booking ?? { status: "PAID" };
       updateBookingInState(id, {
         status: updated.status ?? "PAID",
@@ -151,11 +106,8 @@ export default function ClientDashboardPage() {
       });
       setPayTarget(null);
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      const message = messageFromApiAction(err);
+      if (message) setActionError(message);
     } finally {
       setPayingId(null);
     }
@@ -164,24 +116,19 @@ export default function ClientDashboardPage() {
   const handleValidate = async (id: string) => {
     setValidatingId(id);
     setActionError("");
-
     try {
       const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
         `/api/bookings/${id}`,
         { method: "PATCH", body: { status: "COMPLETED" }, router }
       );
-
       const updated = data.booking ?? { status: "COMPLETED" };
       updateBookingInState(id, {
         status: updated.status ?? "COMPLETED",
         transaction: updated.transaction ?? null,
       });
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      const message = messageFromApiAction(err);
+      if (message) setActionError(message);
     } finally {
       setValidatingId(null);
     }
@@ -193,13 +140,11 @@ export default function ClientDashboardPage() {
   ) => {
     setSchedulingId(id);
     setActionError("");
-
     try {
       const data = await apiFetchJson<{ booking?: Partial<Booking> }>(
         `/api/bookings/${id}/schedule`,
         { method: "PATCH", body: schedule, router }
       );
-
       const updated = data.booking;
       if (updated) {
         updateBookingInState(id, {
@@ -209,50 +154,20 @@ export default function ClientDashboardPage() {
         });
       }
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      const message = messageFromApiAction(err);
+      if (message) setActionError(message);
     } finally {
       setSchedulingId(null);
     }
   };
 
-  // ── Filtrage local ────────────────────────────────────────────────────────
-
-  const filtered =
-    activeFilter === "ALL"
-      ? bookings
-      : bookings.filter((b) => b.status === activeFilter);
-
-  // ── Compteurs par statut ──────────────────────────────────────────────────
-
-  const counts = bookings.reduce<Record<string, number>>(
-    (acc, b) => ({ ...acc, [b.status]: (acc[b.status] ?? 0) + 1 }),
-    {}
-  );
-
-  const bookingById = (id: string | null) =>
-    id ? bookings.find((b) => b.id === id) ?? null : null;
-
-  // ── Render ────────────────────────────────────────────────────────────────
-
   return (
     <>
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-
         <ClientPageHeader subtitle="Suivez l'état de vos réservations de services" />
-
         <AmpianaroB2bOffer />
+        <BookingsActionError message={actionError} />
 
-        {actionError && (
-          <div className="bg-error-50 border border-red-100 rounded-xl px-4 py-3 mb-4">
-            <p className="text-error-700 text-sm">{actionError}</p>
-          </div>
-        )}
-
-        {/* Stat cards */}
         {!loading && !error && bookings.length > 0 && (
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
             {STAT_CARDS.map((s) => (
@@ -264,51 +179,19 @@ export default function ClientDashboardPage() {
           </div>
         )}
 
-        {/* Filters */}
         {!loading && !error && bookings.length > 0 && (
-          <div className="flex flex-wrap gap-2 mb-6">
-            {CLIENT_BOOKING_FILTERS.map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setActiveFilter(f.value)}
-                  className={`px-4 py-1.5 rounded-full text-sm font-medium border transition-colors ${
-                    activeFilter === f.value
-                      ? "bg-brand-600 text-white border-brand-600"
-                      : "bg-card text-muted-foreground border-neutral-200 hover:border-brand-300"
-                  }`}
-                >
-                  {f.label}
-                  {f.value !== "ALL" && counts[f.value]
-                    ? ` (${counts[f.value]})`
-                    : ""}
-                </button>
-            ))}
-          </div>
+          <BookingsFilterChips
+            filters={CLIENT_BOOKING_FILTERS}
+            activeFilter={activeFilter}
+            counts={counts}
+            onChange={setActiveFilter}
+          />
         )}
 
-        {/* Skeleton */}
-        {loading && (
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="bg-card rounded-2xl border border-border p-6 animate-pulse">
-                <div className="h-3 bg-neutral-100 rounded-full w-1/4 mb-3" />
-                <div className="h-5 bg-neutral-100 rounded-full w-1/2 mb-6" />
-                <div className="h-3 bg-neutral-100 rounded-full w-full mb-2" />
-                <div className="h-3 bg-neutral-100 rounded-full w-2/3" />
-              </div>
-            ))}
-          </div>
-        )}
-
+        {loading && <BookingsListSkeleton />}
         {!loading && error && (
-          <div className="text-center py-20">
-            <p className="text-red-500 mb-4">{error}</p>
-            <button onClick={() => fetchBookings()} className="text-brand-600 font-medium hover:underline text-sm">
-              Réessayer
-            </button>
-          </div>
+          <BookingsErrorState error={error} onRetry={() => fetchBookings()} compactRetry />
         )}
-
         {!loading && !error && bookings.length === 0 && (
           <div className="text-center py-20">
             <p className="text-muted-foreground text-lg mb-2">Aucune réservation pour l&apos;instant</p>
@@ -323,28 +206,21 @@ export default function ClientDashboardPage() {
             </Link>
           </div>
         )}
-
         {!loading && !error && bookings.length > 0 && filtered.length === 0 && (
-          <div className="text-center py-16">
-            <p className="text-muted-foreground text-sm">Aucune réservation dans cette catégorie</p>
-          </div>
+          <BookingsEmptyFilter />
         )}
-
         {!loading && !error && filtered.length > 0 && (
           <div className="flex flex-col gap-4">
             {filtered.map((booking) => {
-              const paidViaApp =
-                booking.transaction?.status === "ESCROWED" ||
-                booking.transaction?.status === "RELEASED" ||
-                booking.transaction?.status === "SUCCESS";
+              const paidViaApp = isBookingPaidViaApp(booking.transaction);
               return (
                 <div key={booking.id}>
                   <BookingCard
                     booking={booking}
                     counterpartyLabel="Prestataire"
-                    onCancel={handleCancel}
+                    onCancel={(id) => setCancelTarget(id)}
                     cancellingId={cancellingId}
-                    onPay={handlePay}
+                    onPay={(id) => setPayTarget(id)}
                     onValidate={handleValidate}
                     onScheduleChange={handleScheduleChange}
                     busyId={payingId ?? validatingId ?? schedulingId}
@@ -371,7 +247,6 @@ export default function ClientDashboardPage() {
             })}
           </div>
         )}
-
       </div>
 
       <ConfirmDialog
@@ -388,7 +263,6 @@ export default function ClientDashboardPage() {
           if (cancelTarget) runCancel(cancelTarget);
         }}
       />
-
       <PaymentDialog
         open={payTarget != null}
         booking={bookingById(payTarget)}
