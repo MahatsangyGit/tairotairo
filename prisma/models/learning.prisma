@@ -29,6 +29,7 @@ model Course {
   createdById String
   lessons     CourseLesson[]
   enrollments CourseEnrollment[]
+  videoViews  LessonVideoView[]
 
   @@index([status])
   @@index([category])
@@ -44,12 +45,15 @@ model CourseLesson {
   videoKey    String?
   videoMime   String?
   durationSec Int?
+  /// Compteur dénormalisé — incrémenté à l’enregistrement d’une vue qualifiée.
+  viewCount   Int      @default(0)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   courseId    String
   progress    LessonProgress[]
+  videoViews  LessonVideoView[]
 
   @@unique([courseId, position])
   @@index([courseId])
@@ -85,4 +89,22 @@ model LessonProgress {
   @@unique([userId, lessonId])
   @@index([userId])
   @@index([lessonId])
+}
+
+/// Vue vidéo Ampianaro (une ligne = une vue qualifiée).
+model LessonVideoView {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+  lesson    CourseLesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId  String
+  course    Course       @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  courseId  String
+
+  @@index([lessonId, createdAt])
+  @@index([courseId, createdAt])
+  @@index([userId, lessonId, createdAt])
+  @@index([createdAt])
 }

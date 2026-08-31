@@ -36,6 +36,7 @@ export function serializeCourse(course: {
     position: number;
     durationSec: number | null;
     videoKey: string | null;
+    viewCount?: number;
   }[];
   _count?: { lessons: number };
 }) {
@@ -60,6 +61,7 @@ export function serializeCourse(course: {
       position: l.position,
       durationSec: l.durationSec,
       hasVideo: Boolean(l.videoKey),
+      viewCount: l.viewCount ?? 0,
     })),
     createdAt: course.createdAt.toISOString(),
     updatedAt: course.updatedAt.toISOString(),

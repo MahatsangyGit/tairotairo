@@ -142,6 +142,8 @@ export const GET = withApiHandler("GET /api/admin/export", async (req) => {
       ["messages", stats.messaging.messages],
       ["transactions_reussies", stats.transactions.successful],
       ["revenu_total_mga", stats.transactions.totalRevenue],
+      ["vues_video_ampianaro", stats.learning.videoViewsTotal],
+      ["vues_video_ampianaro_30j", stats.learning.videoViewsLast30],
       ["genere_le", stats.generatedAt],
     ];
     const csv = rowsToCsv(["indicateur", "valeur"], rows);

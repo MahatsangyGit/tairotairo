@@ -132,6 +132,7 @@ export const API_RATE_LIMITS = {
   message: { maxAttempts: 60, windowMs: 60 * 1000 },
   upload: { maxAttempts: 20, windowMs: 15 * 60 * 1000 },
   adminExport: { maxAttempts: 10, windowMs: 15 * 60 * 1000 },
+  lessonView: { maxAttempts: 40, windowMs: 10 * 60 * 1000 },
 } as const satisfies Record<string, RateLimitConfig>;
 
 export function rateLimitResponse(retryAfter: number): NextResponse {
