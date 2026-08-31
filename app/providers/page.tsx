@@ -2,63 +2,19 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import JsonLdScripts from "@/components/seo/JsonLdScripts";
 import UserAvatar from "@/components/profile/UserAvatar";
-import prisma from "@/lib/prisma";
-import { averageRating } from "@/lib/advanced-search";
+import { loadVerifiedProvidersDirectory } from "@/lib/provider-list-search";
 import { providersListMetadata } from "@/lib/seo";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
 import { StarIcon } from "@/components/ui/app-icons";
 import EntrepriseIndividuelleBadge from "@/components/profile/EntrepriseIndividuelleBadge";
-import { isEntrepriseIndividuelle } from "@/lib/provider-legal";
 
 export const metadata: Metadata = providersListMetadata();
 
 // Doit être un littéral statique (voir PAGE_REVALIDATE_SECONDS.PROVIDERS).
 export const revalidate = 300;
 
-async function loadProviders() {
-  const rows = await prisma.user.findMany({
-    where: {
-      role: { in: ["PROVIDER", "ADMIN"] },
-      kycStatus: "APPROVED",
-      services: { some: { available: true } },
-    },
-    orderBy: { updatedAt: "desc" },
-    take: 60,
-    select: {
-      id: true,
-      name: true,
-      avatar: true,
-      bio: true,
-      nif: true,
-      stat: true,
-      rcs: true,
-      services: {
-        where: { available: true },
-        take: 1,
-        select: { category: true, location: true },
-      },
-      reviewsReceived: { select: { rating: true } },
-    },
-  });
-
-  return rows.map((p) => {
-    const rating = averageRating(p.reviewsReceived);
-    const primary = p.services[0];
-    return {
-      id: p.id,
-      name: p.name,
-      avatar: p.avatar,
-      bio: p.bio,
-      isEntrepriseIndividuelle: isEntrepriseIndividuelle(p),
-      category: primary?.category ?? null,
-      location: primary?.location ?? null,
-      ...rating,
-    };
-  });
-}
-
 export default async function ProvidersPage() {
-  const providers = await loadProviders();
+  const providers = await loadVerifiedProvidersDirectory();
 
   return (
     <div className="min-h-screen bg-background">

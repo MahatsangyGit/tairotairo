@@ -111,3 +111,12 @@ export function throwNotFound(message = "Ressource introuvable"): never {
 export function throwConflict(message = "Conflit"): never {
   throw new AppError(message, 409, true, "CONFLICT");
 }
+
+/** Transforme un check `{ ok }` en AppError (même status/message, sans `code`). */
+export function throwUnlessOk(
+  check: { ok: true } | { ok: false; error: string; status: number }
+): asserts check is { ok: true } {
+  if (!check.ok) {
+    throw new AppError(check.error, check.status, true);
+  }
+}

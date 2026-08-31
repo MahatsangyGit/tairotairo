@@ -1,18 +1,26 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
 import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import { formatSchedule } from "@/lib/datetime-slot";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import ListingFormFields from "@/components/listings/ListingFormFields";
 import { syncListingCover } from "@/lib/listing-cover-sync";
 import { useListingCrud } from "@/hooks/useListingCrud";
-import { apiFetch, apiFetchJson, ApiClientError } from "@/lib/api-client";
+import { apiFetch, apiFetchJson } from "@/lib/api-client";
 import ClientPageHeader from "@/components/layout/ClientPageHeader";
+import {
+  ListingActionError,
+  ListingDeleteDialog,
+  ListingEmptyState,
+  ListingErrorState,
+  ListingListSkeleton,
+  useListingEditor,
+  useListingFormFocus,
+} from "@/components/dashboard/ListingCrudChrome";
 
 interface ServiceRequest {
   id: string;
@@ -55,9 +63,10 @@ const EMPTY_FORM: RequestForm = {
   slotEnd: "",
 };
 
+const LOGIN_PATH = "/auth/login?callbackUrl=/dashboard/client/requests";
+
 export default function ClientRequestsPage() {
   const router = useRouter();
-
   const {
     items: requests,
     setItems: setRequests,
@@ -72,35 +81,13 @@ export default function ClientRequestsPage() {
     listUrl: "/api/requests?mine=true",
     listKey: "requests",
     router,
-    loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+    loginPath: LOGIN_PATH,
     forbiddenRedirect: "/dashboard/provider",
   });
 
-  const [actionError, setActionError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const editor = useListingEditor();
   const [form, setForm] = useState<RequestForm>(EMPTY_FORM);
-  const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
-  const [coverFile, setCoverFile] = useState<File | null>(null);
-  const [removeCover, setRemoveCover] = useState(false);
-  const [currentCoverUrl, setCurrentCoverUrl] = useState<string | null>(null);
-  const formSectionRef = useRef<HTMLDivElement>(null);
-
-  const focusListingForm = useCallback(() => {
-    formSectionRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "start",
-    });
-    const titleInput = document.getElementById(
-      "listing-title"
-    ) as HTMLInputElement | null;
-    titleInput?.focus({ preventScroll: true });
-  }, []);
-
-  useEffect(() => {
-    if (!showForm) return;
-    const id = window.setTimeout(focusListingForm, 50);
-    return () => window.clearTimeout(id);
-  }, [showForm, editingId, focusListingForm]);
+  useListingFormFocus(showForm, editingId, editor.focusListingForm);
 
   const minDate = new Date();
   minDate.setDate(minDate.getDate() + 1);
@@ -110,10 +97,15 @@ export default function ClientRequestsPage() {
     setForm(EMPTY_FORM);
     setEditingId(null);
     setShowForm(false);
-    setActionError("");
-    setCoverFile(null);
-    setRemoveCover(false);
-    setCurrentCoverUrl(null);
+    editor.setActionError("");
+    editor.resetCover();
+  };
+
+  const openNewForm = () => {
+    setShowForm(true);
+    setEditingId(null);
+    setForm(EMPTY_FORM);
+    editor.resetCover();
   };
 
   const startEdit = (request: ServiceRequest) => {
@@ -127,29 +119,24 @@ export default function ClientRequestsPage() {
       desiredDate: request.desiredDate
         ? new Date(request.desiredDate).toISOString().split("T")[0]
         : "",
-      slotEnabled: Boolean(
-        request.desiredSlotStart || request.desiredSlotEnd
-      ),
+      slotEnabled: Boolean(request.desiredSlotStart || request.desiredSlotEnd),
       slotStart: request.desiredSlotStart ?? "",
       slotEnd: request.desiredSlotEnd ?? "",
     });
-    setCoverFile(null);
-    setRemoveCover(false);
-    setCurrentCoverUrl(request.coverImageUrl);
+    editor.setCoverFile(null);
+    editor.setRemoveCover(false);
+    editor.setCurrentCoverUrl(request.coverImageUrl);
     setShowForm(true);
-    setActionError("");
+    editor.setActionError("");
   };
 
   const handleSubmit = async () => {
-    setActionError("");
-
+    editor.setActionError("");
     if (!form.title || !form.description || !form.budget || !form.location) {
-      setActionError("Titre, description, budget et ville sont obligatoires");
+      editor.setActionError("Titre, description, budget et ville sont obligatoires");
       return;
     }
-
-    setSaving(true);
-
+    editor.setSaving(true);
     try {
       const payload = {
         title: form.title,
@@ -159,48 +146,38 @@ export default function ClientRequestsPage() {
         location: form.location,
         desiredDate: form.desiredDate || null,
         desiredSlotStart:
-          form.desiredDate && form.slotEnabled
-            ? form.slotStart || null
-            : null,
+          form.desiredDate && form.slotEnabled ? form.slotStart || null : null,
         desiredSlotEnd:
-          form.desiredDate && form.slotEnabled
-            ? form.slotEnd || null
-            : null,
+          form.desiredDate && form.slotEnabled ? form.slotEnd || null : null,
       };
-
       const data = editingId
         ? await apiFetchJson<{ request: ServiceRequest }>(
             `/api/requests/${editingId}`,
-            { method: "PATCH", body: payload, router, loginPath: "/auth/login?callbackUrl=/dashboard/client/requests" }
+            { method: "PATCH", body: payload, router, loginPath: LOGIN_PATH }
           )
         : await apiFetchJson<{ request: ServiceRequest }>("/api/requests", {
             method: "POST",
             body: payload,
             router,
-            loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+            loginPath: LOGIN_PATH,
           });
 
       const savedId = editingId ?? data.request.id;
       const coverSync = await syncListingCover("request", savedId, {
-        file: coverFile,
-        removeExisting: removeCover,
+        file: editor.coverFile,
+        removeExisting: editor.removeCover,
       });
-
       if (!coverSync.ok) {
-        setActionError(
+        editor.setActionError(
           editingId
             ? `Demande enregistrée, mais photo : ${coverSync.error}`
             : coverSync.error
         );
       }
-
       try {
         const refreshData = await apiFetch<{ requests: ServiceRequest[] }>(
           "/api/requests?mine=true",
-          {
-            router,
-            loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
-          }
+          { router, loginPath: LOGIN_PATH }
         );
         setRequests(refreshData.requests);
       } catch {
@@ -212,22 +189,16 @@ export default function ClientRequestsPage() {
           setRequests((prev) => [data.request, ...prev]);
         }
       }
-
       if (coverSync.ok) resetForm();
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     } finally {
-      setSaving(false);
+      editor.setSaving(false);
     }
   };
 
   const toggleOpen = async (request: ServiceRequest) => {
-    setActionError("");
-
+    editor.setActionError("");
     try {
       const data = await apiFetchJson<{ request: ServiceRequest }>(
         `/api/requests/${request.id}`,
@@ -235,41 +206,30 @@ export default function ClientRequestsPage() {
           method: "PATCH",
           body: { open: !request.open },
           router,
-          loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+          loginPath: LOGIN_PATH,
         }
       );
-
       setRequests((prev) =>
         prev.map((r) => (r.id === request.id ? data.request : r))
       );
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     }
   };
 
   const runDelete = async (id: string) => {
-    setActionError("");
-
+    editor.setActionError("");
     try {
       await apiFetchJson(`/api/requests/${id}`, {
         method: "DELETE",
         router,
-        loginPath: "/auth/login?callbackUrl=/dashboard/client/requests",
+        loginPath: LOGIN_PATH,
       });
-
       setRequests((prev) => prev.filter((r) => r.id !== id));
       if (editingId === id) resetForm();
-      setDeleteTarget(null);
+      editor.setDeleteTarget(null);
     } catch (err) {
-      if (err instanceof ApiClientError && err.status !== 401) {
-        setActionError(err.message);
-      } else if (!(err instanceof ApiClientError)) {
-        setActionError("Une erreur est survenue");
-      }
+      editor.reportActionError(err);
     }
   };
 
@@ -277,31 +237,19 @@ export default function ClientRequestsPage() {
     <>
       <div className="max-w-4xl mx-auto px-4 py-10">
         <ClientPageHeader subtitle="Publiez une demande pour trouver un prestataire près de chez vous" />
-
-        {actionError && (
-          <p className="text-red-500 text-sm mb-4 bg-red-50 border border-red-100 rounded-lg px-4 py-3">
-            {actionError}
-          </p>
-        )}
+        <ListingActionError message={editor.actionError} />
 
         {!showForm ? (
           <button
             type="button"
-            onClick={() => {
-              setShowForm(true);
-              setEditingId(null);
-              setForm(EMPTY_FORM);
-              setCoverFile(null);
-              setRemoveCover(false);
-              setCurrentCoverUrl(null);
-            }}
+            onClick={openNewForm}
             className="mb-6 bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-amber-700 transition-colors"
           >
             + Nouvelle demande
           </button>
         ) : (
           <div
-            ref={formSectionRef}
+            ref={editor.formSectionRef}
             id="listing-form"
             className="bg-card rounded-2xl border border-border shadow-sm p-6 mb-6 scroll-mt-24"
           >
@@ -329,11 +277,11 @@ export default function ClientRequestsPage() {
                   })
                 }
                 categories={SERVICE_CATEGORIES}
-                currentCoverUrl={currentCoverUrl}
-                coverFile={coverFile}
-                onCoverFileChange={setCoverFile}
-                removeCover={removeCover}
-                onRemoveCoverChange={setRemoveCover}
+                currentCoverUrl={editor.currentCoverUrl}
+                coverFile={editor.coverFile}
+                onCoverFileChange={editor.setCoverFile}
+                removeCover={editor.removeCover}
+                onRemoveCoverChange={editor.setRemoveCover}
               />
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1.5">
@@ -350,11 +298,7 @@ export default function ClientRequestsPage() {
                       desiredDate,
                       ...(desiredDate
                         ? {}
-                        : {
-                            slotEnabled: false,
-                            slotStart: "",
-                            slotEnd: "",
-                          }),
+                        : { slotEnabled: false, slotStart: "", slotEnd: "" }),
                     });
                   }}
                   className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-amber-500"
@@ -377,10 +321,10 @@ export default function ClientRequestsPage() {
               <div className="flex gap-2 pt-1">
                 <button
                   onClick={handleSubmit}
-                  disabled={saving}
+                  disabled={editor.saving}
                   className="bg-amber-600 text-white px-5 py-2.5 rounded-lg font-medium hover:bg-amber-700 disabled:opacity-50"
                 >
-                  {saving ? "Enregistrement..." : editingId ? "Enregistrer" : "Publier"}
+                  {editor.saving ? "Enregistrement..." : editingId ? "Enregistrer" : "Publier"}
                 </button>
                 <button
                   onClick={resetForm}
@@ -393,46 +337,20 @@ export default function ClientRequestsPage() {
           </div>
         )}
 
-        {loading && (
-          <div className="flex flex-col gap-4">
-            {Array.from({ length: 2 }).map((_, i) => (
-              <div
-                key={i}
-                className="bg-card rounded-2xl border border-border p-6 animate-pulse h-32"
-              />
-            ))}
-          </div>
-        )}
-
+        {loading && <ListingListSkeleton />}
         {!loading && error && (
-          <div className="text-center py-16">
-            <p className="text-red-500 mb-4">{error}</p>
-            <button
-              onClick={() => fetchRequests()}
-              className="text-brand-600 font-medium hover:underline"
-            >
-              Réessayer
-            </button>
-          </div>
+          <ListingErrorState error={error} onRetry={() => fetchRequests()} />
         )}
-
         {!loading && !error && requests.length === 0 && (
-          <div className="text-center py-16 bg-card rounded-2xl border border-border">
-            <p className="text-muted-foreground mb-2">Aucune demande publiée</p>
-            <p className="text-muted-foreground text-sm mb-4">
-              Décrivez votre besoin pour que les prestataires vous contactent
-            </p>
-            {!showForm && (
-              <button
-                onClick={() => setShowForm(true)}
-                className="text-amber-600 font-medium hover:underline"
-              >
-                Publier une demande
-              </button>
-            )}
-          </div>
+          <ListingEmptyState
+            title="Aucune demande publiée"
+            hint="Décrivez votre besoin pour que les prestataires vous contactent"
+            ctaLabel="Publier une demande"
+            onCta={() => setShowForm(true)}
+            ctaClassName="text-amber-600 font-medium hover:underline"
+            showCta={!showForm}
+          />
         )}
-
         {!loading && !error && requests.length > 0 && (
           <div className="flex flex-col gap-4">
             {requests.map((request) => (
@@ -460,12 +378,13 @@ export default function ClientRequestsPage() {
                     {request.open ? "Ouverte" : "Fermée"}
                   </span>
                 </div>
-
                 <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
                   <span className="text-amber-700 font-bold">
                     {request.budget.toLocaleString("fr-MG")} Ar
                   </span>
-                  <span><MapPinIcon /> {request.location}</span>
+                  <span>
+                    <MapPinIcon /> {request.location}
+                  </span>
                   {request.desiredDate && (
                     <span>
                       📅{" "}
@@ -476,14 +395,10 @@ export default function ClientRequestsPage() {
                       )}
                     </span>
                   )}
-                  <Link
-                    href={`/requests/${request.id}`}
-                    className="text-amber-600 hover:underline"
-                  >
+                  <Link href={`/requests/${request.id}`} className="text-amber-600 hover:underline">
                     Voir la fiche publique →
                   </Link>
                 </div>
-
                 <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-100">
                   <Link
                     href={`/dashboard/client/requests/${request.id}`}
@@ -508,7 +423,7 @@ export default function ClientRequestsPage() {
                     {request.open ? "Fermer" : "Rouvrir"}
                   </button>
                   <button
-                    onClick={() => setDeleteTarget(request.id)}
+                    onClick={() => editor.setDeleteTarget(request.id)}
                     className="px-4 py-2 rounded-lg text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50"
                   >
                     Supprimer
@@ -519,18 +434,15 @@ export default function ClientRequestsPage() {
           </div>
         )}
       </div>
-
-      <ConfirmDialog
-        open={deleteTarget != null}
+      <ListingDeleteDialog
+        open={editor.deleteTarget != null}
         onOpenChange={(open) => {
-          if (!open) setDeleteTarget(null);
+          if (!open) editor.setDeleteTarget(null);
         }}
         title="Supprimer la demande"
         description="Supprimer cette demande ?"
-        confirmLabel="Supprimer"
-        destructive
         onConfirm={() => {
-          if (deleteTarget) runDelete(deleteTarget);
+          if (editor.deleteTarget) runDelete(editor.deleteTarget);
         }}
       />
     </>

@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthOrThrow } from "@/lib/auth";
+import { requireAuthOrThrow, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler } from "@/lib/api-handler";
-import { assertEmailVerified } from "@/lib/email-verification";
 import {
   conversationPath,
   resolveConversationPair,
@@ -20,13 +19,7 @@ export const POST = withApiHandler(
   async (req) => {
     const auth = await requireAuthOrThrow(req);
 
-    const emailCheck = await assertEmailVerified(auth.userId, auth.role);
-    if (!emailCheck.ok) {
-      return NextResponse.json(
-        { error: emailCheck.error },
-        { status: emailCheck.status }
-      );
-    }
+    await requireEmailVerified(auth);
 
     const json = await parseJsonBody(req);
     if (!json.ok) return json.response;

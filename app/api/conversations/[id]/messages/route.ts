@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { requireAuthOrThrow } from "@/lib/auth";
+import { requireAuthOrThrow, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
-import { assertEmailVerified } from "@/lib/email-verification";
 import {
   conversationPath,
   getConversationForParticipant,
@@ -32,13 +31,7 @@ export const POST = withApiHandler(
     );
     if (rateLimited) return rateLimited;
 
-    const emailCheck = await assertEmailVerified(auth.userId, auth.role);
-    if (!emailCheck.ok) {
-      return NextResponse.json(
-        { error: emailCheck.error },
-        { status: emailCheck.status }
-      );
-    }
+    await requireEmailVerified(auth);
 
     const { id } = await params;
 

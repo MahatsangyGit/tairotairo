@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { useDashboardMe } from "@/hooks/useDashboardMe";
 import { formatMgPhone, formatMgPhoneInput } from "@/lib/phone";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import type { SubscriptionPlanId } from "@/lib/subscription-plans";
@@ -42,6 +43,11 @@ const METHOD_LABELS: Record<string, string> = {
 
 export default function ProviderSubscriptionPage() {
   const router = useRouter();
+  const { user } = useDashboardMe({
+    loginCallbackUrl: "/dashboard/provider/subscription",
+    redirectIfRole: "CLIENT",
+    redirectHref: "/dashboard/client",
+  });
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
@@ -55,7 +61,8 @@ export default function ProviderSubscriptionPage() {
 
   const [selectedPlan, setSelectedPlan] = useState<SubscriptionPlanId>("1-month");
   const [paymentMethod, setPaymentMethod] = useState("ORANGE_MONEY");
-  const [phone, setPhone] = useState("");
+  const [phoneOverride, setPhoneOverride] = useState<string | null>(null);
+  const phone = phoneOverride ?? (user?.phone ? formatMgPhone(user.phone) : "");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -91,12 +98,6 @@ export default function ProviderSubscriptionPage() {
 
   useEffect(() => {
     load();
-    fetch("/api/users/me")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.user?.phone) setPhone(formatMgPhone(data.user.phone));
-      })
-      .catch(() => {});
   }, [load]);
 
   const selected = plans.find((p) => p.id === selectedPlan) ?? plans[0];
@@ -260,7 +261,7 @@ export default function ProviderSubscriptionPage() {
                     id="phone"
                     type="tel"
                     value={phone}
-                    onChange={(e) => setPhone(formatMgPhoneInput(e.target.value))}
+                    onChange={(e) => setPhoneOverride(formatMgPhoneInput(e.target.value))}
                     placeholder="032 74 617 90"
                     className="w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500"
                   />
