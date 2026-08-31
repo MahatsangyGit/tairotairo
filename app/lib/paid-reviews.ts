@@ -9,11 +9,8 @@ export const PAID_REVIEW_TRANSACTION_STATUSES = [
 export type PaidReviewTransactionStatus =
   (typeof PAID_REVIEW_TRANSACTION_STATUSES)[number];
 
-export function paidReviewWhere(
-  targetId: string
-): Prisma.ReviewWhereInput {
+export function paidReviewTransactionFilter(): Prisma.ReviewWhereInput {
   return {
-    targetId,
     booking: {
       is: {
         transaction: {
@@ -21,5 +18,14 @@ export function paidReviewWhere(
         },
       },
     },
+  };
+}
+
+export function paidReviewWhere(
+  targetId: string
+): Prisma.ReviewWhereInput {
+  return {
+    targetId,
+    ...paidReviewTransactionFilter(),
   };
 }

@@ -14,7 +14,7 @@ export function HomeCategoriesBrowse() {
           <p className="text-brand-600 text-xs font-semibold uppercase tracking-widest mb-2">
             Parcourir
           </p>
-          <h2 className="text-3xl font-bold text-foreground">Nos catégories</h2>
+          <h2 className="text-3xl font-bold text-foreground">Tous les services</h2>
         </div>
         <GuestBrowseTrigger
           browse="services"

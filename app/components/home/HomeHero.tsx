@@ -2,6 +2,9 @@
 
 import Link from "next/link";
 import { useAuth } from "@/components/auth/AuthProvider";
+import HeroSearch from "@/components/home/HeroSearch";
+import HomeCategoryChips from "@/components/home/HomeCategoryChips";
+import HomeHeroRotatingPhrase from "@/components/home/HomeHeroRotatingPhrase";
 import { isProfessionalClient } from "@/lib/client-kind";
 
 function ArrowIcon() {
@@ -74,22 +77,24 @@ export default function HomeHero() {
 
   if (!user) {
     return (
-      <section className="border-b border-border bg-background text-foreground">
-        <div className="mx-auto max-w-5xl px-4 py-24 sm:px-6 md:py-32 lg:px-8">
-          <div className="max-w-2xl">
-            <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
-              Marketplace de services — Madagascar
-            </p>
-            <h1 className="mb-6 text-4xl font-bold leading-tight text-foreground sm:text-5xl md:text-6xl">
-              Trouvez un prestataire{" "}
-              <span className="text-brand-600 dark:text-brand-400">
-                de confiance
-              </span>
-            </h1>
-            <p className="text-lg leading-relaxed text-muted-foreground">
-              Rapide, simple et sécurisé. Connectez-vous avec des prestataires
-              qualifiés près de chez vous.
-            </p>
+      <section className="border-b border-border bg-neutral-50 text-foreground dark:bg-background">
+        <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+            Marketplace de services — Madagascar
+          </p>
+          <h1 className="max-w-4xl text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+            Réservez le prestataire idéal
+            <HomeHeroRotatingPhrase />
+          </h1>
+          <p className="mt-5 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+            Prestataires vérifiés près de chez vous. Recherchez, comparez les
+            avis, puis réservez en toute simplicité.
+          </p>
+          <div className="mt-8 max-w-2xl">
+            <HeroSearch variant="light" />
+          </div>
+          <div className="mt-10">
+            <HomeCategoryChips />
           </div>
         </div>
       </section>
