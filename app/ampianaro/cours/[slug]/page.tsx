@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { apiFetchJson } from "@/lib/api-client";
 import { Button } from "@/components/ui/button";
+import CourseVideoPlayer from "@/components/learning/CourseVideoPlayer";
 
 type Lesson = {
   id: string;
@@ -13,6 +14,7 @@ type Lesson = {
   position: number;
   durationSec: number | null;
   hasVideo: boolean;
+  viewCount: number;
 };
 
 type CourseDetail = {
@@ -117,12 +119,21 @@ export default function CoursePage() {
         <div>
           {course.canWatch && active?.hasVideo ? (
             <div className="mb-4 overflow-hidden rounded-xl border border-border bg-black">
-              <video
-                key={active.id}
-                controls
-                className="aspect-video w-full"
+              <CourseVideoPlayer
+                lessonId={active.id}
                 src={`/api/learning/lessons/${active.id}/video`}
                 onEnded={() => void markComplete(active.id)}
+                onViewCounted={(viewCount) => {
+                  setCourse((prev) => {
+                    if (!prev) return prev;
+                    return {
+                      ...prev,
+                      lessons: prev.lessons.map((l) =>
+                        l.id === active.id ? { ...l, viewCount } : l
+                      ),
+                    };
+                  });
+                }}
               />
             </div>
           ) : course.canWatch ? (
@@ -136,6 +147,12 @@ export default function CoursePage() {
               <h2 className="mb-2 text-xl font-semibold">{active.title}</h2>
               {active.description ? (
                 <p className="text-muted-foreground">{active.description}</p>
+              ) : null}
+              {active.hasVideo ? (
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {(active.viewCount ?? 0).toLocaleString("fr-MG")} vue
+                  {(active.viewCount ?? 0) === 1 ? "" : "s"}
+                </p>
               ) : null}
               {course.canWatch && active.hasVideo ? (
                 <Button
@@ -170,6 +187,12 @@ export default function CoursePage() {
                     {completed.has(l.id) ? "✓ " : ""}
                     {l.position + 1}. {l.title}
                   </span>
+                  {l.hasVideo ? (
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
+                      {(l.viewCount ?? 0).toLocaleString("fr-MG")} vue
+                      {(l.viewCount ?? 0) === 1 ? "" : "s"}
+                    </span>
+                  ) : null}
                 </button>
               </li>
             ))}

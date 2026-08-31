@@ -42,6 +42,7 @@ export const POST = withApiHandler(
           position: lesson.position,
           durationSec: lesson.durationSec,
           hasVideo: false,
+          viewCount: 0,
         },
         { status: 201 }
       );

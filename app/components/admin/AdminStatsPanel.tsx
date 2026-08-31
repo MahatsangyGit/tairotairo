@@ -36,6 +36,7 @@ interface AdminStats {
   reviews: { total: number; averageRating: number | null };
   messaging: { conversations: number; messages: number };
   transactions: { successful: number; totalRevenue: number };
+  learning: { videoViewsTotal: number; videoViewsLast30: number };
 }
 
 const EXPORT_OPTIONS = [
@@ -236,6 +237,12 @@ export default function AdminStatsPanel() {
             value={stats.reviews.averageRating ?? "—"}
             hint={`${stats.reviews.total} avis`}
             accent="neutral"
+          />
+          <StatCard
+            label="Vues Ampianaro"
+            value={stats.learning.videoViewsTotal}
+            hint={`${stats.learning.videoViewsLast30} sur 30 j — onglet Rapport`}
+            accent="blue"
           />
         </div>
       </section>

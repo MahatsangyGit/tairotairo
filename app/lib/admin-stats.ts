@@ -40,6 +40,8 @@ export async function getAdminStats() {
     messagesTotal,
     transactionsSuccess,
     revenueAgg,
+    videoViewsTotal,
+    videoViewsLast30,
   ] = await Promise.all([
     prisma.user.count({ where: { role: "CLIENT" } }),
     prisma.user.count({ where: { role: "PROVIDER" } }),
@@ -86,6 +88,8 @@ export async function getAdminStats() {
       where: { status: { in: ["ESCROWED", "RELEASED"] } },
       _sum: { amount: true },
     }),
+    prisma.lessonVideoView.count(),
+    prisma.lessonVideoView.count({ where: { createdAt: { gte: last30 } } }),
   ]);
 
   const topCategories = await prisma.service.groupBy({
@@ -157,6 +161,10 @@ export async function getAdminStats() {
     transactions: {
       successful: transactionsSuccess,
       totalRevenue: revenueAgg._sum?.amount ?? 0,
+    },
+    learning: {
+      videoViewsTotal,
+      videoViewsLast30,
     },
   };
 }

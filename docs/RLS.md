@@ -218,6 +218,16 @@ La clé `videoKey` n’est jamais exposée publiquement ; lecture via `/api/lear
 |--------|--------|------|-------|
 | SELECT / INSERT / UPDATE / DELETE | — | Self (`userId`) | ✓ |
 
+### `LessonVideoView`
+
+| Action | Public | Self | ADMIN |
+|--------|--------|------|-------|
+| SELECT | — | Self (`userId`) | Tous |
+| INSERT | — | Self | ✓ |
+| UPDATE / DELETE | — | — | ✓ |
+
+Le compteur `CourseLesson.viewCount` est incrémenté côté API (bypass RLS) pour ne pas exposer qui a regardé quoi. Une vue n’est pas comptée sur le GET stream (requêtes Range).
+
 ---
 
 ## Configuration

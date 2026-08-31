@@ -62,6 +62,7 @@ model User {
   coursesCreated          Course[]           @relation("CourseAuthor")
   courseEnrollments       CourseEnrollment[]
   lessonProgress          LessonProgress[]
+  lessonVideoViews        LessonVideoView[]
 
   @@index([role])
   @@index([kycStatus])
