@@ -15,8 +15,11 @@ services:
       timeout: 5s
       retries: 5
 
+  # Redis 8 Open Source, used under RSALv2 (not SSPL/AGPL):
+  # self-hosted marketplace backend, not Redis offered as a service.
+  # https://redis.io/legal/licenses/
   redis:
-    image: redis:7-alpine
+    image: redis:8-alpine
     ports:
       - "6379:6379"
     healthcheck:

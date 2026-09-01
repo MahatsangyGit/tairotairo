@@ -6,7 +6,7 @@ Marketplace de services à Madagascar — Next.js 16 (App Router) avec serveur N
 
 - Node.js 20+
 - PostgreSQL 16+
-- Redis 7+ (recommandé en production)
+- Redis 8 (recommandé en production ; licence **RSALv2** — usage backend self-hosted, pas Redis-as-a-service)
 
 ## Développement local
 
@@ -45,6 +45,10 @@ docker compose up --build
 ```
 
 Healthcheck : `GET /api/health`
+
+Compose et CI utilisent `redis:8-alpine`, sous **RSALv2** (marketplace self-hosted : Redis n’est pas offert comme service). `REDIS_URL` et le client `ioredis` / BullMQ restent inchangés.
+
+Sur un VPS déjà en Redis 7 **avec** persistance : sauvegarder `dump.rdb` / AOF, puis remplacer le binaire. Redis 8 lit un dump 7 ; un retour à 7 n’est pas possible sans vider les données. Compose n’a pas de volume Redis (état jetable).
 
 ### Cron abonnements
 
