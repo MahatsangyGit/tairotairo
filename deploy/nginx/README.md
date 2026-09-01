@@ -14,7 +14,7 @@ Ce dossier contient la config NGINX de production (reverse proxy + TLS + WS + mu
 - 2 process Node en écoute :
   - `127.0.0.1:3001`
   - `127.0.0.1:3002`
-- Redis (BullMQ, rate limit, realtime pub/sub)
+- Redis 8 (RSALv2 ; BullMQ, rate limit, realtime pub/sub)
 - PostgreSQL (local ou managé)
 - Object storage (S3/R2/MinIO ou Vercel Blob) — pas de médiathèque locale
 
