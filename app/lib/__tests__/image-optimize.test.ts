@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import sharp from "sharp";
-import { optimizeUploadImage } from "@/lib/image-optimize";
-import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
+import { optimizeUploadImage } from "@/lib/media/image-optimize";
+import { optimizeUploadImageDispatched } from "@/lib/media/image-optimize-dispatch";
 
 describe("optimizeUploadImage", () => {
   it("normalizes jpeg to webp avatar preset", async () => {

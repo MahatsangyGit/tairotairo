@@ -8,7 +8,7 @@ import { SERVICE_CATEGORIES } from "@/lib/categories";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
 import ListingFormFields from "@/components/listings/ListingFormFields";
 import OptimizedImage from "@/components/ui/OptimizedImage";
-import { syncListingCover } from "@/lib/listing-cover-sync";
+import { syncListingCover } from "@/lib/listings/listing-cover-sync";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import { useListingCrud } from "@/hooks/useListingCrud";
 import { apiFetch, apiFetchJson } from "@/lib/api-client";

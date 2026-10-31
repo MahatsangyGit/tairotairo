@@ -1,6 +1,6 @@
 import { NextRequest } from "next/server";
-import { JwtPayload } from "@/lib/jwt";
-import { resolveActiveAuth } from "@/lib/active-session";
+import { JwtPayload } from "@/lib/auth/jwt";
+import { resolveActiveAuth } from "@/lib/auth/active-session";
 import {
   throwForbidden,
   throwUnauthorized,

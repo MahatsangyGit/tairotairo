@@ -1,20 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import type { JwtPayload } from "@/lib/jwt";
+import type { JwtPayload } from "@/lib/auth/jwt";
 import { requireEmailVerified } from "@/lib/auth";
 import { throwForbidden, throwNotFound, throwUnlessOk } from "@/lib/api-handler";
-import { assertProviderKycApproved } from "@/lib/provider-kyc";
+import { assertProviderKycApproved } from "@/lib/kyc/provider-kyc";
 import {
   deleteListingCoverFiles,
   readListingCoverFile,
   saveListingCoverFile,
   validateListingCoverFile,
-} from "@/lib/listing-cover-storage";
-import { buildListingCoverUrl, type ListingCoverKind } from "@/lib/listing-cover";
+} from "@/lib/listings/listing-cover-storage";
+import { buildListingCoverUrl, type ListingCoverKind } from "@/lib/listings/listing-cover";
 import {
   createImageResponse,
   isVersionedImageRequest,
-} from "@/lib/image-response";
+} from "@/lib/media/image-response";
 import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
 import { rejectInvalidUploadContentLength } from "@/lib/http-security";
 

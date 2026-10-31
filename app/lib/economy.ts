@@ -4,7 +4,7 @@ import {
   type ServiceCategory,
 } from "@/lib/categories";
 import { isProfessionalClient } from "@/lib/client-kind";
-import type { BookingDisplaySnapshot } from "@/lib/booking-display";
+import type { BookingDisplaySnapshot } from "@/lib/booking/booking-display";
 
 /** Commission services, prélevée sur le prestataire (client paie le prix affiché). */
 export const SERVICE_COMMISSION_RATES: Record<ServiceCategory, number> = {

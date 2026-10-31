@@ -2,14 +2,14 @@ import path from "path";
 import {
   LISTING_COVER_MAX_FILE_BYTES,
   type ListingCoverKind,
-} from "@/lib/listing-cover";
-import type { AvatarAllowedMime } from "@/lib/avatar";
+} from "@/lib/listings/listing-cover";
+import type { AvatarAllowedMime } from "@/lib/media/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
+import { optimizeUploadImageDispatched } from "@/lib/media/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
   validateImageUpload,
-} from "@/lib/image-storage";
+} from "@/lib/media/image-storage";
 import {
   deleteKeysWithBasename,
   findKeyWithBasename,

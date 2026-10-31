@@ -1,8 +1,8 @@
 import { cookies } from "next/headers";
 import prisma from "@/lib/prisma";
-import { verifyToken } from "@/lib/jwt";
-import { getAuthCookieName } from "@/lib/auth-cookie";
-import type { AuthUser } from "@/lib/auth-user";
+import { verifyToken } from "@/lib/auth/jwt";
+import { getAuthCookieName } from "@/lib/auth/auth-cookie";
+import type { AuthUser } from "@/lib/auth/auth-user";
 import { rlsContextFromAuth, runWithRls } from "@/lib/rls";
 
 /**

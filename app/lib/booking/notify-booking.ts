@@ -1,8 +1,8 @@
 import prisma from "@/lib/prisma";
-import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { getBookingDisplayInfo } from "@/lib/booking/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { dispatchNotification } from "@/lib/notifications";
-import { NOTIFICATION_TYPES } from "@/lib/notification-types";
+import { NOTIFICATION_TYPES } from "@/lib/notifications/notification-types";
 
 async function loadBookingContext(bookingId: string) {
   return prisma.booking.findUnique({

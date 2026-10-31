@@ -8,7 +8,7 @@ import TimeSlotFields from "@/components/scheduling/TimeSlotFields";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import ListingFormFields from "@/components/listings/ListingFormFields";
-import { syncListingCover } from "@/lib/listing-cover-sync";
+import { syncListingCover } from "@/lib/listings/listing-cover-sync";
 import { useListingCrud } from "@/hooks/useListingCrud";
 import { apiFetch, apiFetchJson } from "@/lib/api-client";
 import ClientPageHeader from "@/components/layout/ClientPageHeader";

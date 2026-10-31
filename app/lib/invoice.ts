@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { withBypassRls } from "@/lib/rls";
-import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { getBookingDisplayInfo } from "@/lib/booking/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { SITE_NAME, PARENT_COMPANY } from "@/lib/site";
 import { isProfessionalClient } from "@/lib/client-kind";

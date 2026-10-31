@@ -7,11 +7,11 @@ import "dotenv/config";
 process.env.TAIRO_CUSTOM_SERVER = "1";
 
 import { validateDatabaseUrl } from "./app/lib/database-url";
-import { validateJwtSecret } from "./app/lib/jwt-secret";
+import { validateJwtSecret } from "./app/lib/auth/jwt-secret";
 import { disconnectPrisma } from "./app/lib/prisma";
 import { validateEnvAtBoot } from "./app/lib/env";
 import { disconnectRedis } from "./app/lib/redis";
-import { disconnectImageOptimizeQueue } from "./app/lib/image-optimize-queue";
+import { disconnectImageOptimizeQueue } from "./app/lib/media/image-optimize-queue";
 
 try {
   validateDatabaseUrl();

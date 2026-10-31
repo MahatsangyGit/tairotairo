@@ -1,5 +1,5 @@
 import { SignJWT, jwtVerify } from "jose";
-import { getJwtSecret } from "@/lib/jwt-secret";
+import { getJwtSecret } from "@/lib/auth/jwt-secret";
 
 const JWT_EXPIRES_IN = "7d";
 

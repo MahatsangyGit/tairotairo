@@ -2,10 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthOrThrow, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
-import { notifyBookingCreated } from "@/lib/notify-booking";
-import { prepareBookingForApi } from "@/lib/booking-status";
-import { bookingIncludeForRole } from "@/lib/booking-include";
-import { snapshotFromService } from "@/lib/booking-display";
+import { notifyBookingCreated } from "@/lib/booking/notify-booking";
+import { prepareBookingForApi } from "@/lib/booking/booking-status";
+import { bookingIncludeForRole } from "@/lib/booking/booking-include";
+import { snapshotFromService } from "@/lib/booking/booking-display";
 import { withServiceCommission } from "@/lib/economy";
 import {
   parseScheduleInput,

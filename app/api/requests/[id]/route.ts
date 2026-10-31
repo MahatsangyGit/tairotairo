@@ -3,11 +3,11 @@ import prisma from "@/lib/prisma";
 import { getAuthUser } from "@/lib/auth";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import { canViewRequestClientPhone } from "@/lib/contact-privacy";
-import { withCoverImageUrl } from "@/lib/listing-cover";
+import { withCoverImageUrl } from "@/lib/listings/listing-cover";
 import {
   handleRequestDelete,
   handleRequestPatch,
-} from "@/lib/listing-crud-handlers";
+} from "@/lib/listings/listing-crud-handlers";
 
 export const GET = withApiHandler(
   "GET /api/requests/[id]",

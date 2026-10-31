@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
-import { readPortfolioImage } from "@/lib/portfolio-storage";
+import { readPortfolioImage } from "@/lib/portfolio/portfolio-storage";
 import {
   createImageResponse,
   isVersionedImageRequest,
-} from "@/lib/image-response";
+} from "@/lib/media/image-response";
 import { withApiHandler } from "@/lib/api-handler";
 
 export const runtime = "nodejs";

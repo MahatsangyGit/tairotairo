@@ -1,6 +1,6 @@
 "use client";
 
-import type { BookingStatus } from "@/lib/booking-status";
+import type { BookingStatus } from "@/lib/booking/booking-status";
 
 export function BookingsActionError({
   message,

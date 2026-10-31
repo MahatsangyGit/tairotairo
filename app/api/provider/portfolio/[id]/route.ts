@@ -6,12 +6,12 @@ import { PORTFOLIO_MAX_DESCRIPTION_LENGTH } from "@/lib/portfolio";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
-} from "@/lib/portfolio-serialize";
+} from "@/lib/portfolio/portfolio-serialize";
 import {
   deletePortfolioItemFiles,
   savePortfolioImage,
   validatePortfolioImageFile,
-} from "@/lib/portfolio-storage";
+} from "@/lib/portfolio/portfolio-storage";
 import {
   parseBody,
   parseJsonBody,

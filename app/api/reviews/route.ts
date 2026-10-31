@@ -11,7 +11,7 @@ import {
 import {
   canReviewBooking,
   isBookingPaidViaApp,
-} from "@/lib/booking-status";
+} from "@/lib/booking/booking-status";
 import { paidReviewWhere } from "@/lib/paid-reviews";
 import { isPrismaKnownError } from "@/lib/errors";
 

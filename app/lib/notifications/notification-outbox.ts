@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { withBypassRls } from "@/lib/rls";
 import { sendNotificationEmail } from "@/lib/notifications";
-import { sendPushToUser } from "@/lib/push";
+import { sendPushToUser } from "@/lib/notifications/push";
 
 const MAX_ATTEMPTS = 5;
 const BATCH_SIZE = 50;

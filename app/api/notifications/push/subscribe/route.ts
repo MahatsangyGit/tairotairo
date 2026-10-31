@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthOrThrow } from "@/lib/auth";
-import { getVapidPublicKey, isPushConfigured } from "@/lib/push";
+import { getVapidPublicKey, isPushConfigured } from "@/lib/notifications/push";
 import {
   parseBody,
   parseJsonBody,

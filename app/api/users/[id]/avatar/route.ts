@@ -1,8 +1,8 @@
-import { readAvatarFile } from "@/lib/avatar-storage";
+import { readAvatarFile } from "@/lib/media/avatar-storage";
 import {
   createImageResponse,
   isVersionedImageRequest,
-} from "@/lib/image-response";
+} from "@/lib/media/image-response";
 import { InvalidStorageIdError } from "@/lib/storage-path";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 

@@ -9,11 +9,11 @@ import {
 import {
   portfolioItemInclude,
   serializePortfolioItem,
-} from "@/lib/portfolio-serialize";
+} from "@/lib/portfolio/portfolio-serialize";
 import {
   savePortfolioImage,
   validatePortfolioImageFile,
-} from "@/lib/portfolio-storage";
+} from "@/lib/portfolio/portfolio-storage";
 import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
 import { rejectInvalidUploadContentLength } from "@/lib/http-security";
 

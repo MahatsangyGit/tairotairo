@@ -1,5 +1,5 @@
 import { Queue, QueueEvents, type ConnectionOptions } from "bullmq";
-import type { ImageOptimizePreset, OptimizedImage } from "@/lib/image-optimize";
+import type { ImageOptimizePreset, OptimizedImage } from "@/lib/media/image-optimize";
 import { getStorageBackend } from "@/lib/storage/backend";
 import { randomUUID } from "crypto";
 
