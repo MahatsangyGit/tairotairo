@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { parseProviderAddress } from "@/lib/provider-address";
 import { MADAGASCAR_CITIES } from "@/lib/madagascar-cities";
 import { registerSchema } from "@/lib/schemas/auth";
+import {
+  createRequestSchema,
+  createServiceSchema,
+  patchRequestSchema,
+  patchServiceSchema,
+} from "@/lib/schemas/listings";
+import { createEquipmentSchema } from "@/lib/schemas/rental";
 
 const provider = {
   email: "presta@example.com",
@@ -76,5 +83,53 @@ describe("registerSchema — adresse prestataire", () => {
     expect(
       registerSchema.safeParse({ ...provider, role: "CLIENT" }).success
     ).toBe(true);
+  });
+});
+
+describe("schémas d'annonces — ville officielle", () => {
+  const baseService = {
+    title: "Réparation fuite d'eau",
+    description: "Intervention rapide à domicile",
+    category: "Plomberie",
+    price: 50000,
+  };
+
+  it("accepte une ville de la liste officielle sur service, demande et matériel", () => {
+    expect(
+      createServiceSchema.safeParse({ ...baseService, location: "Antananarivo" })
+        .success
+    ).toBe(true);
+    expect(
+      createRequestSchema.safeParse({
+        title: "Besoin plombier",
+        description: "Fuite sous évier",
+        category: "Plomberie",
+        budget: 40000,
+        location: "Toamasina",
+      }).success
+    ).toBe(true);
+    expect(
+      createEquipmentSchema.safeParse({
+        title: "Perceuse à percussion",
+        description: "En parfait état",
+        category: "POWER_TOOLS",
+        dailyPrice: 15000,
+        location: "Nosy Be",
+      }).success
+    ).toBe(true);
+  });
+
+  it("refuse une ville hors liste officielle à la création et à la modification", () => {
+    expect(
+      createServiceSchema.safeParse({ ...baseService, location: "Tana" })
+        .success
+    ).toBe(false);
+    expect(
+      patchServiceSchema.safeParse({ location: "Quartier libre" }).success
+    ).toBe(false);
+    expect(
+      patchRequestSchema.safeParse({ location: "Inconnu" }).success
+    ).toBe(false);
+    expect(patchServiceSchema.safeParse({ price: 60000 }).success).toBe(true);
   });
 });

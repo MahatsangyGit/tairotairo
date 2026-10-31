@@ -8,6 +8,7 @@ import {
   EQUIPMENT_CATEGORY_LABELS,
 } from "@/lib/rental/constants";
 import { Button } from "@/components/ui/button";
+import MadagascarCitySelect from "@/components/ui/madagascar-city-select";
 import { useAuth } from "@/components/auth/AuthProvider";
 import { isProfessionalClient } from "@/lib/client-kind";
 import RentalCommissionHint from "@/components/economy/RentalCommissionHint";
@@ -112,10 +113,11 @@ export default function PublishEquipmentPage() {
         </label>
         <label className="block text-sm">
           Ville
-          <input
+          <MadagascarCitySelect
             required
             value={location}
-            onChange={(e) => setLocation(e.target.value)}
+            onChange={setLocation}
+            placeholder="Choisir une ville"
             className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2"
           />
         </label>

@@ -4,6 +4,7 @@ import {
   SEARCH_SORT_OPTIONS,
   type SearchSort,
 } from "@/lib/advanced-search";
+import MadagascarCitySelect from "@/components/ui/madagascar-city-select";
 
 export interface AdvancedSearchFiltersProps {
   variant?: "brand" | "amber";
@@ -68,14 +69,13 @@ export default function AdvancedSearchFilters({
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <label className="block sm:col-span-2 lg:col-span-1">
           <span className="text-xs font-medium text-muted-foreground mb-1 block">
-            Localisation
+            Ville
           </span>
-          <input
-            type="text"
-            placeholder="Ville (ex: Antananarivo)"
+          <MadagascarCitySelect
             value={location}
-            onChange={(e) => onLocationChange(e.target.value)}
-            className={`w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none ${focusClass}`}
+            onChange={onLocationChange}
+            placeholder="Toutes les villes"
+            className={`w-full px-3 py-2 border border-border rounded-lg text-sm bg-card focus:outline-none ${focusClass}`}
           />
         </label>
 
@@ -129,7 +129,7 @@ export default function AdvancedSearchFilters({
 
       <p className="text-xs text-muted-foreground mt-3">
         Les mots-clés recherchent dans le titre, la description, la catégorie et
-        la localisation.
+        la ville.
         {showRatingSort
           ? " Le tri par note classe les prestataires les mieux notés en premier."
           : ""}

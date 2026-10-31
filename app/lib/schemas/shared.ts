@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { SERVICE_CATEGORIES } from "@/lib/categories";
-import { FIELD_LIMITS } from "@/lib/field-limits";
+import { findMadagascarCity } from "@/lib/madagascar-cities";
 import { validatePassword } from "@/lib/password-policy";
 import {
   MG_PHONE_ERROR,
@@ -27,6 +27,33 @@ export const nonNegativePriceSchema = z.coerce
 export const serviceCategorySchema = z.enum(SERVICE_CATEGORIES, {
   error: "Catégorie invalide",
 });
+
+export const requiredMadagascarCitySchema = z
+  .string()
+  .trim()
+  .min(1, "Ville est obligatoire")
+  .superRefine((value, ctx) => {
+    if (!findMadagascarCity(value)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Ville inconnue : choisissez une ville dans la liste",
+      });
+    }
+  });
+
+export const optionalMadagascarCitySchema = z
+  .string()
+  .trim()
+  .min(1, "Ville ne peut pas être vide")
+  .superRefine((value, ctx) => {
+    if (!findMadagascarCity(value)) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Ville inconnue : choisissez une ville dans la liste",
+      });
+    }
+  })
+  .optional();
 
 export function requiredText(label: string, maxLength: number) {
   return z
