@@ -43,6 +43,7 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
     clientKind,
     companyName,
     companyAddress,
+    providerAddress,
     nif,
     stat,
     rcs,
@@ -96,6 +97,8 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
       clientKind: safeClientKind,
       companyName: isProfessional ? displayName : null,
       companyAddress: isProfessional ? companyAddress ?? null : null,
+      providerAddress:
+        safeRole === "PROVIDER" ? providerAddress ?? null : null,
       nif: isProfessional ? nif ?? null : null,
       stat: isProfessional ? stat ?? null : null,
       rcs: isProfessional ? rcs ?? null : null,

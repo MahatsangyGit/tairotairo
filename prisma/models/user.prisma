@@ -23,6 +23,8 @@ model User {
   clientKind      ClientKind @default(INDIVIDUAL)
   companyName     String?
   companyAddress  String?
+  /// PROVIDER uniquement : 32 caractères max, lettres et chiffres.
+  providerAddress String?   @db.VarChar(32)
   suspendedAt          DateTime?
   failedLoginAttempts  Int       @default(0)
   loginLockedAt        DateTime?
