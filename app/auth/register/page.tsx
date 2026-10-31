@@ -24,6 +24,7 @@ import { Textarea } from "@/components/ui/textarea";
 import PhoneField from "@/components/profile/PhoneField";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
 import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
+import { PROVIDER_ADDRESS_MAX_LENGTH } from "@/lib/provider-address";
 import { cn } from "@/lib/utils";
 
 type AccountType = "CLIENT" | "CLIENT_PRO" | "PROVIDER";
@@ -72,6 +73,7 @@ function RegisterPageContent() {
   const [name, setName] = useState("");
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
+  const [providerAddress, setProviderAddress] = useState("");
   const [nif, setNif] = useState("");
   const [stat, setStat] = useState("");
   const [rcs, setRcs] = useState("");
@@ -84,6 +86,7 @@ function RegisterPageContent() {
   const [turnstileResetKey, setTurnstileResetKey] = useState(0);
 
   const isPro = accountType === "CLIENT_PRO";
+  const isProvider = accountType === "PROVIDER";
 
   const heading = useMemo(() => {
     if (isPro) return "Créer un compte entreprise";
@@ -112,6 +115,7 @@ function RegisterPageContent() {
           name: isPro ? companyName.trim() : name.trim(),
           companyName: isPro ? companyName.trim() : undefined,
           companyAddress: isPro ? companyAddress.trim() : undefined,
+          providerAddress: isProvider ? providerAddress.trim() : undefined,
           nif: isPro ? nif.trim() : undefined,
           stat: isPro ? stat.trim() : undefined,
           rcs: isPro ? rcs.trim() : undefined,
@@ -272,6 +276,29 @@ function RegisterPageContent() {
                       onChange={(e) => setName(e.target.value)}
                     />
                   </FormField>
+                  {isProvider ? (
+                    <FormField
+                      label="Adresse"
+                      htmlFor="providerAddress"
+                      hint={`${providerAddress.length}/${PROVIDER_ADDRESS_MAX_LENGTH} caractères — lettres et chiffres`}
+                    >
+                      <Input
+                        id="providerAddress"
+                        type="text"
+                        autoComplete="street-address"
+                        maxLength={PROVIDER_ADDRESS_MAX_LENGTH}
+                        placeholder="Lot IVG 45 Antanimena"
+                        value={providerAddress}
+                        onChange={(e) =>
+                          setProviderAddress(
+                            e.target.value
+                              .replace(/[^\p{L}\p{N} ]/gu, "")
+                              .slice(0, PROVIDER_ADDRESS_MAX_LENGTH)
+                          )
+                        }
+                      />
+                    </FormField>
+                  ) : null}
                 </>
               )}
 

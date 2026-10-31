@@ -11,6 +11,10 @@ import {
   optionalStatSchema,
 } from "@/lib/schemas/provider-legal";
 import { parsePublicRegistrationRole } from "@/lib/roles";
+import {
+  parseProviderAddress,
+  PROVIDER_ADDRESS_ERROR,
+} from "@/lib/provider-address";
 
 export const registerSchema = z
   .object({
@@ -43,6 +47,18 @@ export const registerSchema = z
         `Adresse trop longue (max ${FIELD_LIMITS.USER_COMPANY_ADDRESS} caractères)`
       )
       .optional(),
+    providerAddress: z
+      .string()
+      .optional()
+      .transform((value, ctx) => {
+        if (value === undefined || value.trim() === "") return undefined;
+        const parsed = parseProviderAddress(value);
+        if (!parsed) {
+          ctx.addIssue({ code: "custom", message: PROVIDER_ADDRESS_ERROR });
+          return z.NEVER;
+        }
+        return parsed;
+      }),
     nif: optionalNifSchema,
     stat: optionalStatSchema,
     rcs: optionalRcsSchema,
@@ -52,6 +68,14 @@ export const registerSchema = z
     const role = parsePublicRegistrationRole(data.role);
     const isPro =
       role === "CLIENT" && data.clientKind === "PROFESSIONAL";
+
+    if (role === "PROVIDER" && !data.providerAddress) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["providerAddress"],
+        message: "Adresse obligatoire",
+      });
+    }
 
     if (isPro) {
       const company = data.companyName || data.name;
