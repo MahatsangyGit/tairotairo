@@ -9,7 +9,7 @@ import {
   guestBrowseIntentFromPath,
   isGuestBrowsePath,
 } from "@/lib/guest-browse";
-import { getJwtSecret } from "@/lib/jwt-secret";
+import { getJwtSecret } from "@/lib/auth/jwt-secret";
 import {
   getLearningHost,
   getRentalHost,

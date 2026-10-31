@@ -12,7 +12,7 @@ import { MapPinIcon, StarIcon } from "@/components/ui/app-icons";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
-} from "@/lib/portfolio-serialize";
+} from "@/lib/portfolio/portfolio-serialize";
 import { withEiFlag } from "@/lib/provider-legal";
 
 export const revalidate = 300;

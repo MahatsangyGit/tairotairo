@@ -1,12 +1,12 @@
 import path from "path";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
-import type { AvatarAllowedMime } from "@/lib/avatar";
+import type { AvatarAllowedMime } from "@/lib/media/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImageDispatched } from "@/lib/image-optimize-dispatch";
+import { optimizeUploadImageDispatched } from "@/lib/media/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
   validateImageUpload,
-} from "@/lib/image-storage";
+} from "@/lib/media/image-storage";
 import {
   deleteKeysWithBasename,
   getStorageBackend,

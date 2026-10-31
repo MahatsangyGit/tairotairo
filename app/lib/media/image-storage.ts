@@ -3,11 +3,11 @@ import path from "path";
 import {
   AVATAR_ALLOWED_EXTENSIONS,
   AVATAR_ALLOWED_MIME_TYPES,
-} from "@/lib/avatar";
+} from "@/lib/media/avatar";
 import {
   detectImageMime,
   type ImageAllowedMime,
-} from "@/lib/image-upload-validation";
+} from "@/lib/media/image-upload-validation";
 
 export function validateImageUpload(
   file: File,

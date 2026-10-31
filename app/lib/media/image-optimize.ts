@@ -1,5 +1,5 @@
 import sharp from "sharp";
-import type { ImageAllowedMime } from "@/lib/image-upload-validation";
+import type { ImageAllowedMime } from "@/lib/media/image-upload-validation";
 import { toIsolatedBuffer } from "@/lib/isolated-buffer";
 
 export type OptimizedImage = {

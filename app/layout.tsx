@@ -11,7 +11,7 @@ import { MessagingRealtimeProvider } from "@/components/messages/MessagingRealti
 import PostHogProvider from "@/components/analytics/PostHogProvider";
 import CsrfProvider from "@/components/auth/CsrfProvider";
 import SiteChrome from "@/components/layout/SiteChrome";
-import { getCurrentAuthUser } from "@/lib/current-auth-user";
+import { getCurrentAuthUser } from "@/lib/auth/current-auth-user";
 import { BRAND_PRIMARY, SITE_NAME, SITE_TAGLINE } from "@/lib/site";
 import { cn } from "@/lib/utils";
 

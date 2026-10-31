@@ -4,7 +4,7 @@ import {
   requestOrderBy,
   type ParsedListSearch,
 } from "@/lib/advanced-search";
-import { withCoverImageUrl } from "@/lib/listing-cover";
+import { withCoverImageUrl } from "@/lib/listings/listing-cover";
 import { findRequestIdsByClientRating } from "@/lib/rating-sort-search";
 
 export async function searchPublicRequests(params: ParsedListSearch) {

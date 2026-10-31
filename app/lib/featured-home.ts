@@ -1,7 +1,7 @@
 import prisma from "@/lib/prisma";
 import { withAnonymousRls } from "@/lib/rls";
 import { isSubscriptionActive } from "@/lib/subscription";
-import { withCoverImageUrl } from "@/lib/listing-cover";
+import { withCoverImageUrl } from "@/lib/listings/listing-cover";
 import { paidReviewTransactionFilter } from "@/lib/paid-reviews";
 import { getProviderRatingMap } from "@/lib/rating-sort-search";
 import { withEiFlag, isEntrepriseIndividuelle } from "@/lib/provider-legal";

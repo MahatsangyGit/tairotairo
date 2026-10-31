@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuth, requireAuthOrThrow, requireRole, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler, throwNotFound, throwUnlessOk } from "@/lib/api-handler";
-import { notifyNewRequestResponse } from "@/lib/notify-requests";
-import { assertProviderKycApproved } from "@/lib/provider-kyc";
+import { notifyNewRequestResponse } from "@/lib/notifications/notify-requests";
+import { assertProviderKycApproved } from "@/lib/kyc/provider-kyc";
 import {
   parseBody,
   parseJsonBody,

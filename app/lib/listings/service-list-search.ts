@@ -6,7 +6,7 @@ import {
   type ParsedListSearch,
 } from "@/lib/advanced-search";
 import { getSubscribedProviderSuggestions } from "@/lib/provider-list-search";
-import { withCoverImageUrl } from "@/lib/listing-cover";
+import { withCoverImageUrl } from "@/lib/listings/listing-cover";
 import {
   findServiceIdsByProviderRating,
   getProviderRatingMap,

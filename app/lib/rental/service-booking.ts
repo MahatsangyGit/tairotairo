@@ -1,6 +1,6 @@
-import type { BookingStatus } from "@/lib/booking-status";
-import { BOOKING_STATUS_LABEL_PROVIDER } from "@/lib/booking-status";
-import { getBookingDisplayInfo } from "@/lib/booking-display";
+import type { BookingStatus } from "@/lib/booking/booking-status";
+import { BOOKING_STATUS_LABEL_PROVIDER } from "@/lib/booking/booking-status";
+import { getBookingDisplayInfo } from "@/lib/booking/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import { AppError } from "@/lib/errors";
 import prisma from "@/lib/prisma";

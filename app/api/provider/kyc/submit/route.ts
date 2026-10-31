@@ -3,8 +3,8 @@ import prisma from "@/lib/prisma";
 import { requireAuthOrThrow, requireRole, requireEmailVerified } from "@/lib/auth";
 import { withApiHandler } from "@/lib/api-handler";
 import { validateKycCompleteness } from "@/lib/kyc";
-import { getProviderKycPayload } from "@/lib/provider-kyc";
-import { notifyKycPending } from "@/lib/notify-kyc";
+import { getProviderKycPayload } from "@/lib/kyc/provider-kyc";
+import { notifyKycPending } from "@/lib/notifications/notify-kyc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

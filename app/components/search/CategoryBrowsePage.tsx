@@ -14,7 +14,7 @@ import {
 import prisma from "@/lib/prisma";
 import { buildRequestWhere, buildServiceWhere } from "@/lib/advanced-search";
 import { SEO_SCHEMA_PATHS } from "@/lib/seo-schema-routes";
-import type { ListingKind } from "@/lib/listing-cover";
+import type { ListingKind } from "@/lib/listings/listing-cover";
 
 export async function countCategoryListings(
   kind: ListingKind,

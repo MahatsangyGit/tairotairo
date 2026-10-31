@@ -4,7 +4,7 @@ import { withApiHandler } from "@/lib/api-handler";
 import {
   isImageWorkerHealthy,
   resolveImageOptimizeMode,
-} from "@/lib/image-optimize-queue";
+} from "@/lib/media/image-optimize-queue";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

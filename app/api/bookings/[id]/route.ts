@@ -12,12 +12,12 @@ import {
   canTransitionStatus,
   prepareBookingForApi,
   normalizeBookingStatus,
-} from "@/lib/booking-status";
+} from "@/lib/booking/booking-status";
 import {
   notifyBookingCancelled,
   notifyBookingCompleted,
   notifyBookingConfirmed,
-} from "@/lib/notify-booking";
+} from "@/lib/booking/notify-booking";
 import {
   refundEscrowToClient,
   releaseEscrowToProvider,
@@ -27,7 +27,7 @@ import {
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
-import { bookingMutationInclude } from "@/lib/booking-include";
+import { bookingMutationInclude } from "@/lib/booking/booking-include";
 
 export const dynamic = "force-dynamic";
 

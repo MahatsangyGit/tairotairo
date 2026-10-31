@@ -7,8 +7,8 @@ import {
   resolveCinSlot,
   saveKycFile,
   validateKycUploadFile,
-} from "@/lib/kyc-storage";
-import { getProviderKycPayload } from "@/lib/provider-kyc";
+} from "@/lib/kyc/kyc-storage";
+import { getProviderKycPayload } from "@/lib/kyc/provider-kyc";
 import type { KycDocumentType } from "@/lib/kyc";
 import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
 import { rejectInvalidUploadContentLength } from "@/lib/http-security";

@@ -1,6 +1,6 @@
 import { test, expect } from "@playwright/test";
 import pg from "pg";
-import { LOGIN_LOCKED_MESSAGE, MAX_FAILED_LOGIN_ATTEMPTS } from "../app/lib/login-lockout";
+import { LOGIN_LOCKED_MESSAGE, MAX_FAILED_LOGIN_ATTEMPTS } from "../app/lib/auth/login-lockout";
 import {
   apiPatch,
   apiPost,

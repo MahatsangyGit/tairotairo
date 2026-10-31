@@ -11,7 +11,7 @@ import {
   BOOKING_STATUS_LABEL,
   CLIENT_BOOKING_FILTERS,
   isBookingPaidViaApp,
-} from "@/lib/booking-status";
+} from "@/lib/booking/booking-status";
 import { apiFetchJson } from "@/lib/api-client";
 import { messageFromApiAction } from "@/lib/api-action-error";
 import ClientPageHeader from "@/components/layout/ClientPageHeader";

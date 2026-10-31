@@ -7,7 +7,7 @@ import {
   getConversationForParticipant,
   getCounterpartyFromConversation,
 } from "@/lib/conversations";
-import { notifyMessageReceived } from "@/lib/notify-messages";
+import { notifyMessageReceived } from "@/lib/notifications/notify-messages";
 import { serializeMessage } from "@/lib/message-serialize";
 import { publishMessageCreated } from "@/lib/realtime/publish";
 import {

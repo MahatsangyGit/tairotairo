@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthOrThrow } from "@/lib/auth";
-import { buildAvatarApiPath } from "@/lib/avatar";
+import { buildAvatarApiPath } from "@/lib/media/avatar";
 import {
   deleteAvatarFiles,
   saveAvatarFile,
   validateAvatarUploadFile,
-} from "@/lib/avatar-storage";
+} from "@/lib/media/avatar-storage";
 import { withApiHandler } from "@/lib/api-handler";
 import { API_RATE_LIMITS, enforceRateLimit } from "@/lib/rate-limit";
 import { rejectInvalidUploadContentLength } from "@/lib/http-security";

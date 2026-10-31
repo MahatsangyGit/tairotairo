@@ -4,13 +4,13 @@ import { getAuthUser } from "@/lib/auth";
 import { withApiHandler, throwNotFound } from "@/lib/api-handler";
 import { isKycApproved } from "@/lib/kyc";
 import { stripPhone } from "@/lib/contact-privacy";
-import { withCoverImageUrl } from "@/lib/listing-cover";
+import { withCoverImageUrl } from "@/lib/listings/listing-cover";
 import { paidReviewWhere } from "@/lib/paid-reviews";
 import { withEiFlag } from "@/lib/provider-legal";
 import {
   handleServiceDelete,
   handleServicePatch,
-} from "@/lib/listing-crud-handlers";
+} from "@/lib/listings/listing-crud-handlers";
 
 export const GET = withApiHandler(
   "GET /api/services/[id]",

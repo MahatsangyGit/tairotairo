@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthOrThrow, requireRole } from "@/lib/auth";
 import { withApiHandler } from "@/lib/api-handler";
-import { deleteKycFile, readKycFile } from "@/lib/kyc-storage";
-import { getProviderKycPayload, resetProviderKycIfIncomplete } from "@/lib/provider-kyc";
+import { deleteKycFile, readKycFile } from "@/lib/kyc/kyc-storage";
+import { getProviderKycPayload, resetProviderKycIfIncomplete } from "@/lib/kyc/provider-kyc";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

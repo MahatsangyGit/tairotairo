@@ -9,7 +9,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { AuthUser } from "@/lib/auth-user";
+import type { AuthUser } from "@/lib/auth/auth-user";
 
 export type { AuthUser };
 

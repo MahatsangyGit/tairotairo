@@ -3,7 +3,7 @@ import {
   generateCsrfToken,
   getCsrfCookieName,
   getCsrfCookieOptions,
-} from "@/lib/csrf";
+} from "@/lib/auth/csrf";
 import { withApiHandler } from "@/lib/api-handler";
 
 export const GET = withApiHandler("GET /api/auth/csrf", async () => {

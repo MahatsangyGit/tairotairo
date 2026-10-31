@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireCronSecret } from "@/lib/cron-auth";
-import { processNotificationOutbox } from "@/lib/notification-outbox";
+import { processNotificationOutbox } from "@/lib/notifications/notification-outbox";
 import { withApiHandler } from "@/lib/api-handler";
 
 export const dynamic = "force-dynamic";

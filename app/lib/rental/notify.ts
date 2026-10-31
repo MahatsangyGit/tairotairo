@@ -1,6 +1,6 @@
 import prisma from "@/lib/prisma";
 import { dispatchNotification } from "@/lib/notifications";
-import { NOTIFICATION_TYPES } from "@/lib/notification-types";
+import { NOTIFICATION_TYPES } from "@/lib/notifications/notification-types";
 import { absoluteVerticalUrl } from "@/lib/origins";
 import { withBypassRls } from "@/lib/rls";
 
