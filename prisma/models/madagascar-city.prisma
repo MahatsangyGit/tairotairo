@@ -1,0 +1,6 @@
+model MadagascarCity {
+  id       String @id
+  name     String @unique
+  region   String
+  providers User[]
+}

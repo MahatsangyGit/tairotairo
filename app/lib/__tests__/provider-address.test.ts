@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseProviderAddress } from "@/lib/provider-address";
+import { MADAGASCAR_CITIES } from "@/lib/madagascar-cities";
 import { registerSchema } from "@/lib/schemas/auth";
 
 const provider = {
@@ -28,6 +29,15 @@ describe("parseProviderAddress", () => {
   });
 });
 
+describe("communes urbaines de Madagascar", () => {
+  it("compte 76 noms uniques", () => {
+    const names = MADAGASCAR_CITIES.map((city) => city.name);
+    expect(new Set(names).size).toBe(76);
+    expect(names).toContain("Antananarivo");
+    expect(names).toContain("Toamasina");
+  });
+});
+
 describe("registerSchema — adresse prestataire", () => {
   it("exige l'adresse pour un prestataire", () => {
     expect(registerSchema.safeParse(provider).success).toBe(false);
@@ -37,6 +47,7 @@ describe("registerSchema — adresse prestataire", () => {
     const parsed = registerSchema.safeParse({
       ...provider,
       providerAddress: "Lot IVG 45 Antanimena",
+      providerCity: "Antananarivo",
     });
     expect(parsed.success).toBe(true);
     if (parsed.success) {
@@ -48,6 +59,16 @@ describe("registerSchema — adresse prestataire", () => {
     expect(
       registerSchema.safeParse({ ...provider, providerAddress: "Lot 45 / Bis" })
         .success
+    ).toBe(false);
+  });
+
+  it("refuse une ville hors référentiel", () => {
+    expect(
+      registerSchema.safeParse({
+        ...provider,
+        providerAddress: "Lot IVG 45 Antanimena",
+        providerCity: "Tana",
+      }).success
     ).toBe(false);
   });
 

@@ -44,6 +44,7 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
     companyName,
     companyAddress,
     providerAddress,
+    providerCity,
     nif,
     stat,
     rcs,
@@ -87,6 +88,18 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
     ? (companyName || name || "").trim()
     : (name || "").trim();
 
+  let providerCityId: string | null = null;
+  if (safeRole === "PROVIDER" && providerCity) {
+    const city = await prisma.madagascarCity.findUnique({
+      where: { name: providerCity },
+      select: { id: true },
+    });
+    if (!city) {
+      return NextResponse.json({ error: "Ville inconnue" }, { status: 400 });
+    }
+    providerCityId = city.id;
+  }
+
   const user = await prisma.user.create({
     data: {
       name: displayName,
@@ -99,6 +112,7 @@ export const POST = withApiHandler("POST /api/auth/register", async (req) => {
       companyAddress: isProfessional ? companyAddress ?? null : null,
       providerAddress:
         safeRole === "PROVIDER" ? providerAddress ?? null : null,
+      providerCityId,
       nif: isProfessional ? nif ?? null : null,
       stat: isProfessional ? stat ?? null : null,
       rcs: isProfessional ? rcs ?? null : null,

@@ -15,6 +15,7 @@ import {
   parseProviderAddress,
   PROVIDER_ADDRESS_ERROR,
 } from "@/lib/provider-address";
+import { findMadagascarCity } from "@/lib/madagascar-cities";
 
 export const registerSchema = z
   .object({
@@ -59,6 +60,7 @@ export const registerSchema = z
         }
         return parsed;
       }),
+    providerCity: z.string().trim().optional(),
     nif: optionalNifSchema,
     stat: optionalStatSchema,
     rcs: optionalRcsSchema,
@@ -69,12 +71,27 @@ export const registerSchema = z
     const isPro =
       role === "CLIENT" && data.clientKind === "PROFESSIONAL";
 
-    if (role === "PROVIDER" && !data.providerAddress) {
-      ctx.addIssue({
-        code: "custom",
-        path: ["providerAddress"],
-        message: "Adresse obligatoire",
-      });
+    if (role === "PROVIDER") {
+      if (!data.providerAddress) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["providerAddress"],
+          message: "Adresse obligatoire",
+        });
+      }
+      if (!data.providerCity) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["providerCity"],
+          message: "Ville obligatoire",
+        });
+      } else if (!findMadagascarCity(data.providerCity)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["providerCity"],
+          message: "Ville inconnue",
+        });
+      }
     }
 
     if (isPro) {

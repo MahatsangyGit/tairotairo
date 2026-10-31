@@ -28,6 +28,7 @@
 .cursorrules
 /.agents
 /.claude
+/.excel_work
 
 # misc
 .DS_Store
