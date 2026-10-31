@@ -168,6 +168,7 @@ export async function registerUser(
     role: "CLIENT" | "PROVIDER";
     phone?: string;
     providerAddress?: string;
+    providerCity?: string;
   }
 ) {
   const phone = data.phone ?? uniqueMgPhone(data.email);
@@ -175,8 +176,12 @@ export async function registerUser(
     data.role === "PROVIDER"
       ? data.providerAddress ?? "Lot E2E 1"
       : data.providerAddress;
+  const providerCity =
+    data.role === "PROVIDER"
+      ? data.providerCity ?? "Antananarivo"
+      : data.providerCity;
   const res = await request.post("/api/auth/register", {
-    data: { ...data, phone, providerAddress, ...turnstileFields() },
+    data: { ...data, phone, providerAddress, providerCity, ...turnstileFields() },
     headers: identityHeaders(data.email),
   });
   const body = await res.json();

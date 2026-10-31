@@ -25,6 +25,7 @@ import PhoneField from "@/components/profile/PhoneField";
 import TurnstileWidget from "@/components/security/TurnstileWidget";
 import { isTurnstileClientEnabled } from "@/lib/turnstile-config";
 import { PROVIDER_ADDRESS_MAX_LENGTH } from "@/lib/provider-address";
+import { madagascarCitiesByRegion } from "@/lib/madagascar-cities";
 import { cn } from "@/lib/utils";
 
 type AccountType = "CLIENT" | "CLIENT_PRO" | "PROVIDER";
@@ -74,6 +75,7 @@ function RegisterPageContent() {
   const [companyName, setCompanyName] = useState("");
   const [companyAddress, setCompanyAddress] = useState("");
   const [providerAddress, setProviderAddress] = useState("");
+  const [providerCity, setProviderCity] = useState("");
   const [nif, setNif] = useState("");
   const [stat, setStat] = useState("");
   const [rcs, setRcs] = useState("");
@@ -116,6 +118,7 @@ function RegisterPageContent() {
           companyName: isPro ? companyName.trim() : undefined,
           companyAddress: isPro ? companyAddress.trim() : undefined,
           providerAddress: isProvider ? providerAddress.trim() : undefined,
+          providerCity: isProvider ? providerCity : undefined,
           nif: isPro ? nif.trim() : undefined,
           stat: isPro ? stat.trim() : undefined,
           rcs: isPro ? rcs.trim() : undefined,
@@ -277,6 +280,7 @@ function RegisterPageContent() {
                     />
                   </FormField>
                   {isProvider ? (
+                    <>
                     <FormField
                       label="Adresse"
                       htmlFor="providerAddress"
@@ -298,6 +302,31 @@ function RegisterPageContent() {
                         }
                       />
                     </FormField>
+                    <FormField
+                      label="Ville"
+                      htmlFor="providerCity"
+                      hint="Commune urbaine officielle, identique pour toute la recherche"
+                    >
+                      <select
+                        id="providerCity"
+                        required
+                        value={providerCity}
+                        onChange={(e) => setProviderCity(e.target.value)}
+                        className="h-9 w-full rounded-4xl border border-input bg-input/30 px-3 text-sm outline-none focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
+                      >
+                        <option value="">Choisir une ville</option>
+                        {madagascarCitiesByRegion().map((group) => (
+                          <optgroup key={group.region} label={group.region}>
+                            {group.cities.map((city) => (
+                              <option key={city.name} value={city.name}>
+                                {city.name}
+                              </option>
+                            ))}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </FormField>
+                    </>
                   ) : null}
                 </>
               )}

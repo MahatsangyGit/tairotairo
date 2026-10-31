@@ -25,6 +25,9 @@ model User {
   companyAddress  String?
   /// PROVIDER uniquement : 32 caractères max, lettres et chiffres.
   providerAddress String?   @db.VarChar(32)
+  /// PROVIDER uniquement : commune urbaine du référentiel MadagascarCity.
+  providerCityId  String?
+  providerCity    MadagascarCity? @relation(fields: [providerCityId], references: [id])
   suspendedAt          DateTime?
   failedLoginAttempts  Int       @default(0)
   loginLockedAt        DateTime?
@@ -70,6 +73,7 @@ model User {
   @@index([kycStatus])
   @@index([featuredOnHomepage])
   @@index([clientKind])
+  @@index([providerCityId])
 }
 
 enum Role {
