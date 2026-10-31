@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { getBookingDisplayInfo } from "@/lib/booking/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
-import OpenBookingChatButton from "@/components/messages/OpenBookingChatButton";
 import { MapPinIcon } from "@/components/ui/app-icons";
 import {
   type BookingStatus,
@@ -14,6 +12,10 @@ import {
   paymentStatusLabel,
 } from "@/lib/booking/booking-status";
 import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
+import {
+  BookingCardActions,
+  BookingScheduleEditor,
+} from "@/components/booking/BookingCardSections";
 
 export interface BookingCardData {
   id: string;
@@ -171,7 +173,9 @@ export default function BookingCard({
             )}
           </div>
           <h3 className="font-semibold text-foreground">{display.title}</h3>
-          <p className="text-muted-foreground text-sm mt-0.5"><MapPinIcon /> {display.location}</p>
+          <p className="text-muted-foreground text-sm mt-0.5">
+            <MapPinIcon /> {display.location}
+          </p>
         </div>
         <span
           className={`text-xs font-medium px-2.5 py-1 rounded-full border shrink-0 ${BOOKING_STATUS_CLASS[booking.status]}`}
@@ -246,233 +250,51 @@ export default function BookingCard({
       </div>
 
       {canEditSchedule && (needsDate || editingSchedule) && (
-        <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50/60 p-3 space-y-3">
-          <p className="text-xs font-medium text-amber-900">
-            {needsDate
-              ? "Aucune date prévue — choisissez quand la prestation aura lieu."
-              : "Modifier la date de prestation"}
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            <div>
-              <label htmlFor={`booking-date-${booking.id}`} className="sr-only">
-                Date
-              </label>
-              <input
-                id={`booking-date-${booking.id}`}
-                type="date"
-                value={draftDate}
-                onChange={(e) => setDraftDate(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card"
-              />
-            </div>
-            <div>
-              <label htmlFor={`booking-start-${booking.id}`} className="sr-only">
-                Début
-              </label>
-              <input
-                id={`booking-start-${booking.id}`}
-                type="time"
-                value={draftSlotStart}
-                onChange={(e) => setDraftSlotStart(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card"
-              />
-            </div>
-            <div>
-              <label htmlFor={`booking-end-${booking.id}`} className="sr-only">
-                Fin
-              </label>
-              <input
-                id={`booking-end-${booking.id}`}
-                type="time"
-                value={draftSlotEnd}
-                onChange={(e) => setDraftSlotEnd(e.target.value)}
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-card"
-              />
-            </div>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={saveSchedule}
-              disabled={isBusy || !draftDate}
-              className="text-sm bg-brand-600 text-white font-medium px-3 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50"
-            >
-              {isBusy ? "..." : "Enregistrer la date"}
-            </button>
-            {editingSchedule && booking.date && (
-              <button
-                type="button"
-                onClick={() => setEditingSchedule(false)}
-                className="text-sm text-muted-foreground px-3 py-1.5"
-              >
-                Annuler
-              </button>
-            )}
-          </div>
-        </div>
+        <BookingScheduleEditor
+          bookingId={booking.id}
+          needsDate={needsDate}
+          editingSchedule={editingSchedule}
+          hasExistingDate={Boolean(booking.date)}
+          draftDate={draftDate}
+          draftSlotStart={draftSlotStart}
+          draftSlotEnd={draftSlotEnd}
+          isBusy={isBusy}
+          onDraftDateChange={setDraftDate}
+          onDraftSlotStartChange={setDraftSlotStart}
+          onDraftSlotEndChange={setDraftSlotEnd}
+          onSave={saveSchedule}
+          onCancel={() => setEditingSchedule(false)}
+        />
       )}
 
       {booking.transaction &&
         paymentStatusLabel(booking.transaction.status, viewer) && (
-        <p className="text-xs text-muted-foreground mb-3">
-          {paymentStatusLabel(booking.transaction.status, viewer)}
-        </p>
-      )}
+          <p className="text-xs text-muted-foreground mb-3">
+            {paymentStatusLabel(booking.transaction.status, viewer)}
+          </p>
+        )}
 
-      <div className="flex flex-wrap items-center gap-3">
-        {booking.status !== "CANCELLED" && (
-          <OpenBookingChatButton bookingId={booking.id} />
-        )}
-        {onStatusChange && viewer === "provider" && booking.status === "PENDING" && (
-          <>
-            <button
-              type="button"
-              onClick={() => onStatusChange(booking.id, "CONFIRMED")}
-              disabled={isUpdating}
-              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
-            >
-              {isUpdating ? "..." : "Confirmer"}
-            </button>
-            <button
-              type="button"
-              onClick={() => onStatusChange(booking.id, "CANCELLED")}
-              disabled={isUpdating}
-              className="text-sm text-red-600 font-medium border border-red-200 px-4 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              Refuser
-            </button>
-          </>
-        )}
-        {onStatusChange && viewer === "provider" && booking.status === "CONFIRMED" && (
-          <p className="text-xs text-muted-foreground">
-            En attente du paiement du client. Vous serez notifié dès réception.
-          </p>
-        )}
-        {onStatusChange && viewer === "provider" && booking.status === "PAID" && (
-          <>
-            <button
-              type="button"
-              onClick={() => onStatusChange(booking.id, "IN_PROGRESS")}
-              disabled={isUpdating}
-              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
-            >
-              {isUpdating ? "..." : "Démarrer la prestation"}
-            </button>
-            <button
-              type="button"
-              onClick={() => onStatusChange(booking.id, "CANCELLED")}
-              disabled={isUpdating}
-              className="text-sm text-red-600 font-medium border border-red-200 px-4 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              Annuler
-            </button>
-          </>
-        )}
-        {onStatusChange && viewer === "provider" && booking.status === "IN_PROGRESS" && (
-          <>
-            <button
-              type="button"
-              onClick={() => onStatusChange(booking.id, "DONE_PENDING_VALIDATION")}
-              disabled={isUpdating}
-              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
-            >
-              {isUpdating ? "..." : "Marquer terminé"}
-            </button>
-            <button
-              type="button"
-              onClick={() => onStatusChange(booking.id, "CANCELLED")}
-              disabled={isUpdating}
-              className="text-sm text-red-600 font-medium border border-red-200 px-4 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
-            >
-              Annuler
-            </button>
-          </>
-        )}
-        {onStatusChange && viewer === "provider" && booking.status === "DONE_PENDING_VALIDATION" && (
-          <p className="text-xs text-amber-700">
-            Prestation terminée de votre côté. Le versement sera déclenché après
-            validation du client.
-          </p>
-        )}
-        {viewer === "client" &&
-          booking.status === "COMPLETED" &&
-          booking.transaction?.status === "RELEASED" && (
-            <a
-              href={`/api/bookings/${booking.id}/invoice`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 transition-colors"
-            >
-              Facture (PDF)
-            </a>
-          )}
-        {onStatusChange &&
-          viewer === "provider" &&
-          booking.status === "COMPLETED" &&
-          booking.transaction?.status === "RELEASED" && (
-            <a
-              href={`/api/bookings/${booking.id}/invoice`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 transition-colors"
-            >
-              Facture (PDF)
-            </a>
-          )}
-        {onPay && booking.status === "CONFIRMED" && (
-          <button
-            type="button"
-            onClick={() => onPay(booking.id)}
-            disabled={isBusy}
-            className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
-          >
-            {isBusy ? "Traitement..." : "Payer"}
-          </button>
-        )}
-        {onValidate && booking.status === "DONE_PENDING_VALIDATION" && (
-          <button
-            type="button"
-            onClick={() => onValidate(booking.id)}
-            disabled={isBusy}
-            className="text-sm bg-brand-600 text-white font-medium px-4 py-1.5 rounded-lg hover:bg-brand-700 disabled:opacity-50 transition-colors"
-          >
-            {isBusy ? "Validation..." : "Valider la prestation"}
-          </button>
-        )}
-        {canEditSchedule && booking.date && !editingSchedule && (
-          <button
-            type="button"
-            onClick={() => setEditingSchedule(true)}
-            className="text-sm text-brand-600 font-medium border border-brand-200 px-3 py-1.5 rounded-lg hover:bg-brand-50 transition-colors"
-          >
-            Modifier la date
-          </button>
-        )}
-        {onCancel && canCancel && viewer === "client" && (
-          <button
-            type="button"
-            onClick={() => onCancel(booking.id)}
-            disabled={cancellingId === booking.id}
-            className="text-sm text-red-600 font-medium border border-red-200 px-3 py-1.5 rounded-lg hover:bg-red-50 disabled:opacity-50 transition-colors"
-          >
-            {cancellingId === booking.id ? "..." : "Annuler"}
-          </button>
-        )}
-        <Link
-          href={display.href}
-          className="text-sm text-brand-600 font-medium hover:text-brand-700 transition-colors ml-auto"
-        >
-          {display.source === "request"
-            ? display.archived
-              ? viewer === "provider"
-                ? "Historique des propositions →"
-                : "Historique →"
-              : "Voir la demande →"
-            : viewer === "provider"
-              ? "Voir l'annonce →"
-              : "Voir le service →"}
-        </Link>
-      </div>
+      <BookingCardActions
+        bookingId={booking.id}
+        status={booking.status}
+        transactionStatus={booking.transaction?.status}
+        viewer={viewer}
+        displaySource={display.source}
+        displayArchived={Boolean(display.archived)}
+        displayHref={display.href}
+        hasDate={Boolean(booking.date)}
+        canEditSchedule={canEditSchedule}
+        editingSchedule={editingSchedule}
+        canCancel={canCancel}
+        isBusy={isBusy}
+        isUpdating={isUpdating}
+        cancellingId={cancellingId}
+        onStatusChange={onStatusChange}
+        onPay={onPay}
+        onValidate={onValidate}
+        onStartEditSchedule={() => setEditingSchedule(true)}
+        onCancel={onCancel}
+      />
     </div>
   );
 }

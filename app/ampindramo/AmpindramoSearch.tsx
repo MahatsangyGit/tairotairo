@@ -4,25 +4,30 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import MadagascarCitySelect from "@/components/ui/madagascar-city-select";
 
 export default function AmpindramoSearch({
   initialSearch,
   initialCategory,
+  initialLocation = "",
   categories,
 }: {
   initialSearch: string;
   initialCategory: string;
+  initialLocation?: string;
   categories: { value: string; label: string }[];
 }) {
   const router = useRouter();
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState(initialCategory);
+  const [location, setLocation] = useState(initialLocation);
 
   function applyFilters(e: React.FormEvent) {
     e.preventDefault();
     const params = new URLSearchParams();
     if (search.trim()) params.set("search", search.trim());
     if (category) params.set("category", category);
+    if (location) params.set("location", location);
     router.push(`/ampindramo?${params.toString()}`);
   }
 
@@ -47,6 +52,12 @@ export default function AmpindramoSearch({
           </option>
         ))}
       </select>
+      <MadagascarCitySelect
+        value={location}
+        onChange={setLocation}
+        placeholder="Toutes les villes"
+        className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
+      />
       <Button type="submit" variant="outline">
         Filtrer
       </Button>

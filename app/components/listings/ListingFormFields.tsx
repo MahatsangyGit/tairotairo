@@ -2,6 +2,7 @@
 
 import ListingCoverField from "@/components/listings/ListingCoverField";
 import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
+import MadagascarCitySelect from "@/components/ui/madagascar-city-select";
 
 export interface ListingFormValues {
   title: string;
@@ -116,13 +117,12 @@ export default function ListingFormFields({
         <label htmlFor="listing-location" className="sr-only">
           Ville
         </label>
-        <input
+        <MadagascarCitySelect
           id="listing-location"
-          type="text"
-          placeholder="Ville (ex: Antananarivo)"
           value={form.location}
-          onChange={(e) => onChange({ ...form, location: e.target.value })}
-          className={inputClass}
+          onChange={(location) => onChange({ ...form, location })}
+          placeholder="Choisir une ville"
+          className={`${inputClass} bg-card`}
         />
       </div>
       <ListingCoverField

@@ -34,7 +34,7 @@ function serviceRatingWhereSql(
 
   if (params.location) {
     clauses.push(
-      Prisma.sql`s.location ILIKE ${`%${params.location}%`}`
+      Prisma.sql`LOWER(s.location) = LOWER(${params.location})`
     );
   }
 
@@ -122,7 +122,7 @@ function requestRatingWhereSql(
   }
 
   if (params.location) {
-    clauses.push(Prisma.sql`sr.location ILIKE ${`%${params.location}%`}`);
+    clauses.push(Prisma.sql`LOWER(sr.location) = LOWER(${params.location})`);
   }
 
   if (params.minPrice != null) {
