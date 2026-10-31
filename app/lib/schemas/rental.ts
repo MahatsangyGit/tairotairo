@@ -2,7 +2,9 @@ import { z } from "zod";
 import {
   cuidSchema,
   nonNegativePriceSchema,
+  optionalMadagascarCitySchema,
   optionalNonEmptyText,
+  requiredMadagascarCitySchema,
   requiredText,
 } from "@/lib/schemas/shared";
 import { FIELD_LIMITS } from "@/lib/field-limits";
@@ -18,7 +20,7 @@ export const createEquipmentSchema = z.object({
   title: requiredText("Titre", FIELD_LIMITS.LISTING_TITLE),
   description: requiredText("Description", FIELD_LIMITS.LISTING_DESCRIPTION),
   category: equipmentCategorySchema,
-  location: requiredText("Ville", FIELD_LIMITS.LISTING_LOCATION),
+  location: requiredMadagascarCitySchema,
   dailyPrice: nonNegativePriceSchema,
   depositAmount: nonNegativePriceSchema.optional().default(0),
   /** Admin only — matériel catalogue Tairo */
@@ -33,7 +35,7 @@ export const patchEquipmentSchema = z.object({
     FIELD_LIMITS.LISTING_DESCRIPTION
   ),
   category: equipmentCategorySchema.optional(),
-  location: optionalNonEmptyText("Ville", FIELD_LIMITS.LISTING_LOCATION),
+  location: optionalMadagascarCitySchema,
   dailyPrice: nonNegativePriceSchema.optional(),
   depositAmount: nonNegativePriceSchema.optional(),
   status: z

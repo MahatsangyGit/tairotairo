@@ -19,7 +19,7 @@ export const SEARCH_SORT_OPTIONS = [
   { value: "newest", label: "Plus récents" },
   { value: "price_asc", label: "Prix croissant" },
   { value: "price_desc", label: "Prix décroissant" },
-  { value: "location", label: "Localisation (A → Z)" },
+  { value: "location", label: "Ville (A → Z)" },
   { value: "rating", label: "Meilleures notes" },
 ] as const;
 
@@ -134,7 +134,7 @@ export function buildServiceWhere(
     provider: { kycStatus: "APPROVED" },
     ...buildCategoryFilter(params.category),
     ...(params.location && {
-      location: { contains: params.location, mode: "insensitive" },
+      location: { equals: params.location, mode: "insensitive" },
     }),
     ...(params.search && buildServiceKeywordOr(params.search)),
   };
@@ -159,7 +159,7 @@ export function buildRequestWhere(
     open: true,
     ...buildCategoryFilter(params.category),
     ...(params.location && {
-      location: { contains: params.location, mode: "insensitive" },
+      location: { equals: params.location, mode: "insensitive" },
     }),
     ...(params.search && buildRequestKeywordOr(params.search)),
   };

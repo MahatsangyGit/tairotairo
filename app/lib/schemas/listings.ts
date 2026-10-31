@@ -2,7 +2,9 @@ import { z } from "zod";
 import { FIELD_LIMITS } from "@/lib/field-limits";
 import {
   nonNegativePriceSchema,
+  optionalMadagascarCitySchema,
   optionalNonEmptyText,
+  requiredMadagascarCitySchema,
   requiredText,
   serviceCategorySchema,
   strictBoolean,
@@ -14,7 +16,7 @@ export const createServiceSchema = z.object({
   title: requiredText("Titre", FIELD_LIMITS.LISTING_TITLE),
   description: requiredText("Description", FIELD_LIMITS.LISTING_DESCRIPTION),
   category: serviceCategorySchema,
-  location: requiredText("Ville", FIELD_LIMITS.LISTING_LOCATION),
+  location: requiredMadagascarCitySchema,
   price: nonNegativePriceSchema,
 });
 
@@ -25,7 +27,7 @@ export const patchServiceSchema = z.object({
     FIELD_LIMITS.LISTING_DESCRIPTION
   ),
   category: serviceCategorySchema.optional(),
-  location: optionalNonEmptyText("Ville", FIELD_LIMITS.LISTING_LOCATION),
+  location: optionalMadagascarCitySchema,
   price: nonNegativePriceSchema.optional(),
   available: strictBoolean.optional(),
 });
@@ -34,7 +36,7 @@ export const createRequestSchema = z.object({
   title: requiredText("Titre", FIELD_LIMITS.LISTING_TITLE),
   description: requiredText("Description", FIELD_LIMITS.LISTING_DESCRIPTION),
   category: serviceCategorySchema,
-  location: requiredText("Ville", FIELD_LIMITS.LISTING_LOCATION),
+  location: requiredMadagascarCitySchema,
   budget: nonNegativePriceSchema,
 });
 
@@ -45,7 +47,7 @@ export const patchRequestSchema = z.object({
     FIELD_LIMITS.LISTING_DESCRIPTION
   ),
   category: serviceCategorySchema.optional(),
-  location: optionalNonEmptyText("Ville", FIELD_LIMITS.LISTING_LOCATION),
+  location: optionalMadagascarCitySchema,
   budget: nonNegativePriceSchema.optional(),
   open: strictBoolean.optional(),
   desiredDate: z.unknown().optional(),

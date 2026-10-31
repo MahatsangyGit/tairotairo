@@ -33,7 +33,7 @@ export async function searchEquipment(params: EquipmentSearchParams) {
   }
   if (params.location?.trim()) {
     where.location = {
-      contains: params.location.trim(),
+      equals: params.location.trim(),
       mode: "insensitive",
     };
   }

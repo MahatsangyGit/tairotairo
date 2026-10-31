@@ -12,13 +12,19 @@ export const dynamic = "force-dynamic";
 export default async function AmpindramoHomePage({
   searchParams,
 }: {
-  searchParams: Promise<{ search?: string; category?: string; page?: string }>;
+  searchParams: Promise<{
+    search?: string;
+    category?: string;
+    location?: string;
+    page?: string;
+  }>;
 }) {
   const params = await searchParams;
   const page = Math.max(1, parseInt(params.page ?? "1", 10) || 1);
   const result = await searchEquipment({
     search: params.search,
     category: params.category,
+    location: params.location,
     page,
     limit: 12,
   });
@@ -43,6 +49,7 @@ export default async function AmpindramoHomePage({
       <AmpindramoSearch
         initialSearch={params.search ?? ""}
         initialCategory={params.category ?? ""}
+        initialLocation={params.location ?? ""}
         categories={EQUIPMENT_CATEGORIES.map((c) => ({
           value: c,
           label: EQUIPMENT_CATEGORY_LABELS[c] ?? c,
@@ -103,7 +110,7 @@ export default async function AmpindramoHomePage({
           {page > 1 ? (
             <Button asChild variant="outline">
               <Link
-                href={`/ampindramo?page=${page - 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ""}${params.category ? `&category=${params.category}` : ""}`}
+                href={`/ampindramo?page=${page - 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ""}${params.category ? `&category=${params.category}` : ""}${params.location ? `&location=${encodeURIComponent(params.location)}` : ""}`}
               >
                 Précédent
               </Link>
@@ -115,7 +122,7 @@ export default async function AmpindramoHomePage({
           {page < result.totalPages ? (
             <Button asChild variant="outline">
               <Link
-                href={`/ampindramo?page=${page + 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ""}${params.category ? `&category=${params.category}` : ""}`}
+                href={`/ampindramo?page=${page + 1}${params.search ? `&search=${encodeURIComponent(params.search)}` : ""}${params.category ? `&category=${params.category}` : ""}${params.location ? `&location=${encodeURIComponent(params.location)}` : ""}`}
               >
                 Suivant
               </Link>
