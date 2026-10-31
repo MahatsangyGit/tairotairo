@@ -8,7 +8,7 @@ import {
   type TransactionStatus,
   bookingStatusLabel,
   PROVIDER_BOOKING_FILTERS,
-} from "@/lib/booking-status";
+} from "@/lib/booking/booking-status";
 import { useBookingsDashboard } from "@/hooks/useBookingsDashboard";
 import {
   BookingsActionError,

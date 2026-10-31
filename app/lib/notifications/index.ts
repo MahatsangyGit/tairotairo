@@ -7,7 +7,7 @@ import { escapeHtml } from "@/lib/html-escape";
 import {
   sendsNotificationEmail,
   type NotificationType,
-} from "@/lib/notification-types";
+} from "@/lib/notifications/notification-types";
 
 export interface DispatchNotificationInput {
   userId: string;

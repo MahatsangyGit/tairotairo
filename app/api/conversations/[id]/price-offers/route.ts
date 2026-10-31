@@ -9,7 +9,7 @@ import {
 } from "@/lib/conversations";
 import { createPriceOffer } from "@/lib/price-negotiation";
 import { serializeMessage } from "@/lib/message-serialize";
-import { notifyMessageReceived } from "@/lib/notify-messages";
+import { notifyMessageReceived } from "@/lib/notifications/notify-messages";
 import { publishThreadRefresh } from "@/lib/realtime/publish";
 import {
   parseBody,

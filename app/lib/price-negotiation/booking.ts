@@ -4,14 +4,14 @@ import {
   resolveBookingSchedule,
   snapshotFromRequest,
   snapshotFromService,
-} from "@/lib/booking-display";
+} from "@/lib/booking/booking-display";
 import { withServiceCommission } from "@/lib/economy";
 import { formatPriceAcceptedBody } from "@/lib/message-serialize";
 import {
   notifyBookingConfirmed,
   notifyBookingCreated,
-} from "@/lib/notify-booking";
-import { notifyRequestResponseAccepted } from "@/lib/notify-requests";
+} from "@/lib/booking/notify-booking";
+import { notifyRequestResponseAccepted } from "@/lib/notifications/notify-requests";
 import {
   loadOfferForAccept,
   supersedePendingOffers,

@@ -7,9 +7,9 @@ import {
   parseJsonBody,
   bookingPaySchema,
 } from "@/lib/api-schemas";
-import { bookingMutationInclude } from "@/lib/booking-include";
+import { bookingMutationInclude } from "@/lib/booking/booking-include";
 import { capturePaymentToEscrow } from "@/lib/payments";
-import { prepareBookingForApi } from "@/lib/booking-status";
+import { prepareBookingForApi } from "@/lib/booking/booking-status";
 
 export const dynamic = "force-dynamic";
 

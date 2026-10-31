@@ -6,7 +6,7 @@ import {
   suspendUser,
   unsuspendUser,
 } from "@/lib/admin-users";
-import { unlockUserLogin } from "@/lib/login-lockout-admin";
+import { unlockUserLogin } from "@/lib/auth/login-lockout-admin";
 import {
   adminUserActionSchema,
   parseBody,

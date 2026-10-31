@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { requireAuthOrThrow } from "@/lib/auth";
 import { withApiHandler, throwForbidden, throwNotFound } from "@/lib/api-handler";
-import { prepareBookingForApi, normalizeBookingStatus } from "@/lib/booking-status";
+import { prepareBookingForApi, normalizeBookingStatus } from "@/lib/booking/booking-status";
 import {
   parseScheduleInput,
   scheduleFieldsForDb,
@@ -12,7 +12,7 @@ import {
   parseBody,
   parseJsonBody,
 } from "@/lib/api-schemas";
-import { bookingMutationInclude } from "@/lib/booking-include";
+import { bookingMutationInclude } from "@/lib/booking/booking-include";
 
 export const dynamic = "force-dynamic";
 

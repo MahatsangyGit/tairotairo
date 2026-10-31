@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { snapshotFromRequest } from "@/lib/booking-display";
+import { snapshotFromRequest } from "@/lib/booking/booking-display";
 
 /** Enregistre les infos d’affichage avant suppression de la demande (cascade sur les propositions). */
 export async function snapshotBookingsForRequest(requestId: string) {

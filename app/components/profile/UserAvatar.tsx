@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { buildAvatarApiPath } from "@/lib/avatar";
+import { buildAvatarApiPath } from "@/lib/media/avatar";
 import OptimizedImage from "@/components/ui/OptimizedImage";
 
 const sizeClasses = {

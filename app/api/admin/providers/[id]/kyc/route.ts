@@ -7,7 +7,7 @@ import {
   disableProviderHomepageSpotlight,
   syncProviderHomepageSpotlight,
 } from "@/lib/provider-spotlight";
-import { notifyKycApproved, notifyKycRejected } from "@/lib/notify-kyc";
+import { notifyKycApproved, notifyKycRejected } from "@/lib/notifications/notify-kyc";
 import {
   adminKycActionSchema,
   parseBody,

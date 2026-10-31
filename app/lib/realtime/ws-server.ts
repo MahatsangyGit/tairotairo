@@ -1,7 +1,7 @@
 import type { Duplex } from "stream";
 import type { Server as HttpServer, IncomingMessage } from "http";
 import { WebSocketServer, type WebSocket } from "ws";
-import { resolveActiveAuth } from "@/lib/active-session";
+import { resolveActiveAuth } from "@/lib/auth/active-session";
 import { getMessagingHub } from "@/lib/realtime/hub";
 import type { RealtimeClientEvent } from "@/lib/realtime/types";
 

@@ -1,24 +1,24 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
-import { signToken } from "@/lib/jwt";
+import { signToken } from "@/lib/auth/jwt";
 import { PostHogEvents } from "@/lib/posthog";
 import { captureServerEvent } from "@/lib/posthog-server";
 import {
   isLoginLocked,
   LOGIN_FAILED_MESSAGE,
   LOGIN_LOCKED_MESSAGE,
-} from "@/lib/login-lockout";
+} from "@/lib/auth/login-lockout";
 import {
   recordFailedLogin,
   resetLoginAttempts,
-} from "@/lib/login-lockout-admin";
-import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth-cookie";
+} from "@/lib/auth/login-lockout-admin";
+import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth/auth-cookie";
 import {
   generateCsrfToken,
   getCsrfCookieName,
   getCsrfCookieOptions,
-} from "@/lib/csrf";
+} from "@/lib/auth/csrf";
 import { enforceRateLimit, AUTH_RATE_LIMITS } from "@/lib/rate-limit";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
 import { loginSchema, parseBody, parseJsonBody } from "@/lib/api-schemas";

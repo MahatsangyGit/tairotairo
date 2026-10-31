@@ -1,4 +1,4 @@
-import type { ListingCoverKind } from "@/lib/listing-cover";
+import type { ListingCoverKind } from "@/lib/listings/listing-cover";
 
 export async function syncListingCover(
   kind: ListingCoverKind,

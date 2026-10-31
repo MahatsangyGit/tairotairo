@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { getBookingDisplayInfo } from "@/lib/booking/booking-display";
 import { formatSchedule } from "@/lib/datetime-slot";
 import OpenBookingChatButton from "@/components/messages/OpenBookingChatButton";
 import { MapPinIcon } from "@/components/ui/app-icons";
@@ -12,7 +12,7 @@ import {
   BOOKING_STATUS_CLASS,
   bookingStatusLabel,
   paymentStatusLabel,
-} from "@/lib/booking-status";
+} from "@/lib/booking/booking-status";
 import ServiceCommissionHint from "@/components/economy/ServiceCommissionHint";
 
 export interface BookingCardData {

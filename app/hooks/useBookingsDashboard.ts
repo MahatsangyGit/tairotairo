@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch, apiFetchJson } from "@/lib/api-client";
 import { messageFromApiAction } from "@/lib/api-action-error";
-import type { BookingStatus } from "@/lib/booking-status";
+import type { BookingStatus } from "@/lib/booking/booking-status";
 
 export function useBookingsDashboard<T extends { id: string; status: string }>({
   listUrl,

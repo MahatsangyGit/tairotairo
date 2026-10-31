@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { verifyToken, type JwtPayload } from "@/lib/jwt";
+import { verifyToken, type JwtPayload } from "@/lib/auth/jwt";
 
 /**
  * Validates a JWT and ensures the session is still active in DB

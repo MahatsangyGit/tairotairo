@@ -4,7 +4,7 @@ import {
   handleListingCoverDelete,
   handleListingCoverGet,
   handleListingCoverPost,
-} from "@/lib/listing-cover-handlers";
+} from "@/lib/listings/listing-cover-handlers";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

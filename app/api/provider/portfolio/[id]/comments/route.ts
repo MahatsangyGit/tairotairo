@@ -5,7 +5,7 @@ import { withApiHandler } from "@/lib/api-handler";
 import {
   portfolioItemInclude,
   serializePortfolioItem,
-} from "@/lib/portfolio-serialize";
+} from "@/lib/portfolio/portfolio-serialize";
 import {
   parseBody,
   parseJsonBody,

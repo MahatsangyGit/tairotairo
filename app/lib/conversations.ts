@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import { getBookingDisplayInfo } from "@/lib/booking-display";
+import { getBookingDisplayInfo } from "@/lib/booking/booking-display";
 
 export type DashboardRole = "CLIENT" | "PROVIDER";
 

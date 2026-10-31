@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   csrfTokensMatch,
   shouldEnforceCsrf,
-} from "@/lib/csrf";
+} from "@/lib/auth/csrf";
 import {
   isUploadApiPath,
   maxBodyBytesForPath,

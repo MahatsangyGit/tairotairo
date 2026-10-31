@@ -1,8 +1,8 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { NextRequest } from "next/server";
 import type { PoolClient } from "pg";
-import type { JwtPayload } from "@/lib/jwt";
-import { resolveActiveAuth } from "@/lib/active-session";
+import type { JwtPayload } from "@/lib/auth/jwt";
+import { resolveActiveAuth } from "@/lib/auth/active-session";
 
 export type RlsContext =
   | { mode: "anonymous" }

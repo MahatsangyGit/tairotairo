@@ -13,8 +13,8 @@ import {
   IMAGE_WORKER_HEARTBEAT_KEY,
   type ImageOptimizeJobData,
   type ImageOptimizeJobResult,
-} from "../app/lib/image-optimize-queue";
-import { optimizeUploadImage } from "../app/lib/image-optimize";
+} from "../app/lib/media/image-optimize-queue";
+import { optimizeUploadImage } from "../app/lib/media/image-optimize";
 import { getStorageBackend } from "../app/lib/storage/backend";
 import { disconnectRedis, getRedisClient } from "../app/lib/redis";
 

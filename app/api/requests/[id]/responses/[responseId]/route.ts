@@ -9,10 +9,10 @@ import {
 import {
   resolveBookingSchedule,
   snapshotFromRequest,
-} from "@/lib/booking-display";
+} from "@/lib/booking/booking-display";
 import { withServiceCommission } from "@/lib/economy";
-import { notifyBookingConfirmed } from "@/lib/notify-booking";
-import { notifyRequestResponseAccepted } from "@/lib/notify-requests";
+import { notifyBookingConfirmed } from "@/lib/booking/notify-booking";
+import { notifyRequestResponseAccepted } from "@/lib/notifications/notify-requests";
 import {
   parseBody,
   parseJsonBody,

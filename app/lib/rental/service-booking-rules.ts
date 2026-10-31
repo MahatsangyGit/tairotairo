@@ -1,4 +1,4 @@
-import type { BookingStatus } from "@/lib/booking-status";
+import type { BookingStatus } from "@/lib/booking/booking-status";
 import { calendarDayRangeInBusinessTz } from "@/lib/datetime-slot";
 
 /**

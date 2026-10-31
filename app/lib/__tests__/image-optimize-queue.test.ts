@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { resolveImageOptimizeMode } from "@/lib/image-optimize-queue";
+import { resolveImageOptimizeMode } from "@/lib/media/image-optimize-queue";
 
 describe("resolveImageOptimizeMode", () => {
   afterEach(() => {

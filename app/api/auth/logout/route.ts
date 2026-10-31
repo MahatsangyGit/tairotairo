@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
 import { requireAuthOrThrow } from "@/lib/auth";
-import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth-cookie";
+import { getAuthCookieName, getAuthCookieOptions } from "@/lib/auth/auth-cookie";
 import {
   generateCsrfToken,
   getCsrfCookieName,
   getCsrfCookieOptions,
-} from "@/lib/csrf";
+} from "@/lib/auth/csrf";
 import { logSecurityEventFromRequest } from "@/lib/security-audit";
 import { bumpTokenVersion } from "@/lib/token-version";
 import { withApiHandler } from "@/lib/api-handler";

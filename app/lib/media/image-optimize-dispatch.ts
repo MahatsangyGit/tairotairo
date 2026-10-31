@@ -1,8 +1,8 @@
-import type { ImageOptimizePreset, OptimizedImage } from "@/lib/image-optimize";
+import type { ImageOptimizePreset, OptimizedImage } from "@/lib/media/image-optimize";
 import {
   optimizeUploadImageViaQueue,
   resolveImageOptimizeMode,
-} from "@/lib/image-optimize-queue";
+} from "@/lib/media/image-optimize-queue";
 
 /**
  * Point d'entrée unique pour l'optimisation d'images uploadées.
@@ -19,6 +19,6 @@ export async function optimizeUploadImageDispatched(
     return optimizeUploadImageViaQueue(input, preset);
   }
 
-  const { optimizeUploadImage } = await import("@/lib/image-optimize");
+  const { optimizeUploadImage } = await import("@/lib/media/image-optimize");
   return optimizeUploadImage(input, preset);
 }

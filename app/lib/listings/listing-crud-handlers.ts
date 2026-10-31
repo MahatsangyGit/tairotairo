@@ -7,19 +7,19 @@ import {
   requireEmailVerified,
 } from "@/lib/auth";
 import { throwForbidden, throwNotFound, throwUnlessOk } from "@/lib/api-handler";
-import { assertProviderKycApproved } from "@/lib/provider-kyc";
+import { assertProviderKycApproved } from "@/lib/kyc/provider-kyc";
 import { parseListSearchParams } from "@/lib/advanced-search";
-import { searchPublicServices } from "@/lib/service-list-search";
-import { searchPublicRequests } from "@/lib/request-list-search";
+import { searchPublicServices } from "@/lib/listings/service-list-search";
+import { searchPublicRequests } from "@/lib/listings/request-list-search";
 import {
   parseScheduleInput,
   scheduleFieldsForDb,
 } from "@/lib/datetime-slot";
-import { withCoverImageUrl } from "@/lib/listing-cover";
+import { withCoverImageUrl } from "@/lib/listings/listing-cover";
 import { jsonWithPublicCache } from "@/lib/cache";
-import { deleteListingCoverFiles } from "@/lib/listing-cover-storage";
+import { deleteListingCoverFiles } from "@/lib/listings/listing-cover-storage";
 import { clearServiceFeaturedIfNeeded } from "@/lib/provider-spotlight";
-import { snapshotBookingsForRequest } from "@/lib/booking-snapshot";
+import { snapshotBookingsForRequest } from "@/lib/booking/booking-snapshot";
 import {
   createRequestSchema,
   createServiceSchema,
