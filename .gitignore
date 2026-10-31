@@ -26,6 +26,8 @@
 /.kilo
 /.cursor
 .cursorrules
+/.agents
+/.claude
 
 # misc
 .DS_Store
