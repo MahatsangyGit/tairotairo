@@ -1,12 +1,12 @@
 import nodemailer from "nodemailer";
+import { BRAND_PRIMARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
+import { escapeHtml } from "@/lib/html-escape";
+import { redactEmailDevLog } from "@/lib/dev-log-redact";
 
 const SMTP_HOST = process.env.SMTP_HOST;
 const SMTP_PORT = parseInt(process.env.SMTP_PORT ?? "587", 10);
 const SMTP_USER = process.env.SMTP_USER;
 const SMTP_PASS = process.env.SMTP_PASS;
-import { BRAND_PRIMARY, PARENT_COMPANY, SITE_NAME } from "@/lib/site";
-import { escapeHtml } from "@/lib/html-escape";
-import { redactEmailDevLog } from "@/lib/dev-log-redact";
 
 const EMAIL_FROM = process.env.EMAIL_FROM ?? `${SITE_NAME} <noreply@tairotairo.mg>`;
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
@@ -95,60 +95,6 @@ export async function sendOtpEmail(to: string, name: string, code: string) {
       `
     ),
     text: `Bonjour ${name}, votre code ${SITE_NAME} est : ${code} (valide 10 minutes).`,
-  });
-}
-
-export async function sendBookingCreatedEmail(params: {
-  to: string;
-  recipientName: string;
-  serviceTitle: string;
-  dateLabel: string;
-  dashboardUrl: string;
-}) {
-  const safeName = escapeHtml(params.recipientName);
-  const safeTitle = escapeHtml(params.serviceTitle);
-  const safeDate = escapeHtml(params.dateLabel);
-  const safeUrl = escapeHtml(params.dashboardUrl);
-
-  return sendEmail({
-    to: params.to,
-    subject: `Nouvelle réservation sur ${SITE_NAME}`,
-    html: emailLayout(
-      "Nouvelle réservation",
-      `
-        <p>Bonjour ${safeName},</p>
-        <p>Vous avez reçu une nouvelle demande de réservation pour <strong>${safeTitle}</strong>.</p>
-        <p>Date prévue : ${safeDate}</p>
-        <p><a href="${safeUrl}" style="color:${BRAND_PRIMARY}">Voir dans votre espace pro →</a></p>
-      `
-    ),
-  });
-}
-
-export async function sendBookingConfirmedEmail(params: {
-  to: string;
-  recipientName: string;
-  serviceTitle: string;
-  dateLabel: string;
-  dashboardUrl: string;
-}) {
-  const safeName = escapeHtml(params.recipientName);
-  const safeTitle = escapeHtml(params.serviceTitle);
-  const safeDate = escapeHtml(params.dateLabel);
-  const safeUrl = escapeHtml(params.dashboardUrl);
-
-  return sendEmail({
-    to: params.to,
-    subject: `Réservation confirmée — ${SITE_NAME}`,
-    html: emailLayout(
-      "Réservation confirmée",
-      `
-        <p>Bonjour ${safeName},</p>
-        <p>Votre réservation pour <strong>${safeTitle}</strong> a été confirmée.</p>
-        <p>Date prévue : ${safeDate}</p>
-        <p><a href="${safeUrl}" style="color:${BRAND_PRIMARY}">Suivre ma réservation →</a></p>
-      `
-    ),
   });
 }
 

@@ -46,10 +46,6 @@ export function isTurnstileEnabled(): boolean {
   return isTurnstileServerEnabled();
 }
 
-export function getTurnstileSiteKey(): string {
-  return process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() ?? "";
-}
-
 function getRemoteIp(req: NextRequest): string | null {
   const forwarded = req.headers.get("cf-connecting-ip");
   if (forwarded) return forwarded.trim();

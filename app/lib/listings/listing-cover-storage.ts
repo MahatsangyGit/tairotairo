@@ -1,18 +1,16 @@
-import path from "path";
 import {
   LISTING_COVER_MAX_FILE_BYTES,
   type ListingCoverKind,
 } from "@/lib/listings/listing-cover";
 import type { AvatarAllowedMime } from "@/lib/media/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImageDispatched } from "@/lib/media/image-optimize-dispatch";
 import {
-  mimeFromStoredExtension,
+  readStoredImageAtBasename,
+  saveOptimizedImageAtBasename,
   validateImageUpload,
 } from "@/lib/media/image-storage";
 import {
   deleteKeysWithBasename,
-  findKeyWithBasename,
   getStorageBackend,
 } from "@/lib/storage/backend";
 
@@ -37,16 +35,14 @@ function listingKeyPrefix(kind: ListingCoverKind, id: string): string {
 export async function saveListingCoverFile(
   kind: ListingCoverKind,
   id: string,
-  buffer: Buffer,
-  _mime: AvatarAllowedMime
+  buffer: Buffer
 ): Promise<void> {
-  const backend = getStorageBackend();
-  const prefix = listingKeyPrefix(kind, id);
-  await deleteKeysWithBasename(backend, prefix, COVER_BASENAME);
-
-  const optimized = await optimizeUploadImageDispatched(buffer, "cover");
-  const key = `${prefix}/${COVER_BASENAME}${optimized.extension}`;
-  await backend.put(key, optimized.buffer, optimized.mime);
+  await saveOptimizedImageAtBasename(
+    listingKeyPrefix(kind, id),
+    COVER_BASENAME,
+    buffer,
+    "cover"
+  );
 }
 
 export async function deleteListingCoverFiles(
@@ -64,18 +60,5 @@ export async function readListingCoverFile(
   kind: ListingCoverKind,
   id: string
 ): Promise<{ buffer: Buffer; mime: AvatarAllowedMime } | null> {
-  const backend = getStorageBackend();
-  const key = await findKeyWithBasename(
-    backend,
-    listingKeyPrefix(kind, id),
-    COVER_BASENAME
-  );
-  if (!key) return null;
-
-  const buffer = await backend.get(key);
-  if (!buffer) return null;
-
-  const mime = mimeFromStoredExtension(path.extname(key));
-  if (!mime) return null;
-  return { buffer, mime };
+  return readStoredImageAtBasename(listingKeyPrefix(kind, id), COVER_BASENAME);
 }

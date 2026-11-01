@@ -11,6 +11,30 @@ const NEGOTIABLE_REQUEST_STATUSES = ["PENDING", "ACCEPTED"] as const;
 
 type DbClient = Prisma.TransactionClient | typeof prisma;
 
+const SERVICE_NEGOTIATION_SELECT = {
+  id: true,
+  title: true,
+  price: true,
+  category: true,
+  location: true,
+  available: true,
+} as const;
+
+const REQUEST_RESPONSE_NEGOTIATION_INCLUDE = {
+  request: {
+    select: {
+      id: true,
+      title: true,
+      budget: true,
+      category: true,
+      desiredDate: true,
+      desiredSlotStart: true,
+      desiredSlotEnd: true,
+    },
+  },
+  booking: { select: { id: true, status: true, commissionRate: true } },
+} as const;
+
 export async function findServiceNegotiation(
   clientId: string,
   providerId: string,
@@ -19,14 +43,7 @@ export async function findServiceNegotiation(
   let service = serviceId
     ? await prisma.service.findFirst({
         where: { id: serviceId, providerId },
-        select: {
-          id: true,
-          title: true,
-          price: true,
-          category: true,
-          location: true,
-          available: true,
-        },
+        select: SERVICE_NEGOTIATION_SELECT,
       })
     : null;
 
@@ -50,14 +67,7 @@ export async function findServiceNegotiation(
   if (!service && booking?.serviceId) {
     service = await prisma.service.findFirst({
       where: { id: booking.serviceId, providerId },
-      select: {
-        id: true,
-        title: true,
-        price: true,
-        category: true,
-        location: true,
-        available: true,
-      },
+      select: SERVICE_NEGOTIATION_SELECT,
     });
   }
 
@@ -65,7 +75,6 @@ export async function findServiceNegotiation(
 
   const bookingCancelled = booking?.status === "CANCELLED";
   const bookingCompleted = booking?.status === "COMPLETED";
-  const currentPrice = booking?.displayPrice ?? service.price;
 
   return {
     source: "service",
@@ -74,7 +83,7 @@ export async function findServiceNegotiation(
     category: service.category,
     commissionRate: booking?.commissionRate ?? null,
     listPrice: service.price,
-    currentPrice,
+    currentPrice: booking?.displayPrice ?? service.price,
     bookingId: booking?.id ?? null,
     bookingStatus: booking?.status ?? null,
     canNegotiate: service.available && !bookingCancelled && !bookingCompleted,
@@ -93,20 +102,7 @@ async function findRequestNegotiation(
           providerId,
           request: { clientId },
         },
-        include: {
-          request: {
-            select: {
-              id: true,
-              title: true,
-              budget: true,
-              category: true,
-              desiredDate: true,
-              desiredSlotStart: true,
-              desiredSlotEnd: true,
-            },
-          },
-          booking: { select: { id: true, status: true, commissionRate: true } },
-        },
+        include: REQUEST_RESPONSE_NEGOTIATION_INCLUDE,
       })
     : await prisma.requestResponse.findFirst({
         where: {
@@ -115,32 +111,17 @@ async function findRequestNegotiation(
           status: { in: [...NEGOTIABLE_REQUEST_STATUSES] },
         },
         orderBy: { updatedAt: "desc" },
-        include: {
-          request: {
-            select: {
-              id: true,
-              title: true,
-              budget: true,
-              category: true,
-              desiredDate: true,
-              desiredSlotStart: true,
-              desiredSlotEnd: true,
-            },
-          },
-          booking: { select: { id: true, status: true, commissionRate: true } },
-        },
+        include: REQUEST_RESPONSE_NEGOTIATION_INCLUDE,
       });
 
-  if (!response) return null;
   if (
+    !response ||
     !NEGOTIABLE_REQUEST_STATUSES.includes(
       response.status as (typeof NEGOTIABLE_REQUEST_STATUSES)[number]
     )
   ) {
     return null;
   }
-
-  const bookingCancelled = response.booking?.status === "CANCELLED";
 
   return {
     source: "request",
@@ -154,7 +135,7 @@ async function findRequestNegotiation(
     referencePrice: response.request.budget,
     bookingId: response.booking?.id ?? null,
     bookingStatus: response.booking?.status ?? null,
-    canNegotiate: !bookingCancelled,
+    canNegotiate: response.booking?.status !== "CANCELLED",
   };
 }
 
@@ -275,60 +256,7 @@ async function applyNegotiationOpenState(
     select: { id: true },
   });
 
-  if (accepted) {
-    return { ...ctx, canNegotiate: false };
-  }
-
-  return ctx;
-}
-
-/** Résout le marchandage (URL, messages du fil, puis réservation / proposition). */
-export async function resolveNegotiationForConversation(
-  conversationId: string,
-  clientId: string,
-  providerId: string,
-  options?: { requestResponseId?: string | null; serviceId?: string | null }
-): Promise<NegotiationContext | null> {
-  let ctx: NegotiationContext | null = null;
-
-  if (options?.serviceId) {
-    ctx = await findServiceNegotiation(
-      clientId,
-      providerId,
-      options.serviceId
-    );
-  } else if (options?.requestResponseId) {
-    ctx = await findRequestNegotiation(
-      clientId,
-      providerId,
-      options.requestResponseId
-    );
-  } else {
-    const hints = await getNegotiationHintsFromMessages(conversationId);
-
-    if (hints?.serviceId) {
-      ctx = await findServiceNegotiation(
-        clientId,
-        providerId,
-        hints.serviceId
-      );
-    } else if (hints?.requestResponseId) {
-      ctx = await findRequestNegotiation(
-        clientId,
-        providerId,
-        hints.requestResponseId
-      );
-    }
-
-    if (!ctx) {
-      const serviceCtx = await findServiceNegotiation(clientId, providerId);
-      if (serviceCtx?.canNegotiate) ctx = serviceCtx;
-      else ctx = await findRequestNegotiation(clientId, providerId);
-    }
-  }
-
-  if (!ctx) return null;
-  return applyNegotiationOpenState(ctx, conversationId);
+  return accepted ? { ...ctx, canNegotiate: false } : ctx;
 }
 
 export async function findNegotiationForPair(
@@ -351,6 +279,31 @@ export async function findNegotiationForPair(
   if (serviceCtx?.canNegotiate) return serviceCtx;
 
   return findRequestNegotiation(clientId, providerId);
+}
+
+/** Résout le marchandage (URL, messages du fil, puis réservation / proposition). */
+export async function resolveNegotiationForConversation(
+  conversationId: string,
+  clientId: string,
+  providerId: string,
+  options?: { requestResponseId?: string | null; serviceId?: string | null }
+): Promise<NegotiationContext | null> {
+  let ctx: NegotiationContext | null = null;
+
+  if (options?.serviceId || options?.requestResponseId) {
+    ctx = await findNegotiationForPair(clientId, providerId, options);
+  } else {
+    const hints = await getNegotiationHintsFromMessages(conversationId);
+    if (hints?.serviceId || hints?.requestResponseId) {
+      ctx = await findNegotiationForPair(clientId, providerId, hints);
+    }
+    if (!ctx) {
+      ctx = await findNegotiationForPair(clientId, providerId);
+    }
+  }
+
+  if (!ctx) return null;
+  return applyNegotiationOpenState(ctx, conversationId);
 }
 
 export async function loadOfferForAccept(

@@ -1,11 +1,11 @@
 import prisma from "@/lib/prisma";
 import { PAGE_REVALIDATE_SECONDS } from "@/lib/cache";
-import { averageRating } from "@/lib/advanced-search";
 import {
-  getCategoryMeta,
-  slugToCategory,
-} from "@/lib/categories";
-import { buildRequestWhere, buildServiceWhere } from "@/lib/advanced-search";
+  averageRating,
+  buildRequestWhere,
+  buildServiceWhere,
+} from "@/lib/advanced-search";
+import { getCategoryMeta, slugToCategory } from "@/lib/categories";
 import { isKycApproved } from "@/lib/kyc";
 import {
   jsonLdBreadcrumbList,
@@ -20,6 +20,75 @@ export type SeoSchemaResult = {
   data: object;
   cacheSeconds: number;
 };
+
+async function resolveCategorySeoSchema(
+  kind: "services" | "requests",
+  slug: string,
+  leaf: string
+): Promise<SeoSchemaResult | null> {
+  const meta = getCategoryMeta(slug);
+  const category = slugToCategory(slug);
+  if (!meta || !category) return null;
+
+  const isServices = kind === "services";
+  const basePath = isServices ? "/services" : "/requests";
+  const listPath = `${basePath}/categorie/${slug}`;
+
+  if (leaf === "breadcrumb") {
+    return {
+      data: jsonLdBreadcrumbList([
+        { name: "Accueil", path: "/" },
+        { name: isServices ? "Services" : "Demandes", path: basePath },
+        { name: meta.name, path: listPath },
+      ]),
+      cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
+    };
+  }
+
+  if (leaf !== "list") return null;
+
+  const baseFilter = {
+    search: "",
+    category,
+    location: "",
+    minPrice: null,
+    maxPrice: null,
+  };
+
+  if (isServices) {
+    const services = await prisma.service.findMany({
+      where: buildServiceWhere(baseFilter),
+      orderBy: { updatedAt: "desc" },
+      take: 12,
+      select: { id: true, title: true },
+    });
+    return {
+      data: jsonLdItemList(
+        `${meta.name} à Madagascar`,
+        meta.description,
+        listPath,
+        services.map((s) => ({ name: s.title, url: `/services/${s.id}` }))
+      ),
+      cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
+    };
+  }
+
+  const requests = await prisma.serviceRequest.findMany({
+    where: buildRequestWhere(baseFilter),
+    orderBy: { updatedAt: "desc" },
+    take: 12,
+    select: { id: true, title: true },
+  });
+  return {
+    data: jsonLdItemList(
+      `Demandes ${meta.name} à Madagascar`,
+      meta.description,
+      listPath,
+      requests.map((r) => ({ name: r.title, url: `/requests/${r.id}` }))
+    ),
+    cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
+  };
+}
 
 export async function resolveSeoSchema(
   path: string[]
@@ -76,29 +145,23 @@ export async function resolveSeoSchema(
       };
     }
 
-    if (path.length === 3 && path[2] === "breadcrumb") {
-      const provider = await prisma.user.findUnique({
-        where: { id: path[1], role: { in: ["PROVIDER", "ADMIN"] } },
-        select: { id: true, name: true },
-      });
-      if (!provider) return null;
-
-      return {
-        data: jsonLdBreadcrumbList([
-          { name: "Accueil", path: "/" },
-          { name: "Prestataires", path: "/providers" },
-          { name: provider.name, path: `/providers/${provider.id}` },
-        ]),
-        cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
-      };
-    }
-
-    if (path.length === 3 && path[2] === "business") {
+    if (path.length === 3 && (path[2] === "breadcrumb" || path[2] === "business")) {
       const provider = await prisma.user.findUnique({
         where: { id: path[1], role: { in: ["PROVIDER", "ADMIN"] } },
         select: { id: true, name: true, bio: true },
       });
       if (!provider) return null;
+
+      if (path[2] === "breadcrumb") {
+        return {
+          data: jsonLdBreadcrumbList([
+            { name: "Accueil", path: "/" },
+            { name: "Prestataires", path: "/providers" },
+            { name: provider.name, path: `/providers/${provider.id}` },
+          ]),
+          cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
+        };
+      }
 
       const reviews = await prisma.review.findMany({
         where: { targetId: path[1] },
@@ -189,103 +252,11 @@ export async function resolveSeoSchema(
   }
 
   if (
-    path[0] === "services" &&
+    (path[0] === "services" || path[0] === "requests") &&
     path[1] === "category" &&
     path.length === 4
   ) {
-    const slug = path[2];
-    const meta = getCategoryMeta(slug);
-    const category = slugToCategory(slug);
-    if (!meta || !category) return null;
-
-    const listPath = `/services/categorie/${slug}`;
-
-    if (path[3] === "breadcrumb") {
-      return {
-        data: jsonLdBreadcrumbList([
-          { name: "Accueil", path: "/" },
-          { name: "Services", path: "/services" },
-          { name: meta.name, path: listPath },
-        ]),
-        cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
-      };
-    }
-
-    if (path[3] === "list") {
-      const where = buildServiceWhere({
-        search: "",
-        category,
-        location: "",
-        minPrice: null,
-        maxPrice: null,
-      });
-      const services = await prisma.service.findMany({
-        where,
-        orderBy: { updatedAt: "desc" },
-        take: 12,
-        select: { id: true, title: true },
-      });
-
-      return {
-        data: jsonLdItemList(
-          `${meta.name} à Madagascar`,
-          meta.description,
-          listPath,
-          services.map((s) => ({ name: s.title, url: `/services/${s.id}` }))
-        ),
-        cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
-      };
-    }
-  }
-
-  if (
-    path[0] === "requests" &&
-    path[1] === "category" &&
-    path.length === 4
-  ) {
-    const slug = path[2];
-    const meta = getCategoryMeta(slug);
-    const category = slugToCategory(slug);
-    if (!meta || !category) return null;
-
-    const listPath = `/requests/categorie/${slug}`;
-
-    if (path[3] === "breadcrumb") {
-      return {
-        data: jsonLdBreadcrumbList([
-          { name: "Accueil", path: "/" },
-          { name: "Demandes", path: "/requests" },
-          { name: meta.name, path: listPath },
-        ]),
-        cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
-      };
-    }
-
-    if (path[3] === "list") {
-      const where = buildRequestWhere({
-        search: "",
-        category,
-        location: "",
-        minPrice: null,
-        maxPrice: null,
-      });
-      const requests = await prisma.serviceRequest.findMany({
-        where,
-        orderBy: { updatedAt: "desc" },
-        take: 12,
-        select: { id: true, title: true },
-      });
-
-      return {
-        data: jsonLdItemList(
-          `Demandes ${meta.name} à Madagascar`,
-          meta.description,
-          listPath,
-          requests.map((r) => ({ name: r.title, url: `/requests/${r.id}` }))
-        ),
-        cacheSeconds: PAGE_REVALIDATE_SECONDS.PROVIDERS,
-      };
-    }
+    return resolveCategorySeoSchema(path[0], path[2], path[3]);
   }
 
   return null;

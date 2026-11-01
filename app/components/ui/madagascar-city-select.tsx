@@ -1,6 +1,9 @@
 "use client";
 
-import { madagascarCitiesByRegion } from "@/lib/madagascar-cities";
+import {
+  findMadagascarCity,
+  madagascarCitiesByRegion,
+} from "@/lib/madagascar-cities";
 
 interface MadagascarCitySelectProps {
   id?: string;
@@ -21,6 +24,9 @@ export default function MadagascarCitySelect({
   disabled,
   className,
 }: MadagascarCitySelectProps) {
+  const trimmed = value.trim();
+  const isCustomLegacyValue = trimmed !== "" && !findMadagascarCity(trimmed);
+
   return (
     <select
       id={id}
@@ -31,6 +37,7 @@ export default function MadagascarCitySelect({
       className={className}
     >
       <option value="">{placeholder}</option>
+      {isCustomLegacyValue ? <option value={trimmed}>{trimmed}</option> : null}
       {madagascarCitiesByRegion().map((group) => (
         <optgroup key={group.region} label={group.region}>
           {group.cities.map((city) => (

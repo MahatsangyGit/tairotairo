@@ -2,9 +2,9 @@ import path from "path";
 import { PORTFOLIO_MAX_FILE_BYTES } from "@/lib/portfolio";
 import type { AvatarAllowedMime } from "@/lib/media/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImageDispatched } from "@/lib/media/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
+  saveOptimizedImageAtBasename,
   validateImageUpload,
 } from "@/lib/media/image-storage";
 import {
@@ -30,11 +30,6 @@ export function portfolioItemKeyPrefix(itemId: string): string {
   return `portfolio/${itemId}`;
 }
 
-/** @deprecated Prefer portfolioItemKeyPrefix. */
-export function portfolioItemDir(itemId: string): string {
-  return portfolioItemKeyPrefix(itemId);
-}
-
 export type SavedPortfolioImage = {
   storedName: string;
   mime: AvatarAllowedMime;
@@ -43,22 +38,15 @@ export type SavedPortfolioImage = {
 
 export async function savePortfolioImage(
   itemId: string,
-  buffer: Buffer,
-  _mime: AvatarAllowedMime
+  buffer: Buffer
 ): Promise<SavedPortfolioImage> {
-  const backend = getStorageBackend();
-  const prefix = portfolioItemKeyPrefix(itemId);
-  await deleteKeysWithBasename(backend, prefix, IMAGE_BASENAME);
-
-  const optimized = await optimizeUploadImageDispatched(buffer, "portfolio");
-  const storedName = `${IMAGE_BASENAME}${optimized.extension}`;
-  await backend.put(`${prefix}/${storedName}`, optimized.buffer, optimized.mime);
-
-  return {
-    storedName,
-    mime: optimized.mime,
-    sizeBytes: optimized.sizeBytes,
-  };
+  const { storedName, mime, sizeBytes } = await saveOptimizedImageAtBasename(
+    portfolioItemKeyPrefix(itemId),
+    IMAGE_BASENAME,
+    buffer,
+    "portfolio"
+  );
+  return { storedName, mime, sizeBytes };
 }
 
 export async function deletePortfolioItemFiles(itemId: string): Promise<void> {
@@ -79,8 +67,7 @@ export async function readPortfolioImage(
     const buffer = await getStorageBackend().get(key);
     if (!buffer) return null;
     const mime = mimeFromStoredExtension(path.extname(safeName));
-    if (!mime) return null;
-    return { buffer, mime };
+    return mime ? { buffer, mime } : null;
   } catch {
     return null;
   }

@@ -1,14 +1,13 @@
 import path from "path";
 import type { AvatarAllowedMime } from "@/lib/media/avatar";
 import { assertSafeStorageId } from "@/lib/storage-path";
-import { optimizeUploadImageDispatched } from "@/lib/media/image-optimize-dispatch";
 import {
   mimeFromStoredExtension,
+  saveOptimizedImageAtBasename,
   validateImageUpload,
 } from "@/lib/media/image-storage";
 import {
   deleteKeysWithBasename,
-  findKeyWithBasename,
   getStorageBackend,
 } from "@/lib/storage/backend";
 
@@ -36,19 +35,13 @@ export async function saveEquipmentPhoto(
   index: number,
   buffer: Buffer
 ): Promise<string> {
-  const backend = getStorageBackend();
-  const prefix = equipmentPhotoPrefix(equipmentId);
-  const basename = `photo-${index}`;
-  await deleteKeysWithBasename(backend, prefix, basename);
-  const optimized = await optimizeUploadImageDispatched(buffer, "cover");
-  const key = `${prefix}/${basename}${optimized.extension}`;
-  await backend.put(key, optimized.buffer, optimized.mime);
+  const { key } = await saveOptimizedImageAtBasename(
+    equipmentPhotoPrefix(equipmentId),
+    `photo-${index}`,
+    buffer,
+    "cover"
+  );
   return key;
-}
-
-export async function deleteEquipmentPhotoKey(key: string): Promise<void> {
-  if (!key.startsWith("equipment/")) return;
-  await getStorageBackend().delete(key);
 }
 
 export async function deleteAllEquipmentPhotos(
@@ -65,18 +58,8 @@ export async function readEquipmentPhotoByKey(
   key: string
 ): Promise<{ buffer: Buffer; mime: AvatarAllowedMime } | null> {
   if (!key.startsWith("equipment/")) return null;
-  const backend = getStorageBackend();
-  const buffer = await backend.get(key);
+  const buffer = await getStorageBackend().get(key);
   if (!buffer) return null;
   const mime = mimeFromStoredExtension(path.extname(key));
-  if (!mime) return null;
-  return { buffer, mime };
-}
-
-export async function findEquipmentCover(
-  equipmentId: string
-): Promise<string | null> {
-  const backend = getStorageBackend();
-  const prefix = equipmentPhotoPrefix(equipmentId);
-  return findKeyWithBasename(backend, prefix, "photo-0");
+  return mime ? { buffer, mime } : null;
 }

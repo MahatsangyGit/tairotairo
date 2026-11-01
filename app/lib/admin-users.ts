@@ -4,12 +4,6 @@ import { disableProviderHomepageSpotlight } from "@/lib/provider-spotlight";
 import { bumpTokenVersion } from "@/lib/token-version";
 import { logSecurityEvent } from "@/lib/security-audit";
 
-const ROLES: Role[] = ["CLIENT", "PROVIDER", "ADMIN"];
-
-export function isValidRole(role: string): role is Role {
-  return ROLES.includes(role as Role);
-}
-
 export async function countAdmins(): Promise<number> {
   return prisma.user.count({
     where: { role: "ADMIN", suspendedAt: null },

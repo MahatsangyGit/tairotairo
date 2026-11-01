@@ -217,6 +217,33 @@ type PairResult =
   | { clientId: string; providerId: string }
   | { error: string; status: number };
 
+async function resolveDirectContactPair(opts: {
+  callerId: string;
+  callerRole: string;
+  targetId: string;
+  requiredCallerRole: "CLIENT" | "PROVIDER";
+  targetRole: "PROVIDER" | "CLIENT";
+  forbiddenMessage: string;
+  notFoundMessage: string;
+}): Promise<PairResult> {
+  if (opts.callerRole !== opts.requiredCallerRole && opts.callerRole !== "ADMIN") {
+    return { error: opts.forbiddenMessage, status: 403 };
+  }
+  if (opts.targetId === opts.callerId) {
+    return { error: "Impossible de vous contacter vous-même", status: 400 };
+  }
+  const target = await prisma.user.findFirst({
+    where: { id: opts.targetId, role: { in: [opts.targetRole, "ADMIN"] } },
+    select: { id: true },
+  });
+  if (!target) {
+    return { error: opts.notFoundMessage, status: 404 };
+  }
+  return opts.requiredCallerRole === "CLIENT"
+    ? { clientId: opts.callerId, providerId: opts.targetId }
+    : { clientId: opts.targetId, providerId: opts.callerId };
+}
+
 export async function resolveConversationPair(params: {
   userId: string;
   role: string;
@@ -256,26 +283,22 @@ export async function resolveConversationPair(params: {
       where: { id: serviceId },
       select: { id: true, providerId: true, available: true },
     });
-
-    if (!service) {
-      return { error: "Service introuvable", status: 404 };
-    }
-
+    if (!service) return { error: "Service introuvable", status: 404 };
     if (!service.available) {
       return { error: "Ce service n'est plus disponible", status: 400 };
     }
-
     if (role !== "CLIENT" && role !== "ADMIN") {
       return {
         error: "Seuls les clients peuvent marchander sur une annonce",
         status: 403,
       };
     }
-
     if (service.providerId === userId) {
-      return { error: "Impossible de marchander sur votre propre annonce", status: 400 };
+      return {
+        error: "Impossible de marchander sur votre propre annonce",
+        status: 400,
+      };
     }
-
     return { clientId: userId, providerId: service.providerId };
   }
 
@@ -284,18 +307,14 @@ export async function resolveConversationPair(params: {
       where: { id: requestResponseId },
       include: { request: { select: { clientId: true } } },
     });
-
-    if (!response) {
-      return { error: "Proposition introuvable", status: 404 };
-    }
-
-    const isClient = response.request.clientId === userId;
-    const isProvider = response.providerId === userId;
-
-    if (!isClient && !isProvider && role !== "ADMIN") {
+    if (!response) return { error: "Proposition introuvable", status: 404 };
+    if (
+      response.request.clientId !== userId &&
+      response.providerId !== userId &&
+      role !== "ADMIN"
+    ) {
       return { error: "Accès refusé", status: 403 };
     }
-
     return {
       clientId: response.request.clientId,
       providerId: response.providerId,
@@ -304,56 +323,34 @@ export async function resolveConversationPair(params: {
 
   if (bookingId) {
     const booking = await getBookingForParticipant(bookingId, userId);
-    if (!booking) {
-      return { error: "Réservation introuvable", status: 404 };
-    }
+    if (!booking) return { error: "Réservation introuvable", status: 404 };
     return { clientId: booking.clientId, providerId: booking.providerId };
   }
 
   if (providerId) {
-    if (role !== "CLIENT" && role !== "ADMIN") {
-      return {
-        error: "Seuls les clients peuvent contacter un prestataire ainsi",
-        status: 403,
-      };
-    }
-    if (providerId === userId) {
-      return { error: "Impossible de vous contacter vous-même", status: 400 };
-    }
-
-    const provider = await prisma.user.findFirst({
-      where: { id: providerId, role: { in: ["PROVIDER", "ADMIN"] } },
-      select: { id: true },
+    return resolveDirectContactPair({
+      callerId: userId,
+      callerRole: role,
+      targetId: providerId,
+      requiredCallerRole: "CLIENT",
+      targetRole: "PROVIDER",
+      forbiddenMessage:
+        "Seuls les clients peuvent contacter un prestataire ainsi",
+      notFoundMessage: "Prestataire introuvable",
     });
-
-    if (!provider) {
-      return { error: "Prestataire introuvable", status: 404 };
-    }
-
-    return { clientId: userId, providerId };
   }
 
   if (clientId) {
-    if (role !== "PROVIDER" && role !== "ADMIN") {
-      return {
-        error: "Seuls les prestataires peuvent contacter un client ainsi",
-        status: 403,
-      };
-    }
-    if (clientId === userId) {
-      return { error: "Impossible de vous contacter vous-même", status: 400 };
-    }
-
-    const client = await prisma.user.findFirst({
-      where: { id: clientId, role: { in: ["CLIENT", "ADMIN"] } },
-      select: { id: true },
+    return resolveDirectContactPair({
+      callerId: userId,
+      callerRole: role,
+      targetId: clientId,
+      requiredCallerRole: "PROVIDER",
+      targetRole: "CLIENT",
+      forbiddenMessage:
+        "Seuls les prestataires peuvent contacter un client ainsi",
+      notFoundMessage: "Client introuvable",
     });
-
-    if (!client) {
-      return { error: "Client introuvable", status: 404 };
-    }
-
-    return { clientId, providerId: userId };
   }
 
   return { error: "Paramètre invalide", status: 400 };
