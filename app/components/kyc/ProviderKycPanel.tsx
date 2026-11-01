@@ -19,6 +19,15 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { StatusAlert } from "@/components/ui/status-alert";
 
 const ACCEPT = ".jpg,.jpeg,.png,.pdf,image/jpeg,image/png,application/pdf";
+const CIN_SLOTS = [1, 2] as const;
+
+function formatLongDateFr(iso: string): string {
+  return new Date(iso).toLocaleDateString("fr-MG", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
 
 export default function ProviderKycPanel() {
   const [kyc, setKyc] = useState<KycStatusPayload | null>(null);
@@ -29,8 +38,7 @@ export default function ProviderKycPanel() {
   const [submitting, setSubmitting] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<KycDocumentMeta | null>(null);
 
-  const cin1Ref = useRef<HTMLInputElement>(null);
-  const cin2Ref = useRef<HTMLInputElement>(null);
+  const fileInputRefs = useRef<Record<number, HTMLInputElement | null>>({});
 
   const fetchKyc = useCallback(async () => {
     setLoading(true);
@@ -57,8 +65,7 @@ export default function ProviderKycPanel() {
   const cinDocs = kyc?.documents.filter((d) => d.type === "CIN") ?? [];
 
   const uploadFile = async (file: File, cinSlot: number) => {
-    const key = `CIN-${cinSlot}`;
-    setUploading(key);
+    setUploading(`CIN-${cinSlot}`);
     setError("");
     setSuccess("");
 
@@ -92,8 +99,7 @@ export default function ProviderKycPanel() {
   ) => {
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file) return;
-    void uploadFile(file, cinSlot);
+    if (file) void uploadFile(file, cinSlot);
   };
 
   const deleteDocument = async (doc: KycDocumentMeta) => {
@@ -138,46 +144,13 @@ export default function ProviderKycPanel() {
     }
   };
 
-  const renderDocRow = (doc: KycDocumentMeta) => (
-    <li
-      key={doc.id}
-      className="flex items-center justify-between gap-3 py-2 border-b border-border/50 last:border-0"
-    >
-      <div className="min-w-0">
-        <p className="text-sm font-medium truncate">
-          {documentTypeLabel(doc.type, doc.cinSlot)}
-        </p>
-        <p className="text-xs text-muted-foreground truncate">
-          {doc.originalName} · {formatFileSize(doc.sizeBytes)}
-        </p>
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <Button variant="link" size="xs" asChild className="px-0">
-          <a
-            href={`/api/provider/kyc/documents/${doc.id}`}
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Voir
-          </a>
-        </Button>
-        <Button
-          type="button"
-          variant="destructive"
-          size="xs"
-          onClick={() => setDeleteTarget(doc)}
-        >
-          Supprimer
-        </Button>
-      </div>
-    </li>
-  );
-
   if (loading) {
     return (
       <Card>
         <CardContent>
-          <p className="text-muted-foreground text-sm">Chargement de la vérification…</p>
+          <p className="text-muted-foreground text-sm">
+            Chargement de la vérification…
+          </p>
         </CardContent>
       </Card>
     );
@@ -195,16 +168,14 @@ export default function ProviderKycPanel() {
 
       <CardContent className="flex flex-col gap-5">
         {kyc?.status === "PENDING" && (
-          <StatusAlert variant="info" className="border-amber-100 bg-amber-50 text-amber-900">
+          <StatusAlert
+            variant="info"
+            className="border-amber-100 bg-amber-50 text-amber-900"
+          >
             Dossier en cours de vérification par notre équipe.
             {kyc.submittedAt && (
               <span className="text-amber-700 block text-xs mt-1">
-                Envoyé le{" "}
-                {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                Envoyé le {formatLongDateFr(kyc.submittedAt)}
               </span>
             )}
           </StatusAlert>
@@ -215,64 +186,92 @@ export default function ProviderKycPanel() {
             Identité vérifiée
             {kyc.submittedAt && (
               <span className="block text-xs mt-1 opacity-80">
-                Validée le{" "}
-                {new Date(kyc.submittedAt).toLocaleDateString("fr-MG", {
-                  day: "numeric",
-                  month: "long",
-                  year: "numeric",
-                })}
+                Validée le {formatLongDateFr(kyc.submittedAt)}
               </span>
             )}
           </StatusAlert>
         )}
 
         <div className="border border-border rounded-xl p-4 max-w-lg">
-          <h3 className="text-sm font-medium mb-1">Carte d&apos;identité (CIN) *</h3>
+          <h3 className="text-sm font-medium mb-1">
+            Carte d&apos;identité (CIN) *
+          </h3>
           <p className="text-xs text-muted-foreground mb-3">
             1 fichier minimum, 2 maximum (recto / verso).
           </p>
           <div className="flex flex-col gap-2">
-            <input
-              ref={cin1Ref}
-              type="file"
-              accept={ACCEPT}
-              className="hidden"
-              onChange={(e) => handleFileChange(1, e)}
-            />
-            <input
-              ref={cin2Ref}
-              type="file"
-              accept={ACCEPT}
-              className="hidden"
-              onChange={(e) => handleFileChange(2, e)}
-            />
-            <Button
-              type="button"
-              variant="outline"
-              disabled={uploading != null || cinDocs.length >= 2}
-              onClick={() => cin1Ref.current?.click()}
-            >
-              {uploading === "CIN-1"
+            {CIN_SLOTS.map((slot) => {
+              const hasDoc = cinDocs.some((d) => d.cinSlot === slot);
+              const isUploading = uploading === `CIN-${slot}`;
+              const label = isUploading
                 ? "Envoi…"
-                : cinDocs.some((d) => d.cinSlot === 1)
-                  ? "Remplacer CIN (fichier 1)"
-                  : "Ajouter CIN (fichier 1)"}
-            </Button>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={uploading != null || cinDocs.length >= 2}
-              onClick={() => cin2Ref.current?.click()}
-            >
-              {uploading === "CIN-2"
-                ? "Envoi…"
-                : cinDocs.some((d) => d.cinSlot === 2)
-                  ? "Remplacer CIN (fichier 2)"
-                  : "Ajouter CIN (fichier 2 — optionnel)"}
-            </Button>
+                : hasDoc
+                  ? `Remplacer CIN (fichier ${slot})`
+                  : slot === 1
+                    ? "Ajouter CIN (fichier 1)"
+                    : "Ajouter CIN (fichier 2 — optionnel)";
+
+              return (
+                <div key={slot}>
+                  <input
+                    ref={(el) => {
+                      fileInputRefs.current[slot] = el;
+                    }}
+                    type="file"
+                    accept={ACCEPT}
+                    className="hidden"
+                    onChange={(e) => handleFileChange(slot, e)}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full"
+                    disabled={uploading != null || cinDocs.length >= 2}
+                    onClick={() => fileInputRefs.current[slot]?.click()}
+                  >
+                    {label}
+                  </Button>
+                </div>
+              );
+            })}
           </div>
           {cinDocs.length > 0 && (
-            <ul className="mt-3">{cinDocs.map(renderDocRow)}</ul>
+            <ul className="mt-3">
+              {cinDocs.map((doc) => (
+                <li
+                  key={doc.id}
+                  className="flex items-center justify-between gap-3 py-2 border-b border-border/50 last:border-0"
+                >
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium truncate">
+                      {documentTypeLabel(doc.type, doc.cinSlot)}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {doc.originalName} · {formatFileSize(doc.sizeBytes)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button variant="link" size="xs" asChild className="px-0">
+                      <a
+                        href={`/api/provider/kyc/documents/${doc.id}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Voir
+                      </a>
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      size="xs"
+                      onClick={() => setDeleteTarget(doc)}
+                    >
+                      Supprimer
+                    </Button>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </div>
 
@@ -305,9 +304,7 @@ export default function ProviderKycPanel() {
         }}
         title="Supprimer le document"
         description={
-          deleteTarget
-            ? `Supprimer « ${deleteTarget.originalName} » ?`
-            : ""
+          deleteTarget ? `Supprimer « ${deleteTarget.originalName} » ?` : ""
         }
         confirmLabel="Supprimer"
         destructive

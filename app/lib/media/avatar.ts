@@ -18,7 +18,3 @@ export function buildAvatarApiPath(userId: string, cacheBust?: number): string {
   const path = cacheBust ? `${base}?v=${cacheBust}` : base;
   return cdnPath(path);
 }
-
-export function isLocalAvatarUrl(avatar: string | null | undefined): boolean {
-  return !!avatar && avatar.startsWith("/api/users/") && avatar.includes("/avatar");
-}

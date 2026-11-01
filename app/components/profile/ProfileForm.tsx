@@ -29,7 +29,13 @@ interface ProfileFormProps {
   showBio?: boolean;
 }
 
-export default function ProfileForm({ initialUser, showBio = false }: ProfileFormProps) {
+const inputClass =
+  "w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500 bg-background";
+
+export default function ProfileForm({
+  initialUser,
+  showBio = false,
+}: ProfileFormProps) {
   const [user, setUser] = useState(initialUser);
   const professional = isProfessionalClient(user);
   const [name, setName] = useState(
@@ -54,6 +60,7 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
   const showProviderLegal =
     !professional &&
     (showBio || user.role === "PROVIDER" || user.role === "ADMIN");
+  const showLegalSection = professional || showProviderLegal;
 
   const handleSave = async () => {
     setSaving(true);
@@ -114,8 +121,29 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
     }
   };
 
-  const inputClass =
-    "w-full px-4 py-3 border border-border rounded-lg focus:outline-none focus:border-brand-500 bg-background";
+  const legalFields = [
+    {
+      label: "NIF",
+      inputMode: "numeric" as const,
+      placeholder: "10 chiffres — ex. 3002064702",
+      value: nif,
+      onChange: setNif,
+    },
+    {
+      label: "STAT",
+      inputMode: "numeric" as const,
+      placeholder: "17 chiffres — ex. 41002 52 2015 0 00152",
+      value: stat,
+      onChange: setStat,
+    },
+    {
+      label: "RCS",
+      inputMode: undefined,
+      placeholder: "ex. RCS Antananarivo A 2024 00031",
+      value: rcs,
+      onChange: setRcs,
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-6">
@@ -202,108 +230,42 @@ export default function ProfileForm({ initialUser, showBio = false }: ProfileFor
         )}
       </div>
 
-      {professional ? (
+      {showLegalSection ? (
         <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Identifiants légaux
-            </p>
-            <h2 className="mt-1 font-semibold text-foreground">NIF, STAT, RCS</h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Obligatoires pour un compte entreprise. Ils figurent sur vos
-              factures.
-            </p>
-          </div>
-          <label className="block text-sm">
-            NIF
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="10 chiffres — ex. 3002064702"
-              value={nif}
-              onChange={(e) => setNif(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
-          </label>
-          <label className="block text-sm">
-            STAT
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="17 chiffres — ex. 41002 52 2015 0 00152"
-              value={stat}
-              onChange={(e) => setStat(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
-          </label>
-          <label className="block text-sm">
-            RCS
-            <input
-              type="text"
-              autoComplete="off"
-              placeholder="ex. RCS Antananarivo A 2024 00031"
-              value={rcs}
-              onChange={(e) => setRcs(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
-          </label>
-        </div>
-      ) : null}
-
-      {showProviderLegal ? (
-        <div className="flex flex-col gap-4 rounded-2xl border border-border bg-card p-6 shadow-sm">
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground">
-              Optionnel
+              {professional ? "Identifiants légaux" : "Optionnel"}
             </p>
             <h2 className="mt-1 font-semibold text-foreground">
-              Entreprise individuelle
+              {professional ? "NIF, STAT, RCS" : "Entreprise individuelle"}
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Renseignez votre NIF, STAT et RCS pour afficher le badge{" "}
-              <span className="font-semibold text-foreground">EI</span> sur
-              votre profil public et vos annonces. NIF et STAT apparaissent
-              aussi sur vos factures.
+              {professional ? (
+                "Obligatoires pour un compte entreprise. Ils figurent sur vos factures."
+              ) : (
+                <>
+                  Renseignez votre NIF, STAT et RCS pour afficher le badge{" "}
+                  <span className="font-semibold text-foreground">EI</span> sur
+                  votre profil public et vos annonces. NIF et STAT apparaissent
+                  aussi sur vos factures.
+                </>
+              )}
             </p>
           </div>
-
-          <label className="block text-sm">
-            NIF
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="10 chiffres — ex. 3002064702"
-              value={nif}
-              onChange={(e) => setNif(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
-          </label>
-          <label className="block text-sm">
-            STAT
-            <input
-              type="text"
-              inputMode="numeric"
-              autoComplete="off"
-              placeholder="17 chiffres — ex. 41002 52 2015 0 00152"
-              value={stat}
-              onChange={(e) => setStat(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
-          </label>
-          <label className="block text-sm">
-            RCS
-            <input
-              type="text"
-              autoComplete="off"
-              placeholder="ex. RCS Antananarivo A 2024 00031"
-              value={rcs}
-              onChange={(e) => setRcs(e.target.value)}
-              className={`mt-1 ${inputClass}`}
-            />
-          </label>
+          {legalFields.map((field) => (
+            <label key={field.label} className="block text-sm">
+              {field.label}
+              <input
+                type="text"
+                inputMode={field.inputMode}
+                autoComplete="off"
+                placeholder={field.placeholder}
+                value={field.value}
+                onChange={(e) => field.onChange(e.target.value)}
+                className={`mt-1 ${inputClass}`}
+              />
+            </label>
+          ))}
         </div>
       ) : null}
 

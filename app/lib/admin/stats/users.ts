@@ -1,6 +1,11 @@
 import prisma from "@/lib/prisma";
 import { isSubscriptionActive } from "@/lib/subscription";
-import { EXPORT_PAGE_SIZE, idCursorWhere } from "@/lib/admin/stats/shared";
+import {
+  collectAsyncRows,
+  EXPORT_PAGE_SIZE,
+  idCursorWhere,
+  providerIdCursorWhere,
+} from "@/lib/admin/stats/shared";
 
 export async function loadUserAdminStats(
   now: Date,
@@ -74,13 +79,7 @@ export async function loadUserAdminStats(
   };
 }
 
-export async function exportProvidersCsv() {
-  const rows: unknown[][] = [];
-  for await (const row of iterateProvidersCsv()) {
-    rows.push(row);
-  }
-  return rows;
-}
+export const exportProvidersCsv = () => collectAsyncRows(iterateProvidersCsv());
 
 export async function* iterateProvidersCsv(): AsyncGenerator<unknown[]> {
   const now = new Date();
@@ -89,10 +88,7 @@ export async function* iterateProvidersCsv(): AsyncGenerator<unknown[]> {
   for (;;) {
     const after = idCursorWhere(cursorId);
     const batch = await prisma.user.findMany({
-      where: {
-        role: "PROVIDER",
-        ...(after ?? {}),
-      },
+      where: { role: "PROVIDER", ...(after ?? {}) },
       orderBy: { id: "asc" },
       take: EXPORT_PAGE_SIZE,
       select: {
@@ -138,20 +134,12 @@ export async function* iterateProvidersCsv(): AsyncGenerator<unknown[]> {
       ];
     }
 
-    const last = batch[batch.length - 1];
-    if (!last) break;
-    cursorId = last.id;
+    cursorId = batch[batch.length - 1]!.id;
     if (batch.length < EXPORT_PAGE_SIZE) break;
   }
 }
 
-export async function exportClientsCsv() {
-  const rows: unknown[][] = [];
-  for await (const row of iterateClientsCsv()) {
-    rows.push(row);
-  }
-  return rows;
-}
+export const exportClientsCsv = () => collectAsyncRows(iterateClientsCsv());
 
 export async function* iterateClientsCsv(): AsyncGenerator<unknown[]> {
   let cursorId: string | null = null;
@@ -159,10 +147,7 @@ export async function* iterateClientsCsv(): AsyncGenerator<unknown[]> {
   for (;;) {
     const after = idCursorWhere(cursorId);
     const batch = await prisma.user.findMany({
-      where: {
-        role: "CLIENT",
-        ...(after ?? {}),
-      },
+      where: { role: "CLIENT", ...(after ?? {}) },
       orderBy: { id: "asc" },
       take: EXPORT_PAGE_SIZE,
       select: {
@@ -198,41 +183,22 @@ export async function* iterateClientsCsv(): AsyncGenerator<unknown[]> {
       ];
     }
 
-    const last = batch[batch.length - 1];
-    if (!last) break;
-    cursorId = last.id;
+    cursorId = batch[batch.length - 1]!.id;
     if (batch.length < EXPORT_PAGE_SIZE) break;
   }
 }
 
-export async function exportSubscriptionsCsv() {
-  const rows: unknown[][] = [];
-  for await (const row of iterateSubscriptionsCsv()) {
-    rows.push(row);
-  }
-  return rows;
-}
+export const exportSubscriptionsCsv = () =>
+  collectAsyncRows(iterateSubscriptionsCsv());
 
 export async function* iterateSubscriptionsCsv(): AsyncGenerator<unknown[]> {
   const now = new Date();
   let cursorId: string | null = null;
 
   for (;;) {
-    const whereClause:
-      | { providerId: { gt: string } }
-      | undefined = cursorId ? { providerId: { gt: cursorId } } : undefined;
-    const batch: Array<{
-      startsAt: Date;
-      expiresAt: Date;
-      notes: string | null;
-      provider: {
-        id: string;
-        name: string;
-        email: string;
-        kycStatus: string;
-      };
-    }> = await prisma.providerSubscription.findMany({
-      where: whereClause,
+    const after = providerIdCursorWhere(cursorId);
+    const batch = await prisma.providerSubscription.findMany({
+      where: after,
       orderBy: { providerId: "asc" },
       take: EXPORT_PAGE_SIZE,
       select: {
@@ -260,9 +226,7 @@ export async function* iterateSubscriptionsCsv(): AsyncGenerator<unknown[]> {
       ];
     }
 
-    const last = batch[batch.length - 1];
-    if (!last) break;
-    cursorId = last.provider.id;
+    cursorId = batch[batch.length - 1]!.provider.id;
     if (batch.length < EXPORT_PAGE_SIZE) break;
   }
 }

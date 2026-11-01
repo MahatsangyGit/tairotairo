@@ -72,19 +72,6 @@ export function optionalNonEmptyText(label: string, maxLength: number) {
     .optional();
 }
 
-export const optionalPhoneInput = z
-  .union([z.string(), z.null(), z.undefined()])
-  .optional()
-  .transform((value, ctx) => {
-    if (value == null || String(value).trim() === "") return null;
-    const parsed = parseMgPhone(String(value));
-    if (!parsed) {
-      ctx.addIssue({ code: "custom", message: MG_PHONE_ERROR });
-      return z.NEVER;
-    }
-    return parsed;
-  });
-
 export const requiredPhoneInput = z
   .union([z.string(), z.null(), z.undefined()])
   .transform((value, ctx) => {

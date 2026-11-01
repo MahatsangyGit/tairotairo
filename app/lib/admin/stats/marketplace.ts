@@ -1,5 +1,9 @@
 import prisma from "@/lib/prisma";
-import { EXPORT_PAGE_SIZE, idCursorWhere } from "@/lib/admin/stats/shared";
+import {
+  collectAsyncRows,
+  EXPORT_PAGE_SIZE,
+  idCursorWhere,
+} from "@/lib/admin/stats/shared";
 
 export async function loadMarketplaceAdminStats(last30: Date) {
   const [
@@ -90,13 +94,7 @@ export async function loadMarketplaceAdminStats(last30: Date) {
   };
 }
 
-export async function exportServicesCsv() {
-  const rows: unknown[][] = [];
-  for await (const row of iterateServicesCsv()) {
-    rows.push(row);
-  }
-  return rows;
-}
+export const exportServicesCsv = () => collectAsyncRows(iterateServicesCsv());
 
 export async function* iterateServicesCsv(): AsyncGenerator<unknown[]> {
   let cursorId: string | null = null;
@@ -137,20 +135,12 @@ export async function* iterateServicesCsv(): AsyncGenerator<unknown[]> {
       ];
     }
 
-    const last = batch[batch.length - 1];
-    if (!last) break;
-    cursorId = last.id;
+    cursorId = batch[batch.length - 1]!.id;
     if (batch.length < EXPORT_PAGE_SIZE) break;
   }
 }
 
-export async function exportBookingsCsv() {
-  const rows: unknown[][] = [];
-  for await (const row of iterateBookingsCsv()) {
-    rows.push(row);
-  }
-  return rows;
-}
+export const exportBookingsCsv = () => collectAsyncRows(iterateBookingsCsv());
 
 export async function* iterateBookingsCsv(): AsyncGenerator<unknown[]> {
   let cursorId: string | null = null;
@@ -199,9 +189,7 @@ export async function* iterateBookingsCsv(): AsyncGenerator<unknown[]> {
       ];
     }
 
-    const last = batch[batch.length - 1];
-    if (!last) break;
-    cursorId = last.id;
+    cursorId = batch[batch.length - 1]!.id;
     if (batch.length < EXPORT_PAGE_SIZE) break;
   }
 }

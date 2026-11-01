@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { SUBSCRIPTION_PERIOD_DAYS } from "@/lib/subscription";
+import { KycStatusBadge } from "@/components/admin/AdminKycPanel";
 import { Badge } from "@/components/ui/badge";
 import { StarIcon } from "@/components/ui/app-icons";
 import { Button } from "@/components/ui/button";
@@ -39,20 +40,6 @@ interface ServiceRow {
   featuredOnHomepage: boolean;
   providerName: string;
   providerSubscriptionActive: boolean;
-}
-
-function KycLabel({ status }: { status: string }) {
-  if (status === "APPROVED") {
-    return <Badge variant="default">Approuvé</Badge>;
-  }
-  if (status === "PENDING") {
-    return (
-      <Badge variant="outline" className="border-amber-200 bg-amber-50 text-amber-800">
-        En attente
-      </Badge>
-    );
-  }
-  return <Badge variant="secondary">Non validé</Badge>;
 }
 
 export default function AdminSpotlightPanel() {
@@ -170,7 +157,7 @@ export default function AdminSpotlightPanel() {
                     <p className="text-xs text-muted-foreground">{p.email}</p>
                   </TableCell>
                   <TableCell>
-                    <KycLabel status={p.kycStatus} />
+                    <KycStatusBadge status={p.kycStatus} />
                   </TableCell>
                   <TableCell className="text-xs">
                     {p.subscription?.isActive ? (

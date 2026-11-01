@@ -105,7 +105,7 @@ export const POST = withApiHandler("POST /api/provider/portfolio", async (req) =
 
   let saved: Awaited<ReturnType<typeof savePortfolioImage>>;
   try {
-    saved = await savePortfolioImage(item.id, buffer, validation.mime);
+    saved = await savePortfolioImage(item.id, buffer);
   } catch (saveError) {
     await prisma.providerPortfolioItem.delete({ where: { id: item.id } });
     throw saveError;

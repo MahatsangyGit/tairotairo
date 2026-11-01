@@ -16,27 +16,6 @@ export function trimString(value: unknown): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-export function validateRequiredText(
-  value: unknown,
-  label: string,
-  maxLength: number
-): { ok: true; value: string } | { ok: false; error: string } {
-  const text = trimString(value);
-
-  if (!text) {
-    return { ok: false, error: `${label} est obligatoire` };
-  }
-
-  if (text.length > maxLength) {
-    return {
-      ok: false,
-      error: `${label} trop long (max ${maxLength} caractères)`,
-    };
-  }
-
-  return { ok: true, value: text };
-}
-
 export function validateOptionalText(
   value: unknown,
   label: string,
@@ -47,31 +26,6 @@ export function validateOptionalText(
   }
 
   const text = trimString(value);
-
-  if (text.length > maxLength) {
-    return {
-      ok: false,
-      error: `${label} trop long (max ${maxLength} caractères)`,
-    };
-  }
-
-  return { ok: true, value: text };
-}
-
-export function validateTextIfPresent(
-  value: unknown,
-  label: string,
-  maxLength: number
-): { ok: true; value?: string } | { ok: false; error: string } {
-  if (value === undefined) {
-    return { ok: true };
-  }
-
-  const text = trimString(value);
-
-  if (!text) {
-    return { ok: false, error: `${label} ne peut pas être vide` };
-  }
 
   if (text.length > maxLength) {
     return {

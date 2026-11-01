@@ -32,10 +32,6 @@ export function isTerminalBookingStatus(status: BookingStatus): boolean {
   return TERMINAL_STATUSES.includes(status);
 }
 
-export function serializeBooking<T extends { status: unknown }>(booking: T) {
-  return { ...booking, status: normalizeBookingStatus(booking.status) };
-}
-
 /**
  * Statut affiché : aligne réservation et proposition acceptée terminée.
  * Conservé pour compatibilité ascendante (pages qui ne connaissent que les

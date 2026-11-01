@@ -85,11 +85,6 @@ export function userKycKeyPrefix(userId: string): string {
   return `kyc/${userId}`;
 }
 
-/** @deprecated Prefer userKycKeyPrefix. */
-export function userKycDir(userId: string): string {
-  return userKycKeyPrefix(userId);
-}
-
 function kycObjectKey(userId: string, storedName: string): string {
   const safeName = path.basename(storedName);
   if (!safeName || safeName !== storedName.replace(/\\/g, "/").split("/").pop()) {

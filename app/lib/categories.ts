@@ -55,15 +55,6 @@ export const LEGACY_CATEGORY_SLUGS: Record<string, string> = {
   "cours-particuliers": "informatique",
 };
 
-function slugifyCategory(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export const CATEGORY_META: CategoryMeta[] = [
   {
     name: "Plomberie",
@@ -194,10 +185,6 @@ export function categoryDbValues(name: ServiceCategory): string[] {
     if (canonical === name) values.add(legacy);
   }
   return [...values];
-}
-
-export function categorySlug(name: ServiceCategory): string {
-  return nameToMeta.get(name)?.slug ?? slugifyCategory(name);
 }
 
 export function slugToCategory(slug: string): ServiceCategory | null {

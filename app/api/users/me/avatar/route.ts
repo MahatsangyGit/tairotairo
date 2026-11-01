@@ -41,7 +41,7 @@ export const POST = withApiHandler("POST /api/users/me/avatar", async (req) => {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  await saveAvatarFile(auth.userId, buffer, validation.mime);
+  await saveAvatarFile(auth.userId, buffer);
 
   const avatar = buildAvatarApiPath(auth.userId, Date.now());
 

@@ -1,4 +1,5 @@
 import prisma from "@/lib/prisma";
+import type { Prisma } from "@/generated/prisma/client";
 import { PriceOfferStatus } from "@/generated/prisma/enums";
 import {
   resolveBookingSchedule,
@@ -22,6 +23,32 @@ function defaultServiceBookingDate() {
   d.setDate(d.getDate() + 7);
   d.setHours(9, 0, 0, 0);
   return d;
+}
+
+async function recordPriceAcceptedMessage(
+  tx: Prisma.TransactionClient,
+  conversationId: string,
+  accepterId: string,
+  price: number
+) {
+  const confirmation = await tx.message.create({
+    data: {
+      conversationId,
+      senderId: accepterId,
+      kind: "TEXT",
+      body: formatPriceAcceptedBody(price),
+    },
+    include: {
+      sender: { select: { id: true, name: true, avatar: true } },
+    },
+  });
+
+  await tx.conversation.update({
+    where: { id: conversationId },
+    data: { updatedAt: new Date() },
+  });
+
+  return confirmation;
 }
 
 export async function acceptRequestPriceOffer(
@@ -58,37 +85,43 @@ export async function acceptRequestPriceOffer(
     });
 
     let booking = response.booking;
+    const baseSnapshot = snapshotFromRequest(
+      {
+        id: request.id,
+        title: request.title,
+        budget: request.budget,
+        category: request.category,
+        location: request.location,
+      },
+      price
+    );
 
-    if (!booking && response.status === "PENDING") {
-      await tx.requestResponse.updateMany({
-        where: {
-          requestId,
-          id: { not: response.id },
-          status: "PENDING",
-        },
-        data: { status: "REJECTED" },
+    if (booking) {
+      booking = await tx.booking.update({
+        where: { id: booking.id },
+        data: withServiceCommission(baseSnapshot, booking.commissionRate),
       });
+    } else if (response.status === "PENDING" || response.status === "ACCEPTED") {
+      if (response.status === "PENDING") {
+        await tx.requestResponse.updateMany({
+          where: {
+            requestId,
+            id: { not: response.id },
+            status: "PENDING",
+          },
+          data: { status: "REJECTED" },
+        });
 
-      await tx.requestResponse.update({
-        where: { id: response.id },
-        data: { status: "ACCEPTED" },
-      });
+        await tx.requestResponse.update({
+          where: { id: response.id },
+          data: { status: "ACCEPTED" },
+        });
 
-      await tx.serviceRequest.update({
-        where: { id: requestId },
-        data: { open: false },
-      });
-
-      const snapshot = snapshotFromRequest(
-        {
-          id: request.id,
-          title: request.title,
-          budget: request.budget,
-          category: request.category,
-          location: request.location,
-        },
-        price
-      );
+        await tx.serviceRequest.update({
+          where: { id: requestId },
+          data: { open: false },
+        });
+      }
 
       const schedule = resolveBookingSchedule({
         desiredDate: request.desiredDate,
@@ -105,75 +138,24 @@ export async function acceptRequestPriceOffer(
           slotStart: schedule.slotStart,
           slotEnd: schedule.slotEnd,
           status: "CONFIRMED",
-          ...withServiceCommission(snapshot),
-        },
-      });
-    } else if (booking) {
-      const snapshot = snapshotFromRequest(
-        {
-          id: request.id,
-          title: request.title,
-          budget: request.budget,
-          category: request.category,
-          location: request.location,
-        },
-        price
-      );
-
-      booking = await tx.booking.update({
-        where: { id: booking.id },
-        data: withServiceCommission(snapshot, booking.commissionRate),
-      });
-    } else if (response.status === "ACCEPTED") {
-      const snapshot = snapshotFromRequest(
-        {
-          id: request.id,
-          title: request.title,
-          budget: request.budget,
-          category: request.category,
-          location: request.location,
-        },
-        price
-      );
-
-      const scheduleAccepted = resolveBookingSchedule({
-        desiredDate: request.desiredDate,
-        desiredSlotStart: request.desiredSlotStart,
-        desiredSlotEnd: request.desiredSlotEnd,
-      });
-
-      booking = await tx.booking.create({
-        data: {
-          clientId: request.clientId,
-          providerId: response.providerId,
-          requestResponseId: response.id,
-          date: scheduleAccepted.date,
-          slotStart: scheduleAccepted.slotStart,
-          slotEnd: scheduleAccepted.slotEnd,
-          status: "CONFIRMED",
-          ...withServiceCommission(snapshot),
+          ...withServiceCommission(baseSnapshot),
         },
       });
     }
 
-    const confirmation = await tx.message.create({
-      data: {
-        conversationId,
-        senderId: accepterId,
-        kind: "TEXT",
-        body: formatPriceAcceptedBody(price),
-      },
-      include: {
-        sender: { select: { id: true, name: true, avatar: true } },
-      },
-    });
+    const confirmation = await recordPriceAcceptedMessage(
+      tx,
+      conversationId,
+      accepterId,
+      price
+    );
 
-    await tx.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() },
-    });
-
-    return { booking, confirmation, price, wasNewRequestBooking: !response.booking && response.status === "PENDING" };
+    return {
+      booking,
+      confirmation,
+      price,
+      wasNewRequestBooking: !response.booking && response.status === "PENDING",
+    };
   });
 
   if (result.booking && result.wasNewRequestBooking) {
@@ -275,22 +257,12 @@ export async function acceptServicePriceOffer(
       throw new Error("Réservation introuvable après acceptation");
     }
 
-    const confirmation = await tx.message.create({
-      data: {
-        conversationId,
-        senderId: accepterId,
-        kind: "TEXT",
-        body: formatPriceAcceptedBody(price),
-      },
-      include: {
-        sender: { select: { id: true, name: true, avatar: true } },
-      },
-    });
-
-    await tx.conversation.update({
-      where: { id: conversationId },
-      data: { updatedAt: new Date() },
-    });
+    const confirmation = await recordPriceAcceptedMessage(
+      tx,
+      conversationId,
+      accepterId,
+      price
+    );
 
     return { booking, confirmation, price, wasNew };
   });

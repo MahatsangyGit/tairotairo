@@ -90,7 +90,7 @@ export const PATCH = withApiHandler(
         if (!validation.ok) {
           return NextResponse.json({ error: validation.error }, { status: 400 });
         }
-        const saved = await savePortfolioImage(id, buffer, validation.mime);
+        const saved = await savePortfolioImage(id, buffer);
         data.storedName = saved.storedName;
         data.mimeType = saved.mime;
         data.sizeBytes = saved.sizeBytes;

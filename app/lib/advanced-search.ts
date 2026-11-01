@@ -220,20 +220,6 @@ export function averageRating(
   return { averageRating, reviewCount: ratings.length };
 }
 
-export function paginate<T>(items: T[], page: number, limit: number) {
-  const total = items.length;
-  const skip = (page - 1) * limit;
-  return {
-    items: items.slice(skip, skip + limit),
-    pagination: {
-      total,
-      page,
-      limit,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
-    },
-  };
-}
-
 export function listSearchToParams(
   filters: Omit<ParsedListSearch, "page" | "limit"> & { page?: number }
 ): URLSearchParams {

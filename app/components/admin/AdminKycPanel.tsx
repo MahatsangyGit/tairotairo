@@ -54,7 +54,7 @@ type PendingAction = {
   action: "approve" | "reject";
 };
 
-function KycStatusBadge({ status }: { status: string }) {
+export function KycStatusBadge({ status }: { status: string }) {
   if (status === "APPROVED") {
     return <Badge variant="default">{kycStatusLabel(status)}</Badge>;
   }
