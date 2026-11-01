@@ -92,10 +92,6 @@ export function withApiHandler(
   };
 }
 
-export function jsonError(message: string, status: number): NextResponse {
-  return NextResponse.json({ error: message }, { status });
-}
-
 export function throwUnauthorized(message = "Non autorisé"): never {
   throw new AppError(message, 401, true, "UNAUTHORIZED");
 }

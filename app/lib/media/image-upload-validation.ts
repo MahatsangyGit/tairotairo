@@ -24,14 +24,3 @@ export function detectImageMime(
   if (ext === ".webp") return "image/webp";
   return null;
 }
-
-export function extensionForImageMime(mime: ImageAllowedMime): string {
-  switch (mime) {
-    case "image/jpeg":
-      return ".jpg";
-    case "image/png":
-      return ".png";
-    case "image/webp":
-      return ".webp";
-  }
-}

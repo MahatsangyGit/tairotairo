@@ -1,13 +1,21 @@
-import { unlink, readFile, readdir } from "fs/promises";
 import path from "path";
 import {
   AVATAR_ALLOWED_EXTENSIONS,
   AVATAR_ALLOWED_MIME_TYPES,
 } from "@/lib/media/avatar";
 import {
+  optimizeUploadImageDispatched,
+} from "@/lib/media/image-optimize-dispatch";
+import type { ImageOptimizePreset } from "@/lib/media/image-optimize";
+import {
   detectImageMime,
   type ImageAllowedMime,
 } from "@/lib/media/image-upload-validation";
+import {
+  deleteKeysWithBasename,
+  findKeyWithBasename,
+  getStorageBackend,
+} from "@/lib/storage/backend";
 
 export function validateImageUpload(
   file: File,
@@ -45,7 +53,7 @@ export function validateImageUpload(
     return {
       ok: false,
       error: opts.label
-        ? `Le fichier doit être une image JPEG, PNG ou WebP valide`
+        ? "Le fichier doit être une image JPEG, PNG ou WebP valide"
         : "Le contenu du fichier doit être une image JPEG, PNG ou WebP valide",
     };
   }
@@ -65,37 +73,35 @@ export function mimeFromStoredExtension(ext: string): ImageAllowedMime | null {
   return null;
 }
 
-export async function deleteFilesWithBasename(
-  dir: string,
-  basename: string
-): Promise<void> {
-  try {
-    const existing = await readdir(dir);
-    for (const name of existing) {
-      if (name.startsWith(basename)) {
-        await unlink(path.join(dir, name));
-      }
-    }
-  } catch {
-    // rien à supprimer
-  }
+export async function saveOptimizedImageAtBasename(
+  prefix: string,
+  basename: string,
+  buffer: Buffer,
+  preset: ImageOptimizePreset
+) {
+  const backend = getStorageBackend();
+  await deleteKeysWithBasename(backend, prefix, basename);
+  const optimized = await optimizeUploadImageDispatched(buffer, preset);
+  const storedName = `${basename}${optimized.extension}`;
+  const key = `${prefix}/${storedName}`;
+  await backend.put(key, optimized.buffer, optimized.mime);
+  return {
+    key,
+    storedName,
+    mime: optimized.mime,
+    sizeBytes: optimized.sizeBytes,
+  };
 }
 
-export async function readImageByBasename(
-  dir: string,
+export async function readStoredImageAtBasename(
+  prefix: string,
   basename: string
 ): Promise<{ buffer: Buffer; mime: ImageAllowedMime } | null> {
-  try {
-    const files = await readdir(dir);
-    const match = files.find((f) => f.startsWith(basename));
-    if (!match) return null;
-
-    const mime = mimeFromStoredExtension(path.extname(match));
-    if (!mime) return null;
-
-    const buffer = await readFile(path.join(dir, match));
-    return { buffer, mime };
-  } catch {
-    return null;
-  }
+  const backend = getStorageBackend();
+  const key = await findKeyWithBasename(backend, prefix, basename);
+  if (!key) return null;
+  const buffer = await backend.get(key);
+  if (!buffer) return null;
+  const mime = mimeFromStoredExtension(path.extname(key));
+  return mime ? { buffer, mime } : null;
 }

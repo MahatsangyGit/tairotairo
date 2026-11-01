@@ -92,15 +92,6 @@ const CITY_BY_NAME = new Map(
   MADAGASCAR_CITIES.map((city) => [city.name, city])
 );
 
-export function madagascarCityId(name: string): string {
-  return name
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
-
 export function findMadagascarCity(value: string): MadagascarCity | null {
   return CITY_BY_NAME.get(value.trim()) ?? null;
 }

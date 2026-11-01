@@ -122,18 +122,3 @@ export async function dispatchNotification(
     publishNotificationCreated(input.userId);
   });
 }
-
-export async function dispatchNotificationToMany(
-  userIds: string[],
-  input: Omit<DispatchNotificationInput, "userId">
-) {
-  const unique = [...new Set(userIds)];
-  await Promise.all(
-    unique.map((userId) =>
-      dispatchNotification({
-        userId,
-        ...input,
-      })
-    )
-  );
-}

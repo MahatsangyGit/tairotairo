@@ -10,8 +10,6 @@ export type KycAllowedMime = (typeof KYC_ALLOWED_MIME_TYPES)[number];
 
 export const KYC_ALLOWED_EXTENSIONS = [".jpg", ".jpeg", ".png", ".pdf"] as const;
 
-export const KYC_CIN_SLOTS = [1, 2] as const;
-
 export type KycDocumentType = "CIN";
 
 export interface KycDocumentMeta {

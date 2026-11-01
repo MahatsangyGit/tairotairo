@@ -24,13 +24,10 @@ interface TokenPayload {
   role: string;
 }
 
-function getSecretKey(): Uint8Array {
-  return new TextEncoder().encode(getJwtSecret());
-}
-
 async function verifyAuthToken(token: string): Promise<TokenPayload | null> {
   try {
-    const { payload } = await jwtVerify(token, getSecretKey());
+    const key = new TextEncoder().encode(getJwtSecret());
+    const { payload } = await jwtVerify(token, key);
     const { userId, email, role } = payload;
 
     if (
@@ -69,106 +66,86 @@ function stripPort(host: string): string {
 /** Vercel Speed Insights / Analytics — ne pas réécrire ni filtrer ces chemins. */
 function isVercelObservabilityPath(pathname: string): boolean {
   if (pathname.startsWith("/_vercel")) return true;
-  // Intake v2 : `/<unique-path>/script.js` et `/<unique-path>/vitals`
   const segments = pathname.split("/").filter(Boolean);
-  if (segments.length !== 2) return false;
-  const leaf = segments[1];
-  return leaf === "script.js" || leaf === "vitals";
+  return (
+    segments.length === 2 &&
+    (segments[1] === "script.js" || segments[1] === "vitals")
+  );
 }
 
-/**
- * Host-based routing for ecosystem subdomains.
- * Rewrites ampindramo.* → /ampindramo/… and ampianaro.* → /ampianaro/…
- * On the main host in production, public /ampindramo|/ampianaro paths redirect
- * to the dedicated subdomain when configured.
- */
+function isBypassedVerticalSubpath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/_vercel") ||
+    pathname.startsWith("/seo")
+  );
+}
+
+function rewriteVerticalSubdomain(
+  request: NextRequest,
+  pathname: string,
+  basePrefix: "/ampindramo" | "/ampianaro"
+): NextResponse | null {
+  if (
+    pathname === basePrefix ||
+    pathname.startsWith(`${basePrefix}/`) ||
+    isBypassedVerticalSubpath(pathname)
+  ) {
+    return null;
+  }
+  const url = request.nextUrl.clone();
+  url.pathname =
+    pathname === "/"
+      ? basePrefix
+      : `${basePrefix}${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
+  return NextResponse.rewrite(url);
+}
+
+function redirectToSubdomain(
+  request: NextRequest,
+  pathname: string,
+  basePrefix: "/ampindramo" | "/ampianaro",
+  targetHost: string
+): NextResponse {
+  const suffix =
+    pathname === basePrefix ? "/" : pathname.slice(basePrefix.length);
+  const dest = new URL(
+    `https://${stripPort(targetHost)}${suffix === "" ? "/" : suffix}`
+  );
+  dest.search = request.nextUrl.search;
+  return NextResponse.redirect(dest, 308);
+}
+
 function resolveHostRouting(
   request: NextRequest,
   pathname: string
 ): NextResponse | null {
-  const hostHeader = request.headers.get("host");
-  const vertical = resolveVerticalFromHost(hostHeader);
+  const vertical = resolveVerticalFromHost(request.headers.get("host"));
   const rentalHost = getRentalHost();
   const learningHost = getLearningHost();
 
   if (vertical === "rental" && isRentalEnabled()) {
-    if (
-      pathname === "/ampindramo" ||
-      pathname.startsWith("/ampindramo/")
-    ) {
-      return null;
-    }
-    if (
-      pathname.startsWith("/api") ||
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/_vercel") ||
-      pathname.startsWith("/seo")
-    ) {
-      return null;
-    }
-    const target =
-      pathname === "/"
-        ? "/ampindramo"
-        : `/ampindramo${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
-    const url = request.nextUrl.clone();
-    url.pathname = target;
-    return NextResponse.rewrite(url);
+    return rewriteVerticalSubdomain(request, pathname, "/ampindramo");
   }
-
   if (vertical === "learning" && isLearningEnabled()) {
-    if (
-      pathname === "/ampianaro" ||
-      pathname.startsWith("/ampianaro/")
-    ) {
-      return null;
-    }
-    if (
-      pathname.startsWith("/api") ||
-      pathname.startsWith("/_next") ||
-      pathname.startsWith("/_vercel") ||
-      pathname.startsWith("/seo")
-    ) {
-      return null;
-    }
-    const target =
-      pathname === "/"
-        ? "/ampianaro"
-        : `/ampianaro${pathname.startsWith("/") ? pathname : `/${pathname}`}`;
-    const url = request.nextUrl.clone();
-    url.pathname = target;
-    return NextResponse.rewrite(url);
+    return rewriteVerticalSubdomain(request, pathname, "/ampianaro");
   }
 
-  // Canonical redirects from main host → dedicated subdomains (production only)
-  if (
-    process.env.NODE_ENV === "production" &&
-    vertical === "marketplace"
-  ) {
+  if (process.env.NODE_ENV === "production" && vertical === "marketplace") {
     if (
       rentalHost &&
       isRentalEnabled() &&
       (pathname === "/ampindramo" || pathname.startsWith("/ampindramo/"))
     ) {
-      const suffix =
-        pathname === "/ampindramo" ? "/" : pathname.slice("/ampindramo".length);
-      const dest = new URL(
-        `https://${stripPort(rentalHost)}${suffix === "" ? "/" : suffix}`
-      );
-      dest.search = request.nextUrl.search;
-      return NextResponse.redirect(dest, 308);
+      return redirectToSubdomain(request, pathname, "/ampindramo", rentalHost);
     }
     if (
       learningHost &&
       isLearningEnabled() &&
       (pathname === "/ampianaro" || pathname.startsWith("/ampianaro/"))
     ) {
-      const suffix =
-        pathname === "/ampianaro" ? "/" : pathname.slice("/ampianaro".length);
-      const dest = new URL(
-        `https://${stripPort(learningHost)}${suffix === "" ? "/" : suffix}`
-      );
-      dest.search = request.nextUrl.search;
-      return NextResponse.redirect(dest, 308);
+      return redirectToSubdomain(request, pathname, "/ampianaro", learningHost);
     }
   }
 
@@ -178,7 +155,6 @@ function resolveHostRouting(
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Speed Insights / Analytics : laisser Vercel servir ces endpoints sans CSP/rewrite.
   if (isVercelObservabilityPath(pathname)) {
     return NextResponse.next();
   }
@@ -204,13 +180,11 @@ export async function proxy(request: NextRequest) {
 
   if (pathname.startsWith("/dashboard")) {
     const token = request.cookies.get("token")?.value;
-
     if (!token) {
       return finalizeResponse(loginRedirect(request, pathname), csp, nonce);
     }
 
     const user = await verifyAuthToken(token);
-
     if (!user) {
       const response = loginRedirect(request, pathname);
       response.cookies.delete("token");
@@ -230,18 +204,11 @@ export async function proxy(request: NextRequest) {
     }
 
     if (
-      pathname.startsWith("/dashboard/provider") &&
-      user.role !== "PROVIDER" &&
-      user.role !== "ADMIN"
+      (pathname.startsWith("/dashboard/provider") &&
+        user.role !== "PROVIDER" &&
+        user.role !== "ADMIN") ||
+      (pathname.startsWith("/dashboard/admin") && user.role !== "ADMIN")
     ) {
-      return finalizeResponse(
-        NextResponse.redirect(new URL("/dashboard/client", request.url)),
-        csp,
-        nonce
-      );
-    }
-
-    if (pathname.startsWith("/dashboard/admin") && user.role !== "ADMIN") {
       return finalizeResponse(
         NextResponse.redirect(new URL("/dashboard/client", request.url)),
         csp,
@@ -260,7 +227,6 @@ export async function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     {
-      // Exclure aussi `_vercel` (Speed Insights / Analytics), sinon le script/vitals casse.
       source: "/((?!api|seo|_next/static|_next/image|_vercel|favicon.ico).*)",
       missing: [
         { type: "header", key: "next-router-prefetch" },

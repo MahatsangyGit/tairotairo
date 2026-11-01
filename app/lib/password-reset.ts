@@ -12,18 +12,6 @@ export function hashPasswordResetToken(raw: string): string {
   return crypto.createHash("sha256").update(raw).digest("hex");
 }
 
-export function verifyPasswordResetToken(raw: string, hash: string): boolean {
-  const computed = hashPasswordResetToken(raw);
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(computed, "hex"),
-      Buffer.from(hash, "hex")
-    );
-  } catch {
-    return false;
-  }
-}
-
 export function getPasswordResetExpiry(): Date {
   return new Date(Date.now() + RESET_TTL_MS);
 }
@@ -38,5 +26,3 @@ export function getPasswordResetCooldownSeconds(lastCreatedAt: Date): number {
     RESEND_COOLDOWN_MS - (Date.now() - lastCreatedAt.getTime());
   return Math.max(0, Math.ceil(remaining / 1000));
 }
-
-export const PASSWORD_RESET_EXPIRY_HOURS = RESET_TTL_MS / (60 * 60 * 1000);

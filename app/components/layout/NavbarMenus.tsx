@@ -44,6 +44,51 @@ function MobileNavLink({
   );
 }
 
+function UserChipContent({ user }: { user: NavbarUser }) {
+  return (
+    <>
+      <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+      <span className="flex max-w-36 items-center gap-1.5">
+        <span className="truncate text-sm font-medium text-foreground">
+          {user.name}
+        </span>
+        {isProfessionalClient(user) ? <ClientProBadge /> : null}
+      </span>
+    </>
+  );
+}
+
+function MobileUserCardContent({ user }: { user: NavbarUser }) {
+  return (
+    <>
+      <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
+      <div className="min-w-0">
+        <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+          <span className="truncate">{user.name}</span>
+          {isProfessionalClient(user) ? <ClientProBadge /> : null}
+        </p>
+        <p className="text-xs text-muted-foreground truncate">{user.email}</p>
+      </div>
+    </>
+  );
+}
+
+const ROLE_LINKS: Record<
+  NavbarUser["role"],
+  readonly { href: string; label: string; mobileOnly?: boolean }[]
+> = {
+  CLIENT: [
+    { href: "/dashboard/client", label: "Réservations" },
+    { href: "/dashboard/client/requests", label: "Mes demandes" },
+  ],
+  PROVIDER: [
+    { href: "/dashboard/provider", label: "Tableau de bord" },
+    { href: "/dashboard/provider/services", label: "Mes annonces" },
+    { href: "/dashboard/provider/proposals", label: "Mes propositions", mobileOnly: true },
+  ],
+  ADMIN: [{ href: "/dashboard/admin", label: "Administration" }],
+};
+
 export function NavbarDesktopNav({
   user,
   showEcosystemAccess,
@@ -91,39 +136,18 @@ export function NavbarDesktopNav({
                 </Link>
               </div>
             )}
-            {user.role === "CLIENT" && (
-              <>
-                <Link href="/dashboard/client" className={navLinkClass("/dashboard/client")}>
-                  Réservations
-                </Link>
+            {ROLE_LINKS[user.role]
+              .filter((item) => !item.mobileOnly)
+              .map((item) => (
                 <Link
-                  href="/dashboard/client/requests"
-                  className={navLinkClass("/dashboard/client/requests")}
+                  key={item.href}
+                  href={item.href}
+                  className={navLinkClass(item.href)}
                 >
-                  Mes demandes
+                  {item.label}
                 </Link>
-                {messagesHref && <MessageInboxLink href={messagesHref} variant="nav" />}
-              </>
-            )}
-            {user.role === "PROVIDER" && (
-              <>
-                <Link href="/dashboard/provider" className={navLinkClass("/dashboard/provider")}>
-                  Tableau de bord
-                </Link>
-                <Link
-                  href="/dashboard/provider/services"
-                  className={navLinkClass("/dashboard/provider/services")}
-                >
-                  Mes annonces
-                </Link>
-                {messagesHref && <MessageInboxLink href={messagesHref} variant="nav" />}
-              </>
-            )}
-            {user.role === "ADMIN" && (
-              <Link href="/dashboard/admin" className={navLinkClass("/dashboard/admin")}>
-                Administration
-              </Link>
-            )}
+              ))}
+            {messagesHref && <MessageInboxLink href={messagesHref} variant="nav" />}
           </>
         )}
       </div>
@@ -140,23 +164,11 @@ export function NavbarDesktopNav({
                   href={profileHref}
                   className="flex items-center gap-2 hover:opacity-80 transition-opacity"
                 >
-                  <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                  <span className="flex max-w-36 items-center gap-1.5">
-                    <span className="truncate text-sm font-medium text-foreground">
-                      {user.name}
-                    </span>
-                    {isProfessionalClient(user) ? <ClientProBadge /> : null}
-                  </span>
+                  <UserChipContent user={user} />
                 </Link>
               ) : (
                 <div className="flex items-center gap-2">
-                  <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                  <span className="flex max-w-36 items-center gap-1.5">
-                    <span className="truncate text-sm font-medium text-foreground">
-                      {user.name}
-                    </span>
-                    {isProfessionalClient(user) ? <ClientProBadge /> : null}
-                  </span>
+                  <UserChipContent user={user} />
                 </div>
               )}
               <button
@@ -276,65 +288,20 @@ export function NavbarMobileMenu({
                 <div className="h-px bg-border my-2" />
               </>
             )}
-            {user.role === "CLIENT" && (
-              <>
-                <MobileNavLink
-                  href="/dashboard/client"
-                  label="Réservations"
-                  active={isActive("/dashboard/client")}
-                  onClick={onClose}
-                />
-                <MobileNavLink
-                  href="/dashboard/client/requests"
-                  label="Mes demandes"
-                  active={isActive("/dashboard/client/requests")}
-                  onClick={onClose}
-                />
-                {messagesHref && (
-                  <MobileNavLink
-                    href={messagesHref}
-                    label="Messages"
-                    active={isActive(messagesHref)}
-                    onClick={onClose}
-                  />
-                )}
-              </>
-            )}
-            {user.role === "PROVIDER" && (
-              <>
-                <MobileNavLink
-                  href="/dashboard/provider"
-                  label="Tableau de bord"
-                  active={isActive("/dashboard/provider")}
-                  onClick={onClose}
-                />
-                <MobileNavLink
-                  href="/dashboard/provider/services"
-                  label="Mes annonces"
-                  active={isActive("/dashboard/provider/services")}
-                  onClick={onClose}
-                />
-                <MobileNavLink
-                  href="/dashboard/provider/proposals"
-                  label="Mes propositions"
-                  active={isActive("/dashboard/provider/proposals")}
-                  onClick={onClose}
-                />
-                {messagesHref && (
-                  <MobileNavLink
-                    href={messagesHref}
-                    label="Messages"
-                    active={isActive(messagesHref)}
-                    onClick={onClose}
-                  />
-                )}
-              </>
-            )}
-            {user.role === "ADMIN" && (
+            {ROLE_LINKS[user.role].map((item) => (
               <MobileNavLink
-                href="/dashboard/admin"
-                label="Administration"
-                active={isActive("/dashboard/admin")}
+                key={item.href}
+                href={item.href}
+                label={item.label}
+                active={isActive(item.href)}
+                onClick={onClose}
+              />
+            ))}
+            {messagesHref && (
+              <MobileNavLink
+                href={messagesHref}
+                label="Messages"
+                active={isActive(messagesHref)}
                 onClick={onClose}
               />
             )}
@@ -350,25 +317,11 @@ export function NavbarMobileMenu({
                     : "hover:bg-muted/50"
                 }`}
               >
-                <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                <div className="min-w-0">
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                    <span className="truncate">{user.name}</span>
-                    {isProfessionalClient(user) ? <ClientProBadge /> : null}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </div>
+                <MobileUserCardContent user={user} />
               </Link>
             ) : (
               <div className="flex items-center gap-3 px-3 py-2">
-                <UserAvatar name={user.name} avatar={user.avatar} size="sm" />
-                <div className="min-w-0">
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-                    <span className="truncate">{user.name}</span>
-                    {isProfessionalClient(user) ? <ClientProBadge /> : null}
-                  </p>
-                  <p className="text-xs text-muted-foreground truncate">{user.email}</p>
-                </div>
+                <MobileUserCardContent user={user} />
               </div>
             )}
             {profileHref && user.role === "CLIENT" && (

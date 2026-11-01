@@ -80,9 +80,3 @@ export function computeRentalTotalAmount(
   const days = Math.max(1, Math.ceil(ms / (24 * 60 * 60 * 1000)));
   return Math.round(dailyPrice * days);
 }
-
-export function parseRentalDate(value: string | number | Date): Date | null {
-  const d = value instanceof Date ? value : new Date(value);
-  if (Number.isNaN(d.getTime())) return null;
-  return d;
-}
