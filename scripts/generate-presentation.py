@@ -188,7 +188,7 @@ def slide_stack(prs):
     set_slide_bg(slide, LIGHT)
     add_header_bar(slide, "Stack technique")
     stacks = [
-        ("Frontend", ["Next.js 16.2 · App Router", "React 19 · TypeScript", "Tailwind CSS v4", "shadcn/ui · Lucide · next-themes (dark)"]),
+        ("Frontend", ["Next.js 16.2 · App Router", "React 19 · TypeScript", "Tailwind CSS v4", "shadcn/ui · Lucide"]),
         ("Backend", ["Route Handlers API (60 routes)", "Prisma 7 + PostgreSQL", "JWT custom (jsonwebtoken + jose)", "bcryptjs · nodemailer · web-push"]),
         ("Stockage", ["Fichiers locaux storage/", "Avatars, KYC, portfolio, couvertures annonces"]),
         ("Qualité", ["ESLint · Playwright E2E", "Migrations SQL Supabase"]),
@@ -415,7 +415,7 @@ def slide_features(prs):
         "Notifications in-app, email et push navigateur",
         "Photos de couverture annonces (1 image max, stockage local)",
         "SEO avancé : sitemap, robots, JSON-LD, pages catégories",
-        "Mode sombre · Navigation dashboard avec état actif",
+        "Navigation dashboard avec état actif",
         "Espace admin : modération, spotlight, export, statistiques",
     ]
     add_bullets(slide, Inches(0.6), Inches(1.3), Inches(12), Inches(5.5), "État fonctionnel", done, title_size=24, bullet_size=14)

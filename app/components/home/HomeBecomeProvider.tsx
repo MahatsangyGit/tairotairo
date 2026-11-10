@@ -26,7 +26,7 @@ const ACCOUNT_CARDS = [
 
 export default function HomeBecomeProvider() {
   return (
-    <section className="border-t border-border bg-tertiary-50/70 dark:bg-muted/30">
+    <section className="border-t border-border bg-tertiary-50/70">
       <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 lg:px-8">
         <div className="grid gap-10 lg:grid-cols-[1.1fr_0.9fr] lg:items-center">
           <div>

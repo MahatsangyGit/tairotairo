@@ -8,8 +8,8 @@ export default function AmpianaroB2bOffer() {
   if (!isProfessionalClient(user)) return null;
 
   return (
-    <aside className="mb-10 rounded-2xl border border-brand-200 bg-brand-50/70 p-5 dark:border-brand-800 dark:bg-brand-950/30">
-      <p className="text-xs font-semibold uppercase tracking-widest text-brand-700 dark:text-brand-300">
+    <aside className="mb-10 rounded-2xl border border-brand-200 bg-brand-50/70 p-5">
+      <p className="text-xs font-semibold uppercase tracking-widest text-brand-700">
         Offre professionnels
       </p>
       <h2 className="mt-1 text-lg font-semibold text-foreground">

@@ -99,7 +99,7 @@ export default function CoursePage() {
       </p>
 
       {!course.canWatch ? (
-        <div className="mb-8 rounded-xl border border-brand-500/40 bg-brand-50 p-4 dark:bg-brand-950/30">
+        <div className="mb-8 rounded-xl border border-brand-500/40 bg-brand-50 p-4">
           <p className="mb-2 font-medium">
             Connectez-vous pour regarder les vidéos
           </p>
@@ -179,7 +179,7 @@ export default function CoursePage() {
                   onClick={() => setActiveLessonId(l.id)}
                   className={`w-full rounded-lg px-3 py-2 text-left text-sm ${
                     l.id === activeLessonId
-                      ? "bg-brand-100 text-brand-900 dark:bg-brand-900/40 dark:text-brand-100"
+                      ? "bg-brand-100 text-brand-900"
                       : "hover:bg-muted"
                   }`}
                 >

@@ -86,7 +86,7 @@ export default function Navbar() {
   const navLinkClass = (href: string) =>
     `text-sm font-medium transition-colors ${
       isActive(href)
-        ? "text-brand-600 dark:text-brand-400"
+        ? "text-brand-600"
         : "text-muted-foreground hover:text-foreground"
     }`;
 

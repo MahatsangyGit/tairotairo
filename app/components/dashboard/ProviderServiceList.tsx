@@ -137,7 +137,7 @@ export function ProviderServiceCard({
                 {service.available ? "En ligne" : "Hors ligne"}
               </span>
               {service.featuredOnHomepage && (
-                <span className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                <span className="text-xs font-medium text-amber-700">
                   En avant sur l&apos;accueil
                 </span>
               )}

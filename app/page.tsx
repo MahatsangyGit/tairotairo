@@ -71,7 +71,7 @@ export default async function HomePage() {
         <HomeBecomeProvider />
       </HomeGuestOnly>
 
-      <section className="border-t border-border bg-tertiary-50/40 dark:bg-muted/40">
+      <section className="border-t border-border bg-tertiary-50/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
           <div className="text-center mb-12">
             <p className="text-brand-600 text-xs font-semibold uppercase tracking-widest mb-2">
@@ -88,7 +88,7 @@ export default async function HomePage() {
               { step: "03", title: "Réservez", desc: "Confirmez et échangez directement via la messagerie." },
             ].map((item) => (
               <div key={item.step} className="flex flex-col items-center text-center gap-3">
-                <span className="text-4xl font-bold text-tertiary-400 dark:text-tertiary-600">{item.step}</span>
+                <span className="text-4xl font-bold text-tertiary-400">{item.step}</span>
                 <h3 className="font-semibold text-foreground">{item.title}</h3>
                 <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
               </div>

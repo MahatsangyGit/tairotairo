@@ -45,7 +45,7 @@ export default async function AmpianaroHomePage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="mb-10 max-w-2xl">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600">
           Formations en ligne
         </p>
         <h1 className="mb-3 text-3xl font-bold sm:text-4xl">

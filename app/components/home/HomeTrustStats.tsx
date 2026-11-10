@@ -8,7 +8,7 @@ export default function HomeTrustStats({
   if (providerCount === 0 && completedCount === 0) return null;
 
   return (
-    <section className="border-y border-border bg-neutral-50 dark:bg-muted/30">
+    <section className="border-y border-border bg-neutral-50">
       <div className="mx-auto flex max-w-6xl flex-col gap-10 px-4 py-14 sm:flex-row sm:items-center sm:justify-center sm:gap-20 sm:px-6 lg:px-8">
         {providerCount > 0 ? (
           <div className="text-center">

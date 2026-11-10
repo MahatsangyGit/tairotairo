@@ -37,7 +37,7 @@ export default function HomeHeroRotatingPhrase() {
 
   return (
     <span
-      className="mt-1 block min-h-[1.15em] text-brand-600 dark:text-brand-400"
+      className="mt-1 block min-h-[1.15em] text-brand-600"
       aria-live="polite"
     >
       {HERO_NEED_PHRASES[index]}

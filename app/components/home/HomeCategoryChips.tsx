@@ -35,7 +35,7 @@ export default function HomeCategoryChips() {
           className="group flex min-w-[4.75rem] shrink-0 flex-col items-center gap-2 rounded-2xl px-1 py-1 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           <span
-            className="flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-100 dark:bg-brand-900/40 dark:text-brand-300"
+            className="flex size-14 items-center justify-center rounded-full bg-brand-50 text-brand-700 transition-colors group-hover:bg-brand-100"
             aria-hidden
           >
             <CategoryIcon slug={cat.slug} size={26} />
