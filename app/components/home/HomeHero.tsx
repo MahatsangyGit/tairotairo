@@ -77,9 +77,9 @@ export default function HomeHero() {
 
   if (!user) {
     return (
-      <section className="border-b border-border bg-neutral-50 text-foreground dark:bg-background">
+      <section className="border-b border-border bg-neutral-50 text-foreground">
         <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-24 lg:px-8">
-          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+          <p className="mb-4 text-sm font-semibold uppercase tracking-widest text-brand-600">
             Marketplace de services — Madagascar
           </p>
           <h1 className="max-w-4xl text-4xl font-bold leading-[1.08] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
@@ -124,7 +124,7 @@ export default function HomeHero() {
       <div className="mx-auto max-w-6xl px-4 py-12 sm:px-6 md:py-16 lg:px-8">
         <div className="mb-8 flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
           <div className="max-w-2xl">
-            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+            <p className="mb-3 text-sm font-semibold uppercase tracking-widest text-brand-600">
               Votre écosystème Tairo
             </p>
             <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
@@ -150,7 +150,7 @@ export default function HomeHero() {
             className="group flex min-h-44 flex-col justify-between rounded-2xl border border-border bg-card p-6 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-brand-300 hover:shadow-card-hover"
           >
             <div className="flex items-start justify-between gap-4">
-              <span className="flex size-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+              <span className="flex size-12 items-center justify-center rounded-xl bg-brand-50 text-brand-700">
                 <ToolsIcon />
               </span>
               <span className="text-muted-foreground transition-transform group-hover:translate-x-1">
@@ -158,7 +158,7 @@ export default function HomeHero() {
               </span>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+              <p className="text-xs font-semibold uppercase tracking-widest text-brand-600">
                 Tairo ampindramo
               </p>
               <h2 className="mt-1 text-xl font-bold">Louer du matériel</h2>
@@ -170,10 +170,10 @@ export default function HomeHero() {
 
           <Link
             href="/ampianaro"
-            className="group flex min-h-44 flex-col justify-between rounded-2xl border border-tertiary-300 bg-tertiary-50 p-6 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-tertiary-600 hover:shadow-card-hover dark:bg-tertiary-50/10"
+            className="group flex min-h-44 flex-col justify-between rounded-2xl border border-tertiary-300 bg-tertiary-50 p-6 transition-[border-color,box-shadow,transform] duration-200 hover:-translate-y-0.5 hover:border-tertiary-600 hover:shadow-card-hover"
           >
             <div className="flex items-start justify-between gap-4">
-              <span className="flex size-12 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-900 dark:bg-tertiary-400/20 dark:text-tertiary-300">
+              <span className="flex size-12 items-center justify-center rounded-xl bg-tertiary-200 text-tertiary-900">
                 <LearningIcon />
               </span>
               <span className="text-muted-foreground transition-transform group-hover:translate-x-1">
@@ -181,7 +181,7 @@ export default function HomeHero() {
               </span>
             </div>
             <div>
-              <p className="text-xs font-semibold uppercase tracking-widest text-tertiary-900 dark:text-tertiary-300">
+              <p className="text-xs font-semibold uppercase tracking-widest text-tertiary-900">
                 Tairo ampianaro
               </p>
               <h2 className="mt-1 text-xl font-bold">Suivre une formation</h2>

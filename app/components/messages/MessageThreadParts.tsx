@@ -56,7 +56,7 @@ export function MessageThreadHeader({
           </p>
           <p className="text-sm text-muted-foreground">{conversation.subject}</p>
           {negotiation && (
-            <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+            <p className="text-xs text-amber-700 mt-1">
               {negotiation.source === "service"
                 ? "Discussion liée à une annonce — négociez le prix ci-dessous"
                 : "Discussion liée à une proposition — négociez le prix ci-dessous"}
@@ -127,7 +127,7 @@ export function MessageBubbleList({
                   isPriceOffer
                     ? m.isMine
                       ? "bg-amber-600 text-white rounded-br-md"
-                      : "bg-amber-50 text-amber-950 border border-amber-200 dark:bg-amber-950/50 dark:text-amber-50 dark:border-amber-800 rounded-bl-md"
+                      : "bg-amber-50 text-amber-950 border border-amber-200 rounded-bl-md"
                     : m.isMine
                       ? "bg-brand-600 text-white rounded-br-md"
                       : "bg-muted text-foreground rounded-bl-md"
@@ -136,7 +136,7 @@ export function MessageBubbleList({
                 {isPriceOffer && (
                   <p
                     className={`text-xs font-semibold mb-1 ${
-                      m.isMine ? "text-amber-100" : "text-amber-700 dark:text-amber-300"
+                      m.isMine ? "text-amber-100" : "text-amber-700"
                     }`}
                   >
                     💰 Proposition de prix
@@ -167,7 +167,7 @@ export function MessageBubbleList({
                 {m.offerStatus === "ACCEPTED" && (
                   <p
                     className={`text-xs mt-1 font-medium ${
-                      m.isMine ? "text-amber-100" : "text-brand-700 dark:text-brand-300"
+                      m.isMine ? "text-amber-100" : "text-brand-700"
                     }`}
                   >
                     ✓ Accepté

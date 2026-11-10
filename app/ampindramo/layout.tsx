@@ -20,7 +20,7 @@ export default function AmpindramoLayout({
           <div className="flex items-center gap-6">
             <Link
               href="/ampindramo"
-              className="text-lg font-bold tracking-tight text-brand-600 dark:text-brand-400"
+              className="text-lg font-bold tracking-tight text-brand-600"
             >
               Tairo ampindramo
             </Link>
