@@ -20,7 +20,7 @@ export default function AmpianaroLayout({
           <div className="flex items-center gap-6">
             <Link
               href="/ampianaro"
-              className="text-lg font-bold tracking-tight text-brand-600 dark:text-brand-400"
+              className="text-lg font-bold tracking-tight text-brand-600"
             >
               Tairo ampianaro
             </Link>

@@ -75,7 +75,7 @@ export default function FeaturedProvidersSection({
               href={`/providers/${provider.id}`}
               className="group min-w-[240px] snap-start overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-all hover:border-brand-200 hover:shadow-md lg:min-w-0"
             >
-              <div className="relative h-44 bg-brand-50 dark:bg-brand-900/30">
+              <div className="relative h-44 bg-brand-50">
                 {provider.coverImageUrl ? (
                   <OptimizedImage
                     src={provider.coverImageUrl}
@@ -114,7 +114,7 @@ export default function FeaturedProvidersSection({
                     </span>
                   </h3>
                   {provider.price != null ? (
-                    <p className="shrink-0 text-sm font-bold text-brand-700 dark:text-brand-400">
+                    <p className="shrink-0 text-sm font-bold text-brand-700">
                       {formatMgaAmount(provider.price)}
                     </p>
                   ) : null}

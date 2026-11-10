@@ -13,7 +13,7 @@ export default function ClientCompanyBanner() {
   const company = user.companyName?.trim() || user.name;
 
   return (
-    <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-sm dark:border-slate-800">
+    <div className="mb-8 overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 text-white shadow-sm">
       <div className="flex flex-col gap-4 px-5 py-5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
         <div className="flex min-w-0 items-center gap-4">
           <UserAvatar name={company} avatar={user.avatar} size="md" />

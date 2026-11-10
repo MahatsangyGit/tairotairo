@@ -70,7 +70,7 @@ export default function JoinUsModal({
           <Link
             href={`${registerHref}${registerHref.includes("?") ? "&" : "?"}type=pro`}
             onClick={() => onOpenChange(false)}
-            className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-white"
+            className="inline-flex w-full items-center justify-center rounded-full bg-slate-900 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-slate-800"
           >
             Compte entreprise
           </Link>

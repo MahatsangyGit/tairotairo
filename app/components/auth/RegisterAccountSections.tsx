@@ -71,7 +71,7 @@ export function RegisterAccountTypePicker({
             className={cn(
               "flex flex-col items-center gap-1.5 rounded-2xl border px-2 py-3 text-center transition-colors",
               selected
-                ? "border-brand-600 bg-brand-50 text-brand-800 dark:bg-brand-950/40 dark:text-brand-200"
+                ? "border-brand-600 bg-brand-50 text-brand-800"
                 : "border-border bg-card text-muted-foreground hover:border-brand-200 hover:text-foreground"
             )}
           >

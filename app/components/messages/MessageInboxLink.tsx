@@ -71,7 +71,7 @@ export default function MessageInboxLink({
       size="icon"
       className={cn(
         "relative size-9 text-muted-foreground hover:text-foreground",
-        active && "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+        active && "bg-brand-50 text-brand-600"
       )}
       asChild
     >

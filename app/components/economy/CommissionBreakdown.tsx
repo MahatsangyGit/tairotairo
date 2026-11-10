@@ -32,7 +32,7 @@ export default function CommissionBreakdown({
           tone === "onAccent"
             ? "text-amber-100/90"
             : tone === "onSoft"
-              ? "text-amber-800 dark:text-amber-200"
+              ? "text-amber-800"
               : "text-muted-foreground",
           className
         )}
@@ -72,11 +72,11 @@ export default function CommissionBreakdown({
             {formatMgaAmount(split.gross)}
           </dd>
           <dt className="text-muted-foreground">Montant prélevé</dt>
-          <dd className="text-right font-medium text-amber-800 dark:text-amber-300">
+          <dd className="text-right font-medium text-amber-800">
             {formatMgaAmount(split.commissionAmount)}
           </dd>
           <dt className="font-medium text-foreground">Vous recevrez</dt>
-          <dd className="text-right font-semibold text-brand-700 dark:text-brand-300">
+          <dd className="text-right font-semibold text-brand-700">
             {formatMgaAmount(split.net)}
           </dd>
         </dl>

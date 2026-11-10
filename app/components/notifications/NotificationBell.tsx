@@ -114,7 +114,7 @@ export default function NotificationBell() {
         size="icon"
         className={cn(
           "relative size-9 text-muted-foreground hover:text-foreground",
-          open && "bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400"
+          open && "bg-brand-50 text-brand-600"
         )}
         onClick={() => setOpen((prev) => !prev)}
         aria-label={
@@ -182,7 +182,7 @@ export default function NotificationBell() {
                       onClick={() => markAsRead(n.id, n.link)}
                       className={cn(
                         "w-full text-left px-4 py-3 border-b border-border/50 last:border-b-0 hover:bg-muted/50 transition-colors",
-                        !n.read && "bg-tertiary-50/80 dark:bg-tertiary-50"
+                        !n.read && "bg-tertiary-50/80"
                       )}
                     >
                       <p className="font-medium text-foreground text-sm">

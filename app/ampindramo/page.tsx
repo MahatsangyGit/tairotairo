@@ -33,7 +33,7 @@ export default async function AmpindramoHomePage({
   return (
     <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
       <div className="mb-10 max-w-2xl">
-        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600 dark:text-brand-400">
+        <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-brand-600">
           Location de matériel
         </p>
         <h1 className="mb-3 text-3xl font-bold sm:text-4xl">
@@ -82,7 +82,7 @@ export default async function AmpindramoHomePage({
                       {item.categoryLabel}
                     </span>
                     {item.isPlatformOwned ? (
-                      <span className="rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700 dark:bg-brand-900/40 dark:text-brand-300">
+                      <span className="rounded bg-brand-100 px-1.5 py-0.5 text-[10px] font-semibold text-brand-700">
                         Tairo
                       </span>
                     ) : null}

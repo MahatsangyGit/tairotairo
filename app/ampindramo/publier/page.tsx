@@ -158,10 +158,10 @@ export default function PublishEquipmentPage() {
 
           <label
             htmlFor="equipment-photo"
-            className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/30 px-5 py-6 text-center transition-colors hover:border-brand-400 hover:bg-brand-50/50 dark:hover:bg-brand-900/10"
+            className="mt-3 flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border border-dashed border-border bg-muted/30 px-5 py-6 text-center transition-colors hover:border-brand-400 hover:bg-brand-50/50"
           >
             <span
-              className="flex size-11 items-center justify-center rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-300"
+              className="flex size-11 items-center justify-center rounded-full bg-brand-50 text-brand-700"
               aria-hidden="true"
             >
               <svg
@@ -208,7 +208,7 @@ export default function PublishEquipmentPage() {
           />
 
           {file ? (
-            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/60 px-4 py-3 dark:border-brand-800 dark:bg-brand-900/20">
+            <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-brand-200 bg-brand-50/60 px-4 py-3">
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-foreground">
                   {file.name}

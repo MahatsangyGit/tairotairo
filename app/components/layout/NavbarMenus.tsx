@@ -3,7 +3,6 @@
 import Link from "next/link";
 import NotificationBell from "@/components/notifications/NotificationBell";
 import MessageInboxLink from "@/components/messages/MessageInboxLink";
-import ThemeToggle from "@/components/theme/ThemeToggle";
 import UserAvatar from "@/components/profile/UserAvatar";
 import ClientProBadge from "@/components/profile/ClientProBadge";
 import GuestBrowseTrigger from "@/components/auth/GuestBrowseTrigger";
@@ -35,7 +34,7 @@ function MobileNavLink({
       onClick={onClick}
       className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
         active
-          ? "bg-brand-50 text-brand-700 dark:bg-brand-900/30 dark:text-brand-300"
+          ? "bg-brand-50 text-brand-700"
           : "text-foreground hover:bg-muted/50"
       }`}
     >
@@ -124,13 +123,13 @@ export function NavbarDesktopNav({
               >
                 <Link
                   href="/ampindramo"
-                  className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-background hover:text-brand-700 dark:hover:text-brand-300"
+                  className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-background hover:text-brand-700"
                 >
                   Ampindramo
                 </Link>
                 <Link
                   href="/ampianaro"
-                  className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-background hover:text-brand-700 dark:hover:text-brand-300"
+                  className="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-foreground transition-colors hover:bg-background hover:text-brand-700"
                 >
                   Ampianaro
                 </Link>
@@ -153,7 +152,6 @@ export function NavbarDesktopNav({
       </div>
 
       <div className="hidden md:flex items-center gap-3">
-        <ThemeToggle />
         {user ? (
           <>
             <NotificationBell />
@@ -185,7 +183,7 @@ export function NavbarDesktopNav({
             <>
               <Link
                 href="/auth/login"
-                className="text-sm font-medium text-muted-foreground px-3 py-2 rounded-lg transition-colors hover:bg-primary/30 hover:text-primary dark:hover:bg-tertiary-400/30 dark:hover:text-white"
+                className="text-sm font-medium text-muted-foreground px-3 py-2 rounded-lg transition-colors hover:bg-primary/30 hover:text-primary"
               >
                 Connexion
               </Link>
@@ -227,10 +225,6 @@ export function NavbarMobileMenu({
   return (
     <div className="md:hidden border-t border-border bg-card">
       <div className="px-4 py-4 flex flex-col gap-1">
-        <div className="flex items-center justify-between px-3 py-2 mb-1">
-          <span className="text-sm font-medium text-muted-foreground">Thème</span>
-          <ThemeToggle />
-        </div>
         {user ? (
           <>
             <MobileNavLink
@@ -313,7 +307,7 @@ export function NavbarMobileMenu({
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-colors ${
                   isActive(profileHref)
-                    ? "bg-brand-50 dark:bg-brand-900/30"
+                    ? "bg-brand-50"
                     : "hover:bg-muted/50"
                 }`}
               >
